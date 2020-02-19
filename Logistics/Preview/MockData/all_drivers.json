@@ -1,0 +1,16 @@
+[
+  {
+    "deliveries" : [],
+    "_id" : "5e18f7d8967fa959bb821e7b",
+    "driver_id" : "AG",
+    "name" : "Alex's Phone",
+    "device_id" : "1ECF879B-FEB7-4820-9C29-DD9DD57EB4FF",
+    "createdAt" : "2020-01-10T22:16:56.304Z",
+    "updatedAt" : "2020-01-30T04:07:04.658Z",
+    "__v" : 0,
+    "token" : "dxVI1e2NuAA:APA91bEfkY8Wg_bsPWQlNufaG47oUO0l0ho6IHsBnJ1Z--w6X-eGskmOy2skTwqLMLHo9epkN9MPNkd1Gbwcp8LC8fBK-JTVmIr1K38w-oVFmcGUZyeE233ZDK7UB_HcTPMU3bNGfvkb",
+    "active_trip" : "3609dcc7-644c-489d-875c-6873270c4b76",
+    "app_name" : "postman",
+    "platform" : "ios"
+  }
+]

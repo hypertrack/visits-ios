@@ -1,0 +1,47 @@
+PODS:
+  - GoogleMaps (3.7.0):
+    - GoogleMaps/Maps (= 3.7.0)
+  - GoogleMaps/Base (3.7.0)
+  - GoogleMaps/Maps (3.7.0):
+    - GoogleMaps/Base
+  - GRDB.swift (4.4.0):
+    - GRDB.swift/standard (= 4.4.0)
+  - GRDB.swift/standard (4.4.0)
+  - HyperTrack (4.0.1):
+    - GRDB.swift (= 4.4.0)
+    - HyperTrack/Swift (= 4.0.1)
+  - HyperTrack/Swift (4.0.1):
+    - GRDB.swift (= 4.4.0)
+  - Kingfisher/Core (5.13.0)
+  - Kingfisher/SwiftUI (5.13.0):
+    - Kingfisher/Core
+  - SwiftGen (6.1.0)
+  - SwiftLint (0.38.2)
+
+DEPENDENCIES:
+  - GoogleMaps
+  - HyperTrack
+  - Kingfisher/SwiftUI
+  - SwiftGen
+  - SwiftLint
+
+SPEC REPOS:
+  trunk:
+    - GoogleMaps
+    - GRDB.swift
+    - HyperTrack
+    - Kingfisher
+    - SwiftGen
+    - SwiftLint
+
+SPEC CHECKSUMS:
+  GoogleMaps: 55da829c68aa931f3ae982b9e341cc2f3d89c587
+  GRDB.swift: 4f9b6e7efc9470426f6a6de10ec1fee798ff7e43
+  HyperTrack: 55d6c6eeb29dae6e989b42931c8db6c567922c4e
+  Kingfisher: 0d334cada987fcddbe9b5cec516406e1ee9d4748
+  SwiftGen: f872ca75cbd17bf7103c17f13dcfa0d9a15667b0
+  SwiftLint: 8f5d2f903e1c9bcbc832fd16771e80a263ac6cbb
+
+PODFILE CHECKSUM: fd8b664538ea1af026130bbd224e6161ee92bfad
+
+COCOAPODS: 1.8.4
