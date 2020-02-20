@@ -5,6 +5,7 @@
 # Logistics app (iOS)
 
 <p align="center">👉 <a href="https://github.com/hypertrack/logistics-android">Looking for the Android version?</a></p>
+<p align="center"><img src="images/flow-preview.gif"></p>
 
 This is an open-sourced logistics application built using HyperTrack for live location tracking. This app enables logistics fleets to manage their deliveries for the day. The app assigns deliveries to the driver, tracks live location, geofences arrival at a delivery location, and automatically goes to the delivery page to add delivery notes, add proof of delivery, and mark the delivery as complete. Using this sample app will create Trips on the HyperTrack platform. Fleet managers and teams can track the day's deliveries for all drivers in real-time on HyperTrack Views.
 
