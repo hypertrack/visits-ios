@@ -173,7 +173,7 @@ The app uses Google Maps SDK to display package locations. Follow [instructions]
 
 ### 4. Set up backend
 
-A backend is required to manage the drivers/deliveries and to leverage HyperTrack APIs and Webhooks. You can use the [Logistics NodeJS Sample Backend Integration](https://github.com/hypertrack/backend-nodejs-logistics) project to spin up a backend that works out of the box. Please follow the [setup steps](https://github.com/hypertrack/backend-nodejs-logistics#installation-and-setup) to spin up the backend and configure webhooks appropriately.
+A backend is required to manage the drivers/deliveries and to leverage HyperTrack APIs and Webhooks. You can use the [Logistics NodeJS Sample Backend Integration](https://github.com/hypertrack/backend-nodejs-logistics) project to spin up a backend that works out of the box. Please follow the [setup steps](https://github.com/hypertrack/backend-nodejs-logistics#1-get-your-keys) to spin up the backend and configure webhooks appropriately.
 
 ### 5. Configure and run the app
 
