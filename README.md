@@ -36,7 +36,7 @@ This app is using HyperTrack Trips with geofences, which come with powerful view
 
 - This app uses the [HyperTrack SDK](https://github.com/hypertrack/quickstart-ios) to send its device location, name, metadata, and custom markers to HyperTrack's servers
 - This app communicates with a backend to sync on driver and delivery updates (REST API calls and push notifications)
-- The backend ([Logistics NodeJS Sample Backend](https://github.com/hypertrack/backend-nodejs-logistics)) creates and complete trips using [HyperTrack Trips APIs](https://docs.hypertrack.com/#guides-apis-usage-trips), listens to [HyperTrack Webhooks](https://docs.hypertrack.com/#guides-webhooks) and updates the delivery status with new results
+- The backend ([Logistics NodeJS Sample Backend](https://github.com/hypertrack/backend-nodejs-logistics)) creates and complete trips using [HyperTrack Trips APIs](https://www.hypertrack.com/docs/guides/track-trips-with-destination), listens to [HyperTrack Webhooks](https://www.hypertrack.com/docs/guides/track-trips-with-destination#get-trip-updates-on-webhooks) and updates the delivery status with new results
 
 <img src="images/solution-architecture.png">
 
@@ -74,21 +74,21 @@ The backend used for this app makes API calls to manage Trips with geofences (an
 
 ### Trip Creation
 
-The HyperTrack Trips API is used to create a new [trip with geofences](https://docs.hypertrack.com/#guides-track-trips-with-geofences). Each geofence represents a delivery location and includes metadata (delivery id and label). The newly created trip is stored in the driver records, so it's always known that a driver is on an active trip. This will prevent creation of new trips when a driver kills the app and checks in again before checking out.
+The HyperTrack Trips API is used to create a new [trip with geofences](https://www.hypertrack.com/docs/guides/track-trips-with-geofences). Each geofence represents a delivery location and includes metadata (delivery id and label). The newly created trip is stored in the driver records, so it's always known that a driver is on an active trip. This will prevent creation of new trips when a driver kills the app and checks in again before checking out.
 
 > Note: The delivery street address is geocoded into latitude/longitude pairs before the API call to HyperTrack is made.
 
 ### Trip Completion
 
-As soon as the driver checks out, the backend calls the HyperTrack [Complete Trip API endpoint](https://docs.hypertrack.com/#references-apis-trips-post-trips-trip_id-complete). As soon as the trip is completed, the HyperTrack API and dashboard show a trip summary, with [details like time spent and route to deliveries](https://docs.hypertrack.com/#guides-track-trips-with-geofences-get-time-spent-and-route-to).
+As soon as the driver checks out, the backend calls the HyperTrack [Complete Trip API endpoint](https://www.hypertrack.com/docs/references/#references-apis-trips-complete-trip). As soon as the trip is completed, the HyperTrack API and dashboard show a trip summary, with [details like time spent and route to deliveries](https://www.hypertrack.com/docs/guides/track-trips-with-geofences#get-time-spent-and-route-to).
 
 ## How this app uses HyperTrack Webhooks
 
-The backend used for this app needs to be subscribed to HyperTrack Webhooks ([see steps here](https://docs.hypertrack.com/#guides-track-devices-with-the-api-stream-events-via-webhooks)).
+The backend used for this app needs to be subscribed to HyperTrack Webhooks ([see steps here](https://www.hypertrack.com/docs/guides/track-devices-with-api#stream-events-via-webhooks)).
 
 ### Geofence enter or exit
 
-Whenever HyperTrack recognizes that the driver arrived at or exited the delivery geofence, [trip webhooks](https://docs.hypertrack.com/#references-webhooks-trip-payload) will be sent. The backend receives these and updates the delivery records by matching metadata set in the trip (`delivery_id`). After the records were updated, the backend pushes out visible notifications to the app. The app uses these to update the delivery status. When the notification is clicked on, the delivery detail screen is opened.
+Whenever HyperTrack recognizes that the driver arrived at or exited the delivery geofence, [trip webhooks](https://www.hypertrack.com/docs/references/#references-webhooks-trip-payload) will be sent. The backend receives these and updates the delivery records by matching metadata set in the trip (`delivery_id`). After the records were updated, the backend pushes out visible notifications to the app. The app uses these to update the delivery status. When the notification is clicked on, the delivery detail screen is opened.
 
 ## How this app uses HyperTrack SDK
 
@@ -189,7 +189,7 @@ You can now run the app on-device. Being able to run the app and checkin with a 
 
 ## Documentation
 
-For detailed documentation of the APIs, customizations and what all you can build using HyperTrack, please visit the official [docs](https://docs.hypertrack.com).
+For detailed documentation of the APIs, customizations and what all you can build using HyperTrack, please visit the official [docs](https://www.hypertrack.com/docs/).
 
 ## Contribute
 
