@@ -1,47 +1,53 @@
 PODS:
-  - GoogleMaps (3.7.0):
-    - GoogleMaps/Maps (= 3.7.0)
-  - GoogleMaps/Base (3.7.0)
-  - GoogleMaps/Maps (3.7.0):
-    - GoogleMaps/Base
+  - AWSAuthCore (2.13.2):
+    - AWSCore (= 2.13.2)
+  - AWSCognitoIdentityProvider (2.13.2):
+    - AWSCognitoIdentityProviderASF (= 1.0.1)
+    - AWSCore (= 2.13.2)
+  - AWSCognitoIdentityProviderASF (1.0.1)
+  - AWSCore (2.13.2)
+  - AWSMobileClient (2.13.2):
+    - AWSAuthCore (= 2.13.2)
+    - AWSCognitoIdentityProvider (= 2.13.2)
+  - Branch (0.33.1):
+    - Branch/Core (= 0.33.1)
+  - Branch/Core (0.33.1)
   - GRDB.swift (4.4.0):
     - GRDB.swift/standard (= 4.4.0)
   - GRDB.swift/standard (4.4.0)
-  - HyperTrack (4.0.1):
+  - HyperTrack (4.0.2-rc.11):
     - GRDB.swift (= 4.4.0)
-    - HyperTrack/Swift (= 4.0.1)
-  - HyperTrack/Swift (4.0.1):
+    - HyperTrack/Swift (= 4.0.2-rc.11)
+  - HyperTrack/Swift (4.0.2-rc.11):
     - GRDB.swift (= 4.4.0)
-  - Kingfisher/Core (5.13.0)
-  - Kingfisher/SwiftUI (5.13.0):
-    - Kingfisher/Core
-  - SwiftGen (6.1.0)
-  - SwiftLint (0.38.2)
 
 DEPENDENCIES:
-  - GoogleMaps
-  - HyperTrack
-  - Kingfisher/SwiftUI
-  - SwiftGen
-  - SwiftLint
+  - AWSMobileClient (= 2.13.2)
+  - Branch
+  - HyperTrack (= 4.0.2-rc.11)
 
 SPEC REPOS:
-  trunk:
-    - GoogleMaps
+  https://cdn.cocoapods.org/:
     - GRDB.swift
     - HyperTrack
-    - Kingfisher
-    - SwiftGen
-    - SwiftLint
+  trunk:
+    - AWSAuthCore
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSMobileClient
+    - Branch
 
 SPEC CHECKSUMS:
-  GoogleMaps: 55da829c68aa931f3ae982b9e341cc2f3d89c587
+  AWSAuthCore: 890aaf36fa3a913a5948851a576c02456bed4c5b
+  AWSCognitoIdentityProvider: 68455a8d170bb6cd0ec17d261da0ab3d623232b0
+  AWSCognitoIdentityProviderASF: f94f1a502e72ef3d0a1de93e10bf7a79c8698118
+  AWSCore: 8e878a5b1b99cdf3d7df0c1c86be0bfcd6294c11
+  AWSMobileClient: bdec2a26617590bd3eece9bf208005bc4682d424
+  Branch: 65d05ffb137ef504777cff6bd4fb6f770f17145a
   GRDB.swift: 4f9b6e7efc9470426f6a6de10ec1fee798ff7e43
-  HyperTrack: 55d6c6eeb29dae6e989b42931c8db6c567922c4e
-  Kingfisher: 0d334cada987fcddbe9b5cec516406e1ee9d4748
-  SwiftGen: f872ca75cbd17bf7103c17f13dcfa0d9a15667b0
-  SwiftLint: 8f5d2f903e1c9bcbc832fd16771e80a263ac6cbb
+  HyperTrack: 2a71145c25082a73317ff943b8209d1571cbb70d
 
-PODFILE CHECKSUM: fd8b664538ea1af026130bbd224e6161ee92bfad
+PODFILE CHECKSUM: fe40e298b026cf9723a1a3c58dd5d7f121010b6c
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1

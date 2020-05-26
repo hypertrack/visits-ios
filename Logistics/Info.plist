@@ -15,21 +15,34 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string>HTLogistics</string>
+			<key>CFBundleURLName</key>
+			<string>com.hypertrack.logistics.ios.store</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hypertrack-logistics</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>HyperTrack Logistics Sample needs to access this device's location for track the delivery status of my orders.</string>
+	<string>The Logistics app shares your current location with a fleet manager.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>HyperTrack Logistics Sample needs to access this device's location for track the delivery status of my orders.</string>
+	<string>The Logistics app shares your current location with a fleet manager.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>HyperTrack Logistics Sample needs to access this device's location for track the delivery status of my orders.</string>
+	<string>The Logistics app shares your current location with a fleet manager.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>HyperTrack Logistics Sample needs to access this device's motion updates for track the delivery status of my orders.</string>
+	<string>The Logistics app uses your motion patterns to conserve battery life while sharing live location.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -57,6 +70,12 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
+		<string>location-services</string>
+		<string>gps</string>
+		<string>magnetometer</string>
+		<string>accelerometer</string>
+		<string>gyroscope</string>
+		<string>wifi</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -69,9 +88,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
-	<key>git-sha1</key>
-	<string></string>
+	<key>branch_key</key>
+	<string>key_live_cjSN7Pt0Xej1hTb1Ew2AybjbAqaVS636</string>
+	<key>branch_universal_link_domains</key>
+	<array>
+		<string>hypertrack-logistics-alternate.app.link</string>
+		<string>hypertrack-logistics.app.link</string>
+	</array>
 </dict>
 </plist>
