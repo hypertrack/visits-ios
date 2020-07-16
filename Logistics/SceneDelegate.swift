@@ -43,9 +43,25 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     let appView = AppView(
       store: Store<AppState, AppAction>(
-        initialState: AppState.deliveriesScreenshot,
-        reducer: .empty,
-        environment: ()
+        initialState: .initialState(
+          locationPermissions: currentLocationPermissions(),
+          motionPermissions: currentMotionPermissions(),
+          restoration: restorePreviousState()),
+        reducer: appReducer.notifyWhenBecomesTrackable,
+        environment: SystemEnvironment.live(environment:
+          (
+            DeeplinkEnvironment.live,
+            Deliveries.live,
+            LocationEnvironment.live,
+            MotionEnvironment.live,
+            NotificationEnvironment.live,
+            ReachabilityEnvironment.live,
+            RestorationEnvironment.live,
+            SignIn.live,
+            TrackingEnvironment.live,
+            Delivery.live
+          )
+        )
       )
     )
     
