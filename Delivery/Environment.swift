@@ -50,13 +50,13 @@ func hypertrack(_ publishableKey: NonEmptyString) -> HyperTrack {
 
 func sendDeliveryCompletion(_ publishableKey: NonEmptyString, _ geofenceID: NonEmptyString) -> Effect<Never, Never> {
   .fireAndForget {
-    hypertrack(publishableKey).addTripMarker(HyperTrack.Metadata(dictionary: ["geofence_id": geofenceID.rawValue, "completed":true])!)
+    hypertrack(publishableKey).addGeotag(HyperTrack.Metadata(dictionary: ["geofence_id": geofenceID.rawValue, "completed":true])!)
   }
 }
 
 func sendDeliveryNote(_ publishableKey: NonEmptyString, _ note: NonEmptyString, _ geofenceID: NonEmptyString) -> Effect<Never, Never> {
   .fireAndForget {
-    hypertrack(publishableKey).addTripMarker(HyperTrack.Metadata(dictionary: ["geofence_id": geofenceID.rawValue, "delivery_note":note.rawValue])!)
+    hypertrack(publishableKey).addGeotag(HyperTrack.Metadata(dictionary: ["geofence_id": geofenceID.rawValue, "delivery_note":note.rawValue])!)
   }
 }
 

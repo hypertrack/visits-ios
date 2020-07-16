@@ -3,7 +3,7 @@ inhibit_all_warnings!
 use_frameworks!
 
 def hyper_track
-  pod 'HyperTrack', '4.0.2-rc.11'
+  pod 'HyperTrack', '4.2.1'
   pod 'Branch'
 end
 

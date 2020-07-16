@@ -15,16 +15,16 @@ PODS:
   - GRDB.swift (4.4.0):
     - GRDB.swift/standard (= 4.4.0)
   - GRDB.swift/standard (4.4.0)
-  - HyperTrack (4.0.2-rc.11):
+  - HyperTrack (4.2.1):
     - GRDB.swift (= 4.4.0)
-    - HyperTrack/Swift (= 4.0.2-rc.11)
-  - HyperTrack/Swift (4.0.2-rc.11):
+    - HyperTrack/Swift (= 4.2.1)
+  - HyperTrack/Swift (4.2.1):
     - GRDB.swift (= 4.4.0)
 
 DEPENDENCIES:
   - AWSMobileClient (= 2.13.2)
   - Branch
-  - HyperTrack (= 4.0.2-rc.11)
+  - HyperTrack (= 4.2.1)
 
 SPEC REPOS:
   https://cdn.cocoapods.org/:
@@ -46,8 +46,8 @@ SPEC CHECKSUMS:
   AWSMobileClient: bdec2a26617590bd3eece9bf208005bc4682d424
   Branch: 65d05ffb137ef504777cff6bd4fb6f770f17145a
   GRDB.swift: 4f9b6e7efc9470426f6a6de10ec1fee798ff7e43
-  HyperTrack: 2a71145c25082a73317ff943b8209d1571cbb70d
+  HyperTrack: 401234fd4828096e989b22a78b98f342dde8b284
 
-PODFILE CHECKSUM: fe40e298b026cf9723a1a3c58dd5d7f121010b6c
+PODFILE CHECKSUM: 00c1802fdb55993004f54c09034d45e50a609e9d
 
-COCOAPODS: 1.9.1
+COCOAPODS: 1.9.3
