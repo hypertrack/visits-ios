@@ -2,7 +2,7 @@
     <img src="https://hypertrack-blog-img.s3-us-west-2.amazonaws.com/Green0svg.svg" alt="HyperTrack logo" title="HyperTrack" align="right" height="40" />
 </a>
 
-# Logistics app (iOS)
+# Visits app (iOS)
 
 <p align="center">👉 <a href="https://github.com/hypertrack/logistics-android">Looking for the Android version?</a></p>
 
@@ -57,7 +57,7 @@ You will get a response similar to the following (check out all possible fields 
 
 Use the `driver_id` field to match a driver to a record in your system. Associate and store the `device_id` in your datastore. This identifier is important and it is used throughout HyperTrack APIs to identify devices. See [this guide](https://hypertrack.com/docs/guides/setup-and-manage-devices) for more about device management.
 
-Run this query every time you expect drivers to install the Logistics app. We recommend to make a query at the start of each working day before delivery assignment. This way your system will always be in sync with the app.
+Run this query every time you expect drivers to install the Visits app. We recommend to make a query at the start of each working day before delivery assignment. This way your system will always be in sync with the app.
 
 Apps can be reinstalled or installed on multiple phones, which can result in multiple devices with the same metadata but different `device_id`s. If you expect your drivers to only use one mobile phone with the app installed, update your user record with `device_id` having the latest `registered_at` value and delete the no longer needed `device_id` from HyperTrack. The deleted `device_id` won't be able to accidentally track and won't be billed for your account going forward, but the tracking data will be saved.
 
@@ -111,7 +111,7 @@ Response:
 ```
 
 * `geofence_id` the ID of a newly created geofence. Associate it with your delivery and store it in your datastore
-* `created_at` timestamp when geofence was created. Logistics app uses this timestamp to order deliveries from oldest to newest
+* `created_at` timestamp when geofence was created. Visits app uses this timestamp to order deliveries from oldest to newest
 
 The geofence will be represented as a delivery on a driver's app. The delivery address will be reverse geocoded automatically by the app based on location. The street name and house number will be used as a name for the delivery.
 
@@ -199,7 +199,7 @@ For every delivery, driver can send multiple delivery notes and mark every deliv
 ]
 ```
 
-* `type` of webhook data. Logistics app sends delivery notes and delivery completions as [`custom_marker` event](https://hypertrack.com/docs/references#references-webhooks-custom-marker-payload)
+* `type` of webhook data. Visits app sends delivery notes and delivery completions as [`custom_marker` event](https://hypertrack.com/docs/references#references-webhooks-custom-marker-payload)
 * `device_id` of a device that generated the event, corresponds to driver
 * `recorded_at` a timestamp when driver made the action to either complete or send delivery notes
 * `location` of the driver when he performed the action

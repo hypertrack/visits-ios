@@ -1,0 +1,59 @@
+<%
+func lowercaseFirstLetter(_ string: String) -> String {
+  var string = string
+  return string.removeFirst().lowercased() + string
+}
+-%>
+import Prelude
+<%
+  let prismTypes = types.enums.filter { $0.annotations["prism"] != nil }
+  
+  let modules = prismTypes.map { String($0.name.dropLast(6)) } 
+  for module in modules {
+-%>
+import <%= module %>
+<% } -%>
+
+
+<%
+  for type in prismTypes {
+    let prismName = lowercaseFirstLetter(String(type.name.dropLast(6))) + "Prism"
+
+    var cases = ""
+    for element in type.cases {
+      let associated = element.associatedValues.map {
+        lowercaseFirstLetter($0.typeName.name)
+          .replacingOccurrences(of: "?", with: "")
+          .replacingOccurrences(of: "<", with: "")
+          .replacingOccurrences(of: ">", with: "")
+          .replacingOccurrences(of: ", ", with: "")
+      }
+      let pre = associated.isEmpty ? "" : "let "
+      let associatedWrapped: String
+      if associated.isEmpty {
+        associatedWrapped = ""
+      } else {
+        associatedWrapped = associated.reduce(into: "(") { result, element in
+          result += element + ", "
+        }.dropLast(2) + ")"
+      }
+      cases += "    case \(pre).\(element.name)\(associatedWrapped):\n      return .\(element.name)\(associatedWrapped)\n"
+    }
+    cases = String(cases.dropLast())
+-%>
+let <%= prismName %> = Prism<AppAction, <%= type.name %>>(
+  extract: { a in
+    switch a {
+<%= cases %>
+    default:
+      return nil
+    }
+  },
+  embed: { a in
+    switch a {
+<%= cases %>
+    }
+  }
+)
+
+<% } -%>

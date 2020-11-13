@@ -1,0 +1,88 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "combine-schedulers",
+        "repositoryURL": "https://github.com/pointfreeco/combine-schedulers",
+        "state": {
+          "branch": null,
+          "revision": "ff42ec9061d864de7982162011321d3df5080c10",
+          "version": "0.1.2"
+        }
+      },
+      {
+        "package": "Branch",
+        "repositoryURL": "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution",
+        "state": {
+          "branch": null,
+          "revision": "50d4c20cba8880e45e11093feac6d9b9f342cdec",
+          "version": "0.35.1"
+        }
+      },
+      {
+        "package": "Prelude",
+        "repositoryURL": "https://github.com/hypertrack/prelude-swift",
+        "state": {
+          "branch": null,
+          "revision": "e1db277667c643ea5ce1dc75a91772653e85c6ec",
+          "version": "0.0.9"
+        }
+      },
+      {
+        "package": "HyperTrack",
+        "repositoryURL": "https://github.com/hypertrack/sdk-ios",
+        "state": {
+          "branch": null,
+          "revision": "84620def525a9ffc361bbfb6ea6c64826d2ffbaf",
+          "version": "4.6.0"
+        }
+      },
+      {
+        "package": "swift-case-paths",
+        "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
+        "state": {
+          "branch": null,
+          "revision": "ed1838ab4fa5d47db8aa640736dd5b7672548873",
+          "version": "0.1.2"
+        }
+      },
+      {
+        "package": "swift-composable-architecture",
+        "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
+        "state": {
+          "branch": null,
+          "revision": "b67569f69813140cd9c984db33ee959d9711a008",
+          "version": "0.9.0"
+        }
+      },
+      {
+        "package": "swift-nonempty",
+        "repositoryURL": "https://github.com/pointfreeco/swift-nonempty",
+        "state": {
+          "branch": null,
+          "revision": "b4f37767336e4bb98bffa3e05fad579d91c2b2d4",
+          "version": null
+        }
+      },
+      {
+        "package": "Tagged",
+        "repositoryURL": "https://github.com/pointfreeco/swift-tagged",
+        "state": {
+          "branch": null,
+          "revision": "592e1eb4255c571ebffc29955011e352217501b4",
+          "version": "0.5.0"
+        }
+      },
+      {
+        "package": "Views",
+        "repositoryURL": "https://github.com/hypertrack/views-swiftui",
+        "state": {
+          "branch": null,
+          "revision": "20cf578bab33ecb66e7a50d58b3a2c1a0ad37f5f",
+          "version": "0.0.5"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

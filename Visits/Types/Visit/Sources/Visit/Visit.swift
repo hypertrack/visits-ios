@@ -1,0 +1,117 @@
+import Coordinate
+import Foundation
+import NonEmpty
+import Prelude
+import Tagged
+
+
+public typealias Visit = Either<ManualVisit, AssignedVisit>
+
+public enum Visits: Equatable, AutoCodable {
+  case mixed(Set<Visit>)
+  case assigned(Set<AssignedVisit>)
+  case selectedMixed(Visit, Set<Visit>)
+  case selectedAssigned(AssignedVisit, Set<AssignedVisit>)
+}
+
+public struct ManualVisit {
+  public var id: ID
+  public var createdAt: Date
+  public var geotagSent: Geotag
+  public var deliveryNote: DeliveryNote?
+  public var noteFieldFocused: Bool
+  
+  public enum Geotag {
+    case notSent
+    case checkedIn
+    case checkedOut(Date)
+  }
+  
+  public init(
+    id: ID,
+    createdAt: Date,
+    geotagSent: Geotag,
+    deliveryNote: DeliveryNote? = nil,
+    noteFieldFocused: Bool
+  ) {
+    self.id = id
+    self.createdAt = createdAt
+    self.geotagSent = geotagSent
+    self.deliveryNote = deliveryNote
+    self.noteFieldFocused = noteFieldFocused
+  }
+  
+  // Newtypes
+  public typealias ID             = Tagged<ManualVisit,                       NonEmptyString>
+  public typealias DeliveryNote   = Tagged<(ManualVisit, deliveryNote: ()),   NonEmptyString>
+}
+
+public struct AssignedVisit {
+  public var id: ID
+  public var createdAt: Date
+  public var source: Source
+  public var location: Coordinate
+  public var geotagSent: Geotag
+  public var address: These<Street, FullAddress>?
+  public var deliveryNote: DeliveryNote?
+  public var noteFieldFocused: Bool
+  public var metadata: NonEmptyDictionary<Name, Contents>?
+  
+  public enum Source { case geofence }
+  public enum Geotag {
+    case notSent, pickedUp, checkedIn, checkedOut(Date), cancelled(Date)
+  }
+  
+  public init(
+    id: ID,
+    createdAt: Date,
+    source: Source,
+    location: Coordinate,
+    geotagSent: Geotag,
+    noteFieldFocused: Bool,
+    address: These<Street, FullAddress>? = nil,
+    deliveryNote: DeliveryNote? = nil,
+    metadata: NonEmptyDictionary<Name, Contents>? = nil
+  ) {
+    self.id = id
+    self.createdAt = createdAt
+    self.source = source
+    self.location = location
+    self.geotagSent = geotagSent
+    self.noteFieldFocused = noteFieldFocused
+    self.address = address
+    self.deliveryNote = deliveryNote
+    self.metadata = metadata
+  }
+  
+  // Newtypes
+  public typealias ID             = Tagged<AssignedVisit,                     NonEmptyString>
+  public typealias DeliveryNote   = Tagged<(AssignedVisit, deliveryNote: ()), NonEmptyString>
+  public typealias Street         = Tagged<(AssignedVisit, street: ()),       NonEmptyString>
+  public typealias FullAddress    = Tagged<(AssignedVisit, address: ()),      NonEmptyString>
+  public typealias Name           = Tagged<(AssignedVisit, name: ()),         NonEmptyString>
+  public typealias Contents       = Tagged<(AssignedVisit, contents: ()),     NonEmptyString>
+}
+
+
+// MARK: - Foundation
+
+extension ManualVisit: Equatable {}
+extension ManualVisit: Hashable {}
+extension ManualVisit: Codable {}
+
+extension ManualVisit.Geotag: Equatable {}
+extension ManualVisit.Geotag: Hashable {}
+extension ManualVisit.Geotag: AutoCodable {}
+
+extension AssignedVisit: Equatable {}
+extension AssignedVisit: Hashable {}
+extension AssignedVisit: Codable {}
+
+extension AssignedVisit.Geotag: Equatable {}
+extension AssignedVisit.Geotag: Hashable {}
+extension AssignedVisit.Geotag: AutoCodable {}
+
+extension AssignedVisit.Source: Equatable {}
+extension AssignedVisit.Source: Hashable {}
+extension AssignedVisit.Source: AutoCodable {}

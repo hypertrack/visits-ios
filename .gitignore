@@ -1,6 +1,5 @@
 # Xcode
 xcuserdata/
-
-# CocoaPods
-Pods/
-*.xcworkspace
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
