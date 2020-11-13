@@ -24,7 +24,7 @@ public extension HyperTrackEnvironment {
             [
               fromAssignedSource(a.source): a.id.rawValue.rawValue,
               C.type.rawValue: C.cancel.rawValue,
-              C.deliveryNote.rawValue: a.deliveryNote?.rawValue.rawValue ?? ""
+              C.visitNote.rawValue: a.visitNote?.rawValue.rawValue ?? ""
             ]
         case let .checkIn(.left(m)):
           metadata =
@@ -43,14 +43,14 @@ public extension HyperTrackEnvironment {
             [
               C.visitID.rawValue: m.id.rawValue.rawValue,
               C.type.rawValue: C.checkOut.rawValue,
-              C.deliveryNote.rawValue: m.deliveryNote?.rawValue.rawValue ?? ""
+              C.visitNote.rawValue: m.visitNote?.rawValue.rawValue ?? ""
             ]
         case let .checkOut(.right(a)):
           metadata =
             [
               fromAssignedSource(a.source): a.id.rawValue.rawValue,
               C.type.rawValue: C.checkOut.rawValue,
-              C.deliveryNote.rawValue: a.deliveryNote?.rawValue.rawValue ?? ""
+              C.visitNote.rawValue: a.visitNote?.rawValue.rawValue ?? ""
             ]
         case .clockIn:
           metadata = [C.type.rawValue: C.clockIn.rawValue]
@@ -206,7 +206,7 @@ enum C: String {
   case checkOut = "CHECK_OUT"
   case clockIn = "CLOCK_IN"
   case clockOut = "CLOCK_OUT"
-  case deliveryNote = "delivery_note"
+  case visitNote = "visit_note"
   case driverID = "driver_id"
   case geofenceID = "geofence_id"
   case pickUp = "PICK_UP"

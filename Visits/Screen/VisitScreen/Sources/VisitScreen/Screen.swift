@@ -9,7 +9,7 @@ public struct VisitScreen: View {
   public struct State: Equatable {
     
     public var title: String
-    public var deliveryNote: String
+    public var visitNote: String
     public var noteFieldFocused: Bool
     public var visitType: VisitType
     
@@ -55,12 +55,12 @@ public struct VisitScreen: View {
     
     public init(
       title: String,
-      deliveryNote: String,
+      visitNote: String,
       noteFieldFocused: Bool,
       visitType: VisitScreen.State.VisitType
     ) {
       self.title = title
-      self.deliveryNote = deliveryNote
+      self.visitNote = visitNote
       self.noteFieldFocused = noteFieldFocused
       self.visitType = visitType
     }
@@ -105,14 +105,14 @@ public struct VisitScreen: View {
           VisitInformationView(
             visitType: viewStore.visitType,
             showButtons: !viewStore.finished,
-            deliveryNote: viewStore.deliveryNote,
+            visitNote: viewStore.visitNote,
             deleveryNoteBinding: viewStore.binding(
-              get: \.deliveryNote,
+              get: \.visitNote,
               send: { .noteFieldChanged($0) }
             ),
             noteFieldFocused: viewStore.noteFieldFocused,
-            deliveryNoteWantsToBecomeFocused: { viewStore.send(.noteTapped) },
-            deliveryNoteEnterButtonPressed: { viewStore.send(.noteEnterKeyboardButtonTapped) },
+            visitNoteWantsToBecomeFocused: { viewStore.send(.noteTapped) },
+            visitNoteEnterButtonPressed: { viewStore.send(.noteEnterKeyboardButtonTapped) },
             mapTapped: { viewStore.send(.mapTapped) },
             copyTextPressed: {
               if let na = NonEmptyString(rawValue: $0) {
@@ -156,11 +156,11 @@ public struct VisitScreen: View {
 struct VisitInformationView: View {
   let visitType: VisitScreen.State.VisitType
   let showButtons: Bool
-  let deliveryNote: String
+  let visitNote: String
   @Binding var deleveryNoteBinding: String
   let noteFieldFocused: Bool
-  let deliveryNoteWantsToBecomeFocused: () -> Void
-  let deliveryNoteEnterButtonPressed: () -> Void
+  let visitNoteWantsToBecomeFocused: () -> Void
+  let visitNoteEnterButtonPressed: () -> Void
   let mapTapped: () -> Void
   let copyTextPressed: (String) -> Void
   
@@ -176,24 +176,24 @@ struct VisitInformationView: View {
         case .manualVisit(.checkedIn):
           TextFieldBlock(
             text: $deleveryNoteBinding,
-            name: "Delivery note",
+            name: "Visit note",
             errorText: "",
             focused: noteFieldFocused,
             textContentType: .addressCityAndState,
             returnKeyType: .default,
             enablesReturnKeyAutomatically: true,
-            wantsToBecomeFocused: deliveryNoteWantsToBecomeFocused,
-            enterButtonPressed: deliveryNoteEnterButtonPressed
+            wantsToBecomeFocused: visitNoteWantsToBecomeFocused,
+            enterButtonPressed: visitNoteEnterButtonPressed
           )
           .padding([.trailing, .leading], 16)
           .padding(.top, 44 + 16)
         case let .manualVisit(.checkedOut(time)):
           VisitStatus(text: "Visited: \(time)", state: .visited)
             .padding(.top, 44)
-          if !deliveryNote.isEmpty {
+          if !visitNote.isEmpty {
             ContentCell(
-              title: "Delivery note",
-              subTitle: deliveryNote,
+              title: "Visit note",
+              subTitle: visitNote,
               leadingPadding: 16,
               copyTextPressed
             )
@@ -208,33 +208,33 @@ struct VisitInformationView: View {
           case .notSent, .pickedUp, .checkedIn:
             TextFieldBlock(
               text: $deleveryNoteBinding,
-              name: "Delivery note",
+              name: "Visit note",
               errorText: "",
               focused: noteFieldFocused,
               textContentType: .addressCityAndState,
               returnKeyType: .default,
               enablesReturnKeyAutomatically: true,
-              wantsToBecomeFocused: deliveryNoteWantsToBecomeFocused,
-              enterButtonPressed: deliveryNoteEnterButtonPressed
+              wantsToBecomeFocused: visitNoteWantsToBecomeFocused,
+              enterButtonPressed: visitNoteEnterButtonPressed
             )
             .padding([.top, .trailing, .leading], 16)
             
           case let .checkedOut(time):
             VisitStatus(text: "Visited: \(time)", state: .visited)
-            if !deliveryNote.isEmpty {
+            if !visitNote.isEmpty {
               ContentCell(
-                title: "Delivery note",
-                subTitle: deliveryNote,
+                title: "Visit note",
+                subTitle: visitNote,
                 leadingPadding: 16,
                 copyTextPressed
               )
             }
           case .canceled:
             VisitStatus(text: "Canceled", state: .custom(color: .red))
-            if !deliveryNote.isEmpty {
+            if !visitNote.isEmpty {
               ContentCell(
-                title: "Delivery note",
-                subTitle: deliveryNote,
+                title: "Visit note",
+                subTitle: visitNote,
                 leadingPadding: 16,
                 copyTextPressed
               )
@@ -346,7 +346,7 @@ struct Screen_Previews: PreviewProvider {
         store: .init(
           initialState: .init(
             title: "Rauscherstraße 5",
-            deliveryNote: "Waiting for client",
+            visitNote: "Waiting for client",
             noteFieldFocused: false,
             visitType: .assignedVisit(
               coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
@@ -369,7 +369,7 @@ struct Screen_Previews: PreviewProvider {
         store: .init(
           initialState: .init(
             title: "New Visit",
-            deliveryNote: "Waiting for client",
+            visitNote: "Waiting for client",
             noteFieldFocused: false,
             visitType: .manualVisit(status: .checkedOut("5 PM"))
           ),

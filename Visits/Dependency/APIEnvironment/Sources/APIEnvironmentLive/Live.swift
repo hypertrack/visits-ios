@@ -15,8 +15,8 @@ import Visit
 
 public func getVisits(_ pk: PublishableKey, _ dID: DeviceID) -> Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never> {
   getDeliveries(pk.rawValue, dID.rawValue)
-    .map { deliveryOrError in
-      switch deliveryOrError {
+    .map { visitOrError in
+      switch visitOrError {
       case let .left(ds):
         let aas = ds.compactMap { d -> AssignedVisit? in
           let address: These<AssignedVisit.Street, AssignedVisit.FullAddress>?
@@ -50,7 +50,7 @@ public func getVisits(_ pk: PublishableKey, _ dID: DeviceID) -> Effect<Either<No
               geotagSent: .notSent,
               noteFieldFocused: false,
               address: address,
-              deliveryNote: nil,
+              visitNote: nil,
               metadata: metadata
             )
           }
@@ -72,7 +72,7 @@ enum GeofenceType: String {
   case polygon = "Polygon"
 }
 
-typealias DeliveriesListOrErrorString = Either<[DeliveryModel], NonEmptyString>
+typealias DeliveriesListOrErrorString = Either<[VisitModel], NonEmptyString>
 
 func getDeliveries(_ publishableKey: NonEmptyString, _ deviceID: NonEmptyString) -> Effect<DeliveriesListOrErrorString, Never> {
   return getTokenFuture(auth: publishableKey, deviceID: deviceID)
@@ -84,9 +84,9 @@ func getDeliveries(_ publishableKey: NonEmptyString, _ deviceID: NonEmptyString)
 
 extension NonEmptyString: Error {}
 
-// MARK: - Delivery model
+// MARK: - Visit model
 
-struct DeliveryModel: Identifiable {
+struct VisitModel: Identifiable {
   let id: NonEmptyString
   let createdAt: Date
   let lat: Double
@@ -112,7 +112,7 @@ struct DeliveryModel: Identifiable {
     lng: Double,
     shortAddress: String = "",
     fullAddress: String = "",
-    metadata: [DeliveryModel.Metadata]
+    metadata: [VisitModel.Metadata]
   ) {
     self.id = id
     self.createdAt = createdAt
@@ -124,8 +124,8 @@ struct DeliveryModel: Identifiable {
   }
 }
 
-extension DeliveryModel: Equatable {
-  static func == (lhs: DeliveryModel, rhs: DeliveryModel) -> Bool {
+extension VisitModel: Equatable {
+  static func == (lhs: VisitModel, rhs: VisitModel) -> Bool {
     return lhs.id == rhs.id
   }
 }
@@ -139,8 +139,8 @@ private enum GeofenceKeys: String {
   case createdAt = "created_at"
 }
 
-func decodeDeliveryArrayData(data: Data) -> AnyPublisher<[DeliveryModel], Error> {
-  Future<[DeliveryModel], Error> { promise in
+func decodeVisitArrayData(data: Data) -> AnyPublisher<[VisitModel], Error> {
+  Future<[VisitModel], Error> { promise in
     do {
       let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]]
       
@@ -149,19 +149,19 @@ func decodeDeliveryArrayData(data: Data) -> AnyPublisher<[DeliveryModel], Error>
         return
       }
       
-      var decodedDelivery: [DeliveryModel] = []
+      var decodedVisit: [VisitModel] = []
       
       for jsonItem in deliveriesjson {
         
-        if let model = createDeliveryFrom(json: jsonItem) {
+        if let model = createVisitFrom(json: jsonItem) {
           
-          decodedDelivery.append(model)
+          decodedVisit.append(model)
           
         }
         
       }
       
-      promise(.success(decodedDelivery))
+      promise(.success(decodedVisit))
     } catch let error {
       promise(.failure(error))
     }
@@ -169,12 +169,12 @@ func decodeDeliveryArrayData(data: Data) -> AnyPublisher<[DeliveryModel], Error>
   .eraseToAnyPublisher()
 }
 
-func createDeliveryFrom(json: [String: Any]) -> DeliveryModel? {
+func createVisitFrom(json: [String: Any]) -> VisitModel? {
   let id = json[GeofenceKeys.id.rawValue] as? String
   let geometry = json[GeofenceKeys.geometry.rawValue] as? [String: Any]
   let type = geometry?[GeofenceKeys.type.rawValue] as? String
   let createdAtString = json[GeofenceKeys.createdAt.rawValue] as? String
-  var metadataList: [DeliveryModel.Metadata] = []
+  var metadataList: [VisitModel.Metadata] = []
   let metadataJson = json[GeofenceKeys.metadata.rawValue] as? [String: Any]
   
   if let unwrappedMetadata = metadataJson {
@@ -183,13 +183,13 @@ func createDeliveryFrom(json: [String: Any]) -> DeliveryModel? {
       let value = keyValue.value as? String
       
       if let metaValue = value {
-        metadataList.append(DeliveryModel.Metadata(key: keyValue.key, value: metaValue))
+        metadataList.append(VisitModel.Metadata(key: keyValue.key, value: metaValue))
       }
     }
   }
   
-  if let deliveryID = id, let deliveryType = type, let date = createdAtString?.iso8601 {
-    switch deliveryType {
+  if let visitID = id, let visitType = type, let date = createdAtString?.iso8601 {
+    switch visitType {
     case GeofenceType.point.rawValue:
       
       let pointCoordinate = geometry?[GeofenceKeys.coordinates.rawValue] as? [Double]
@@ -197,7 +197,7 @@ func createDeliveryFrom(json: [String: Any]) -> DeliveryModel? {
       let lat = pointCoordinate?.last
       
       if let latitude = lat, let longitude = lng {
-        return DeliveryModel(id: NonEmptyString(stringLiteral: deliveryID), createdAt: date, lat: latitude, lng: longitude, metadata: metadataList)
+        return VisitModel(id: NonEmptyString(stringLiteral: visitID), createdAt: date, lat: latitude, lng: longitude, metadata: metadataList)
       } else {
         return nil
       }
@@ -211,7 +211,7 @@ func createDeliveryFrom(json: [String: Any]) -> DeliveryModel? {
         
         let centroidCoordinate = getPolygonCentroid(points)
         
-        return DeliveryModel(id: NonEmptyString(stringLiteral: deliveryID), createdAt: date, lat: centroidCoordinate.latitude, lng: centroidCoordinate.longitude, metadata: metadataList)
+        return VisitModel(id: NonEmptyString(stringLiteral: visitID), createdAt: date, lat: centroidCoordinate.latitude, lng: centroidCoordinate.longitude, metadata: metadataList)
       } else {
         return nil
       }
@@ -247,8 +247,8 @@ func getPolygonCentroid(_ points: [CLLocationCoordinate2D]) -> CLLocationCoordin
   return result
 }
 
-func sortDeliveries(deliveries: [DeliveryModel]) -> AnyPublisher<[DeliveryModel], Error> {
-  Future<[DeliveryModel], Error> { promise in
+func sortDeliveries(deliveries: [VisitModel]) -> AnyPublisher<[VisitModel], Error> {
+  Future<[VisitModel], Error> { promise in
     var sortedDeliveries = deliveries
     sortedDeliveries = sortedDeliveries.sorted {
       if $0.createdAt == $1.createdAt {
@@ -318,11 +318,11 @@ func deliveriesRequest(auth token: NonEmptyString, deviceID: NonEmptyString) -> 
   return request
 }
 
-func deliveriesFuture(auth token: NonEmptyString, deviceID: NonEmptyString) -> AnyPublisher<[DeliveryModel], NonEmptyString> {
+func deliveriesFuture(auth token: NonEmptyString, deviceID: NonEmptyString) -> AnyPublisher<[VisitModel], NonEmptyString> {
   URLSession.shared.dataTaskPublisher(for: deliveriesRequest(auth: token, deviceID: deviceID))
     .map { data, _ in data }
     .mapError { $0 as Error }
-    .flatMap { decodeDeliveryArrayData(data: $0) }
+    .flatMap { decodeVisitArrayData(data: $0) }
     .flatMap { geocodingFor(deliveries: $0) }
     .flatMap { sortDeliveries(deliveries: $0) }
     .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
@@ -335,27 +335,27 @@ func deliveriesDismissTimer(scheduler: AnySchedulerOf<DispatchQueue>) -> Effect<
     .eraseToEffect()
 }
 
-func geocodingFor(deliveries: [DeliveryModel]) -> AnyPublisher<[DeliveryModel], Error> {
+func geocodingFor(deliveries: [VisitModel]) -> AnyPublisher<[VisitModel], Error> {
   Publishers.Sequence(sequence: deliveries)
-    .flatMap { geocodingSingleSequence(delivery: $0) }
+    .flatMap { geocodingSingleSequence(visit: $0) }
     .collect()
     .eraseToAnyPublisher()
 }
 
-func geocodingSingleSequence(delivery: DeliveryModel) -> AnyPublisher<DeliveryModel, Error> {
-  Future<DeliveryModel, Error> { promise in
-    makeSearchGeocode(model: delivery) {
+func geocodingSingleSequence(visit: VisitModel) -> AnyPublisher<VisitModel, Error> {
+  Future<VisitModel, Error> { promise in
+    makeSearchGeocode(model: visit) {
       if let model = $0 {
         promise(.success(model))
       } else {
-        promise(.success(delivery))
+        promise(.success(visit))
       }
     }
   }
   .eraseToAnyPublisher()
 }
 
-private func makeSearchGeocode(model: DeliveryModel, completion: @escaping (DeliveryModel?) -> Void) {
+private func makeSearchGeocode(model: VisitModel, completion: @escaping (VisitModel?) -> Void) {
   var insideModel = model
   CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: model.lat, longitude: model.lng), completionHandler: { (placemarks, error) -> Void in
     guard error == nil else {

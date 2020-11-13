@@ -18,7 +18,7 @@ public struct ManualVisit {
   public var id: ID
   public var createdAt: Date
   public var geotagSent: Geotag
-  public var deliveryNote: DeliveryNote?
+  public var visitNote: VisitNote?
   public var noteFieldFocused: Bool
   
   public enum Geotag {
@@ -31,19 +31,19 @@ public struct ManualVisit {
     id: ID,
     createdAt: Date,
     geotagSent: Geotag,
-    deliveryNote: DeliveryNote? = nil,
+    visitNote: VisitNote? = nil,
     noteFieldFocused: Bool
   ) {
     self.id = id
     self.createdAt = createdAt
     self.geotagSent = geotagSent
-    self.deliveryNote = deliveryNote
+    self.visitNote = visitNote
     self.noteFieldFocused = noteFieldFocused
   }
   
   // Newtypes
   public typealias ID             = Tagged<ManualVisit,                       NonEmptyString>
-  public typealias DeliveryNote   = Tagged<(ManualVisit, deliveryNote: ()),   NonEmptyString>
+  public typealias VisitNote   = Tagged<(ManualVisit, visitNote: ()),   NonEmptyString>
 }
 
 public struct AssignedVisit {
@@ -53,7 +53,7 @@ public struct AssignedVisit {
   public var location: Coordinate
   public var geotagSent: Geotag
   public var address: These<Street, FullAddress>?
-  public var deliveryNote: DeliveryNote?
+  public var visitNote: VisitNote?
   public var noteFieldFocused: Bool
   public var metadata: NonEmptyDictionary<Name, Contents>?
   
@@ -70,7 +70,7 @@ public struct AssignedVisit {
     geotagSent: Geotag,
     noteFieldFocused: Bool,
     address: These<Street, FullAddress>? = nil,
-    deliveryNote: DeliveryNote? = nil,
+    visitNote: VisitNote? = nil,
     metadata: NonEmptyDictionary<Name, Contents>? = nil
   ) {
     self.id = id
@@ -80,13 +80,13 @@ public struct AssignedVisit {
     self.geotagSent = geotagSent
     self.noteFieldFocused = noteFieldFocused
     self.address = address
-    self.deliveryNote = deliveryNote
+    self.visitNote = visitNote
     self.metadata = metadata
   }
   
   // Newtypes
   public typealias ID             = Tagged<AssignedVisit,                     NonEmptyString>
-  public typealias DeliveryNote   = Tagged<(AssignedVisit, deliveryNote: ()), NonEmptyString>
+  public typealias VisitNote   = Tagged<(AssignedVisit, visitNote: ()), NonEmptyString>
   public typealias Street         = Tagged<(AssignedVisit, street: ()),       NonEmptyString>
   public typealias FullAddress    = Tagged<(AssignedVisit, address: ()),      NonEmptyString>
   public typealias Name           = Tagged<(AssignedVisit, name: ()),         NonEmptyString>

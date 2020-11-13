@@ -22,23 +22,23 @@ public struct AssignedCheckIn: Equatable {
 
 public struct ManualCheckOut: Equatable {
   public let id: M.ID
-  public let deliveryNote: M.DeliveryNote?
+  public let visitNote: M.VisitNote?
   
-  public init(id: M.ID, deliveryNote: M.DeliveryNote?) {
+  public init(id: M.ID, visitNote: M.VisitNote?) {
     self.id = id
-    self.deliveryNote = deliveryNote
+    self.visitNote = visitNote
   }
 }
 
 public struct AssignedComplete: Equatable {
   public let id: A.ID
   public let source: A.Source
-  public let deliveryNote: A.DeliveryNote?
+  public let visitNote: A.VisitNote?
   
-  public init(id: A.ID, source: A.Source, deliveryNote: A.DeliveryNote?) {
+  public init(id: A.ID, source: A.Source, visitNote: A.VisitNote?) {
     self.id = id
     self.source = source
-    self.deliveryNote = deliveryNote
+    self.visitNote = visitNote
   }
 }
 

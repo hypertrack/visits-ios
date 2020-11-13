@@ -148,9 +148,9 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .visit(.copyTextPressed(t)): return .copyToPasteboard(t)
   case .visit(.mapTapped): return .openAppleMaps
   case .visit(.noteEnterKeyboardButtonTapped): return .dismissFocus
-  case let .visit(.noteFieldChanged(d)) where d.isEmpty: return .deliveryNoteChanged(nil)
-  case let .visit(.noteFieldChanged(d)): return .deliveryNoteChanged(.init(stringLiteral: d))
-  case .visit(.noteTapped): return .focusDeliveryNote
+  case let .visit(.noteFieldChanged(d)) where d.isEmpty: return .visitNoteChanged(nil)
+  case let .visit(.noteFieldChanged(d)): return .visitNoteChanged(.init(stringLiteral: d))
+  case .visit(.noteTapped): return .focusVisitNote
   case .visit(.pickedUpButtonTapped): return .pickUpVisit
   case .visit(.tappedOutsideFocusedTextField): return .dismissFocus
   }
@@ -253,12 +253,12 @@ func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHead
 }
 
 func visitScreen(from v: Visit) -> VisitScreen.State {
-  let deliveryNote: String
+  let visitNote: String
   let visitType: VisitScreen.State.VisitType
   let noteFieldFocused: Bool
   switch v {
   case let .left(m):
-    deliveryNote = m.deliveryNote?.rawValue.rawValue ?? ""
+    visitNote = m.visitNote?.rawValue.rawValue ?? ""
     noteFieldFocused = m.noteFieldFocused
     switch m.geotagSent {
     case .checkedIn:
@@ -269,7 +269,7 @@ func visitScreen(from v: Visit) -> VisitScreen.State {
       visitType = .manualVisit(status: .notSent)
     }
   case let .right(a):
-    deliveryNote = a.deliveryNote?.rawValue.rawValue ?? ""
+    visitNote = a.visitNote?.rawValue.rawValue ?? ""
     noteFieldFocused = a.noteFieldFocused
     let status: VisitScreen.State.VisitType.AssignedVisitStatus
     switch a.geotagSent {
@@ -281,7 +281,7 @@ func visitScreen(from v: Visit) -> VisitScreen.State {
     }
     visitType = .assignedVisit(coordinate: a.location, address: assignedVisitFullAddress(from: a), metadata: assignedVisitMetadata(from: a), status: status)
   }
-  return .init(title: visitTitle(from: v), deliveryNote: deliveryNote, noteFieldFocused: noteFieldFocused, visitType: visitType)
+  return .init(title: visitTitle(from: v), visitNote: visitNote, noteFieldFocused: noteFieldFocused, visitType: visitType)
 }
 
 func visitTitle(from v: Visit) -> String {

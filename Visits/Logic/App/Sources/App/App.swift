@@ -86,9 +86,9 @@ public enum AppAction: Equatable {
   case cancelVisit
   case checkInVisit
   case checkOutVisit
-  case deliveryNoteChanged(NonEmptyString?)
+  case visitNoteChanged(NonEmptyString?)
   case deselectVisit
-  case focusDeliveryNote
+  case focusVisitNote
   case openAppleMaps
   case pickUpVisit
   case visitsUpdated(Either<NonEmptySet<AssignedVisit>, NonEmptyString>)
@@ -406,7 +406,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.selectedAssigned(a, aas), pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.cancel(.init(id: a.id, source: a.source, deliveryNote: a.deliveryNote)))
+              .addGeotag(.cancel(.init(id: a.id, source: a.source, visitNote: a.visitNote)))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -418,7 +418,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.selectedMixed(.right(a), vs), pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.cancel(.init(id: a.id, source: a.source, deliveryNote: a.deliveryNote)))
+              .addGeotag(.cancel(.init(id: a.id, source: a.source, visitNote: a.visitNote)))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -476,7 +476,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.selectedAssigned(a, aas), pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, deliveryNote: a.deliveryNote))))
+              .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, visitNote: a.visitNote))))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -488,7 +488,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.selectedMixed(.right(a), vs), pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, deliveryNote: a.deliveryNote))))
+              .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, visitNote: a.visitNote))))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -500,7 +500,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.selectedMixed(.left(m), vs), pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.checkOut(.left(.init(id: m.id, deliveryNote: m.deliveryNote))))
+              .addGeotag(.checkOut(.left(.init(id: m.id, visitNote: m.visitNote))))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -509,32 +509,32 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         default:
           return .none
         }
-      case let .deliveryNoteChanged(n):
+      case let .visitNoteChanged(n):
         switch v {
         case let .selectedAssigned(a, aas):
           var a = a
           if let n = n {
-            a.deliveryNote = .init(rawValue: n)
+            a.visitNote = .init(rawValue: n)
           } else {
-            a.deliveryNote = nil
+            a.visitNote = nil
           }
           state.flow = .visits(.selectedAssigned(a, aas), pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.left(m), vs):
           var m = m
           if let n = n {
-            m.deliveryNote = .init(rawValue: n)
+            m.visitNote = .init(rawValue: n)
           } else {
-            m.deliveryNote = nil
+            m.visitNote = nil
           }
           state.flow = .visits(.selectedMixed(.left(m), vs), pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.right(a), vs):
           var a = a
           if let n = n {
-            a.deliveryNote = .init(rawValue: n)
+            a.visitNote = .init(rawValue: n)
           } else {
-            a.deliveryNote = nil
+            a.visitNote = nil
           }
           state.flow = .visits(.selectedMixed(.right(a), vs), pk, drID, deID, us, p, r, d)
           return .none
@@ -559,7 +559,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(.assigned(res), pk, drID, deID, us, p, r, d)
           return .none
         }
-      case .focusDeliveryNote:
+      case .focusVisitNote:
         switch v {
         case let .selectedAssigned(a, aas):
           var a = a
