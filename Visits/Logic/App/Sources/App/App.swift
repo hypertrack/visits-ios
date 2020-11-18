@@ -670,34 +670,38 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case .startTracking:
+        var effects: [Effect<AppAction, Never>] = [
+          environment.hyperTrack
+            .startTracking()
+            .fireAndForget(),
+          environment.hyperTrack
+            .addGeotag(.clockIn)
+            .fireAndForget()
+        ]
         if r != .refreshingVisits {
           state.flow = .visits(filterOutOldVisits(v, now: environment.date()), pk, drID, deID, us, p, .refreshingVisits, d)
-          return .merge(
-            environment.hyperTrack
-              .startTracking()
-              .fireAndForget(),
+          effects.append(
             environment.api
-              .getVisits(pk, deID)
-              .cancellable(id: RefreshingVisitsID())
-              .map(AppAction.visitsUpdated)
+            .getVisits(pk, deID)
+            .cancellable(id: RefreshingVisitsID())
+            .map(AppAction.visitsUpdated)
           )
         }
-        return environment.hyperTrack
-          .startTracking()
-          .fireAndForget()
+        return .merge(effects)
       case .stopTracking:
+        var effects: [Effect<AppAction, Never>] = [
+          environment.hyperTrack
+            .stopTracking()
+            .fireAndForget(),
+          environment.hyperTrack
+            .addGeotag(.clockOut)
+            .fireAndForget()
+        ]
         if r == .refreshingVisits {
           state.flow = .visits(v, pk, drID, deID, us, p, .none, d)
-          return .merge(
-            environment.hyperTrack
-              .stopTracking()
-              .fireAndForget(),
-            .cancel(id: RefreshingVisitsID())
-          )
+          effects.append(.cancel(id: RefreshingVisitsID()))
         }
-        return environment.hyperTrack
-          .stopTracking()
-          .fireAndForget()
+        return .merge(effects)
       case let .visitsUpdated(.left(vs)):
         state.flow = .visits(mergeVisits(vs: v, with: vs), pk, drID, deID, us, p, .none, d)
         return .none
