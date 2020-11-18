@@ -25,7 +25,6 @@
 		313C764F255EDC02009BE86C /* HapticFeedbackEnvironmentLive in Frameworks */ = {isa = PBXBuildFile; productRef = 313C764E255EDC02009BE86C /* HapticFeedbackEnvironmentLive */; };
 		313C7651255EDC02009BE86C /* HyperTrackEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7650255EDC02009BE86C /* HyperTrackEnvironment */; };
 		313C7653255EDC02009BE86C /* HyperTrackEnvironmentLive in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7652255EDC02009BE86C /* HyperTrackEnvironmentLive */; };
-		313C7655255EDC03009BE86C /* LaunchScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7654255EDC03009BE86C /* LaunchScreen */; };
 		313C7657255EDC03009BE86C /* ManualVisitsStatus in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7656255EDC03009BE86C /* ManualVisitsStatus */; };
 		313C7659255EDC03009BE86C /* MapEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7658255EDC03009BE86C /* MapEnvironment */; };
 		313C765B255EDC03009BE86C /* MapEnvironmentLive in Frameworks */ = {isa = PBXBuildFile; productRef = 313C765A255EDC03009BE86C /* MapEnvironmentLive */; };
@@ -68,6 +67,7 @@
 		319453D62548674E00D86A04 /* Prelude in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 319453D42548674E00D86A04 /* Prelude */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		31AC38832545CD4C00D29345 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 31AC38822545CD4C00D29345 /* App */; };
 		31E1752A255AF9AB00DF5219 /* HyperTrack in Frameworks */ = {isa = PBXBuildFile; productRef = 31E17529255AF9AB00DF5219 /* HyperTrack */; };
+		31FA079225657B69008B84F4 /* LoadingScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 31FA079125657B69008B84F4 /* LoadingScreen */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,7 +134,6 @@
 		316AA8642547FFBA00FC3D55 /* AppScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppScreen; sourceTree = "<group>"; };
 		318E585C2546B7EA00EAA61A /* PublishableKey */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PublishableKey; sourceTree = "<group>"; };
 		318E585E2546BA7200EAA61A /* DriverID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverID; sourceTree = "<group>"; };
-		319453B225480B9800D86A04 /* LaunchScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LaunchScreen; path = "/Users/tulushev/Documents/Repositories/visits-ios/Visits/Screen/LaunchScreen"; sourceTree = "<absolute>"; };
 		319453CB2548417700D86A04 /* AppAdapter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AppAdapter; path = Visits/Adapter/AppAdapter; sourceTree = SOURCE_ROOT; };
 		31AC38802545CCE500D29345 /* App */ = {isa = PBXFileReference; lastKnownFileType = folder; path = App; sourceTree = "<group>"; };
 		31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PasteboardEnvironment; sourceTree = "<group>"; };
@@ -157,6 +156,7 @@
 		31F0725C2555E5E2002A7A53 /* SDK */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SDK; sourceTree = "<group>"; };
 		31F0726525592399002A7A53 /* VisitsScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitsScreen; sourceTree = "<group>"; };
 		31F2E95A251BD2520081C9BE /* DeepLinkScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeepLinkScreen; sourceTree = "<group>"; };
+		31FA078E25657969008B84F4 /* LoadingScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = LoadingScreen; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,10 +175,10 @@
 				313C7667255EDC05009BE86C /* RestorationState in Frameworks */,
 				313C764F255EDC02009BE86C /* HapticFeedbackEnvironmentLive in Frameworks */,
 				313C7665255EDC05009BE86C /* PublishableKey in Frameworks */,
-				313C7655255EDC03009BE86C /* LaunchScreen in Frameworks */,
 				313C766B255EDC05009BE86C /* SignInScreen in Frameworks */,
 				313C765F255EDC04009BE86C /* NetworkEnvironmentLive in Frameworks */,
 				313C7639255EDB93009BE86C /* APIEnvironmentLive in Frameworks */,
+				31FA079225657B69008B84F4 /* LoadingScreen in Frameworks */,
 				313C7669255EDC05009BE86C /* SDK in Frameworks */,
 				313C766D255EDC06009BE86C /* StateRestorationEnvironment in Frameworks */,
 				318E586E25476B9700EAA61A /* AppLive in Frameworks */,
@@ -284,11 +284,11 @@
 		316AA86625480B0C00FC3D55 /* Screen */ = {
 			isa = PBXGroup;
 			children = (
+				31FA078E25657969008B84F4 /* LoadingScreen */,
 				316AA8642547FFBA00FC3D55 /* AppScreen */,
 				31072BCD254C765B00ECBA34 /* BlockerScreen */,
 				31F2E95A251BD2520081C9BE /* DeepLinkScreen */,
 				31072BCA254C60E300ECBA34 /* DriverIDScreen */,
-				319453B225480B9800D86A04 /* LaunchScreen */,
 				31072BBB254BF54300ECBA34 /* SignInScreen */,
 				311E240C25594D6F002A122E /* VisitScreen */,
 				31F0726525592399002A7A53 /* VisitsScreen */,
@@ -410,7 +410,6 @@
 				313C764E255EDC02009BE86C /* HapticFeedbackEnvironmentLive */,
 				313C7650255EDC02009BE86C /* HyperTrackEnvironment */,
 				313C7652255EDC02009BE86C /* HyperTrackEnvironmentLive */,
-				313C7654255EDC03009BE86C /* LaunchScreen */,
 				313C7656255EDC03009BE86C /* ManualVisitsStatus */,
 				313C7658255EDC03009BE86C /* MapEnvironment */,
 				313C765A255EDC03009BE86C /* MapEnvironmentLive */,
@@ -428,6 +427,7 @@
 				313C7672255EDC06009BE86C /* VisitScreen */,
 				313C7674255EDC07009BE86C /* VisitsScreen */,
 				313C767D255EE14E009BE86C /* Views */,
+				31FA079125657B69008B84F4 /* LoadingScreen */,
 			);
 			productName = Visits;
 			productReference = 3161D1212512A2B500AAFCCD /* Visits.app */;
@@ -935,10 +935,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HyperTrackEnvironmentLive;
 		};
-		313C7654255EDC03009BE86C /* LaunchScreen */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = LaunchScreen;
-		};
 		313C7656255EDC03009BE86C /* ManualVisitsStatus */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ManualVisitsStatus;
@@ -1038,6 +1034,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */;
 			productName = HyperTrack;
+		};
+		31FA079125657B69008B84F4 /* LoadingScreen */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LoadingScreen;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

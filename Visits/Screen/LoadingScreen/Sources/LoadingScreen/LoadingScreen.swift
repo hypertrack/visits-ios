@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct LaunchScreen: View {
+public struct LoadingScreen: View {
   
   public init() {}
   
@@ -13,8 +13,8 @@ public struct LaunchScreen: View {
   }
 }
 
-struct LaunchScreen_Previews: PreviewProvider {
+struct LoadingScreen_Previews: PreviewProvider {
   static var previews: some View {
-    LaunchScreen()
+    LoadingScreen()
   }
 }

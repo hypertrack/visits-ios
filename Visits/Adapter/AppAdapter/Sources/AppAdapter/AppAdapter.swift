@@ -4,7 +4,7 @@ import BlockerScreen
 import ComposableArchitecture
 import DeepLinkScreen
 import DriverIDScreen
-import LaunchScreen
+import LoadingScreen
 import Prelude
 import SignInScreen
 import Visit

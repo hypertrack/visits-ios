@@ -2,7 +2,7 @@ import BlockerScreen
 import ComposableArchitecture
 import DeepLinkScreen
 import DriverIDScreen
-import LaunchScreen
+import LoadingScreen
 import SignInScreen
 import SwiftUI
 import VisitScreen
@@ -35,7 +35,7 @@ public struct AppScreen: View {
     WithViewStore(store) { viewStore in
       switch viewStore.state {
       case .launch:
-        LaunchScreen()
+        LoadingScreen()
       case .deepLink:
         IfLetStore(
           store.actionless.scope(
