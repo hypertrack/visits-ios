@@ -76,7 +76,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
   case let .visits(_, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
-  case let .visits(v, _, _, deID, us, p, r, _):
+  case let .visits(v, pk, _, deID, us, p, r, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions) {
     case (_, _, .disabled, _):              return .blocker(.locationDisabled)
     case (_, _, .denied, _):                return .blocker(.locationDenied)
@@ -95,10 +95,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       switch v {
       case let .mixed(visits):
         let (pending, visited, completed, canceled) = visitHeaders(from: Array(visits))
-        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: true))
+        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue))
       case let .assigned(assignedVisits):
         let (pending, visited, completed, canceled) = visitHeaders(from: assignedVisits.map(Either.right))
-        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: false))
+        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue))
       case let .selectedMixed(selectedVisit, _):
         return .visit(visitScreen(from: selectedVisit))
       case let .selectedAssigned(selectedAssignedVisit, _):
