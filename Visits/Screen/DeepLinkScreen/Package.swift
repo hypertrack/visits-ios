@@ -8,7 +8,7 @@ let package = Package(
   products: [.library(name: "DeepLinkScreen", targets: ["DeepLinkScreen"])],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
-    .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.5"))
+    .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.6"))
   ],
   targets: [
     .target(

@@ -9,7 +9,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
-    .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.5")),
+    .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.6")),
     .package(name: "Tagged", url: "https://github.com/pointfreeco/swift-tagged", .exact("0.5.0"))
   ],
   targets: [

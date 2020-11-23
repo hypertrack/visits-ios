@@ -85,6 +85,12 @@ public struct VisitsScreen: View {
       blue: 205.0 / 255.0,
       alpha: 1.0
     )
+    UITabBar.appearance().isTranslucent = false
+    UITabBar.appearance().barTintColor = UIColor(named: "TabBarBackgroundColor")
+    UITabBar.appearance(for: .init(userInterfaceStyle: .dark)).backgroundImage = UIColor.gunPowder.image()
+    UITabBar.appearance(for: .init(userInterfaceStyle: .light)).backgroundImage = UIColor.white.image()
+    UITabBar.appearance(for: .init(userInterfaceStyle: .dark)).shadowImage = UIColor.gunPowder.image()
+    UITabBar.appearance(for: .init(userInterfaceStyle: .light)).shadowImage = UIColor.white.image()
   }
   
   public var body: some View {
@@ -146,10 +152,10 @@ public struct VisitsScreen: View {
                   }
                 }
                 .modifier(AppBackground())
-                .environment(\.horizontalSizeClass, .regular)
                 .listStyle(GroupedListStyle())
+                .environment(\.horizontalSizeClass, .regular)
               }
-              .padding([.bottom], viewStore.showManualVisits ? 88 : 0)
+              .padding([.bottom], viewStore.showManualVisits ? 78 : 0)
               if viewStore.showManualVisits {
                 VStack {
                   Spacer()
@@ -161,6 +167,7 @@ public struct VisitsScreen: View {
                     }
                     .padding([.trailing, .leading], 58)
                   }
+                  .padding(.bottom, -10)
                 }
               }
             }
@@ -192,10 +199,6 @@ struct WebView: UIViewRepresentable {
   func makeUIView(context: Context) -> WKWebView {
     let webView = WKWebView(frame: .zero)
     webView.scrollView.bounces = false
-    return webView
-  }
-  
-  func updateUIView(_ webView: WKWebView, context: Context) {
     webView.load(
       URLRequest(
         url: URL(
@@ -203,7 +206,10 @@ struct WebView: UIViewRepresentable {
         )!
       )
     )
+    return webView
   }
+  
+  func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 
 extension WKWebView {
@@ -243,5 +249,15 @@ struct VisitsScreen_Previews: PreviewProvider {
         environment: ()
       )
     )
+    .previewScheme(.dark)
+  }
+}
+
+extension UIColor {
+  func image(_ size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
+    return UIGraphicsImageRenderer(size: size).image { rendererContext in
+      self.setFill()
+      rendererContext.fill(CGRect(origin: .zero, size: size))
+    }
   }
 }

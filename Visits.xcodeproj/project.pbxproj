@@ -709,7 +709,6 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/AWS",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = Visits/Info.plist;
@@ -739,7 +738,6 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/AWS",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = Visits/Info.plist;
@@ -837,7 +835,7 @@
 			repositoryURL = "https://github.com/hypertrack/views-swiftui";
 			requirement = {
 				kind = exactVersion;
-				version = 0.0.5;
+				version = 0.0.6;
 			};
 		};
 		3161D1712512AE7900AAFCCD /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {

@@ -19,7 +19,7 @@ extension AppState {
               id: AssignedVisit.ID(rawValue: "ID1"),
               createdAt: Date(),
               source: .geofence,
-              location: Coordinate(latitude: 37.777, longitude: -122.4164)!,
+              location: Coordinate(latitude: 37.776495, longitude: -122.416857)!,
               geotagSent: .checkedOut(Date()),
               noteFieldFocused: false,
               address: .both(
@@ -33,7 +33,7 @@ extension AppState {
               id: AssignedVisit.ID(rawValue: "ID2"),
               createdAt: Date(),
               source: .geofence,
-              location: Coordinate(latitude: 37.777, longitude: -122.4209)!,
+              location: Coordinate(latitude: 37.777004, longitude: -122.420884)!,
               geotagSent: .checkedIn,
               noteFieldFocused: false,
               address: .both(
@@ -47,7 +47,7 @@ extension AppState {
               id: AssignedVisit.ID(rawValue: "ID3"),
               createdAt: Date(),
               source: .geofence,
-              location: Coordinate(latitude: 37.7947633, longitude: -122.395223)!,
+              location: Coordinate(latitude: 37.795076, longitude: -122.396241)!,
               geotagSent: .notSent,
               noteFieldFocused: false,
               address: .both(
