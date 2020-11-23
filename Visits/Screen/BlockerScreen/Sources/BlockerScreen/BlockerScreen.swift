@@ -93,27 +93,27 @@ func message(from s: Blocker.State) -> String {
     return "You are currently clocked out. Clocking in starts location tracking and opens the visits for today.\n\nThe app does not track your location while you are clocked out."
   case .locationDenied:
     return """
-           We need your permission to access your location. Visits app uses your location to calculate accurate distance traveled.
+           We need your permission to access your location. Visits app uses your location to calculate milage.
            
            Please navigate to Settings > Logistics > Location and set to Always.
            """
   case .locationDisabled:
     return """
-           We need Location Services to track your current location. Visits app uses your location to calculate accurate distance traveled.
+           We need Location Services to track your current location. Visits app uses your location to calculate milage.
             
            Please enable Location Services in Settings > Privacy > Location Services.
            """
   case .locationNotDetermined:
-    return "We need your permission to access your location. Visits app uses your location to calculate accurate distance traveled."
+    return "We need your permission to access your location. Visits app uses your location to calculate milage."
   case .locationRestricted:
     return """
-           Visits app needs Location Services to track your current location and calculate distance.
+           Visits app needs Location Services to track your current location and calculate milage.
            
            Please remove restrictions in Settings > Screen Time > Content & Privacy Restriction > Location Services or contact your administrator.
            """
   case .locationReduced:
     return """
-           Visits app needs full location accuracy to caclulate accurate distance.
+           Visits app needs full location accuracy to caclulate milage.
            
            Please grant full accuracy in Settings > Visits > Location.
            """
@@ -121,18 +121,18 @@ func message(from s: Blocker.State) -> String {
     return """
            We need your permission to access your motion.
            
-           We use Motion & Fitness to efficiently use your battery when sending data.
+           We use Motion & Fitness to efficiently use your battery when tracking milage.
            
            Please enable Motion & Fitness in Settings > Logistics > Motion & Fitness.
            """
   case .motionDisabled:
     return """
-           We use Motion & Fitness to efficiently use your battery when sending data.
+           We use Motion & Fitness to efficiently use your battery when tracking milage.
            
            Please enable Fitness Tracking in Settings > Privacy > Motion & Fitness > Fitness Tracking.
            """
   case .motionNotDetermined:
-    return "We use Motion & Fitness to efficiently use your battery when sending data."
+    return "We use Motion & Fitness to efficiently use your battery when tracking milage."
   }
 }
 

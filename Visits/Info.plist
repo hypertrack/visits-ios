@@ -36,11 +36,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>The Visits app shares your current location with a fleet manager.</string>
+	<string>The Visits app uses your current location to calculate milage.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>The Visits app shares your current location with a fleet manager.</string>
+	<string>The Visits app uses your current location to calculate milage.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>The Visits app uses your motion patterns to conserve battery life while sharing live location.</string>
+	<string>The Visits app uses your motion patterns to conserve battery life while tracking milage.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
