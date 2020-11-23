@@ -44,8 +44,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         environment
           .hyperTrack
           .subscribeToStatusUpdates()
-          .map(AppAction.statusUpdated)
-          .eraseToEffect(),
+          .receive(on: environment.mainQueue())
+          .eraseToEffect()
+          .map(AppAction.statusUpdated),
         environment
           .hyperTrack
           .setDriverID(drID)
@@ -76,11 +77,11 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       state.flow = .driverID(dDRIDD, dPK, newMVS, .waitingForSDKWith(dPK, dDRIDD, newMVS))
       return .merge(
         .cancel(id: TimerID()),
-        environment
-          .hyperTrack
+        environment.hyperTrack
           .makeSDK(pk)
-          .map(AppAction.madeSDK)
+          .receive(on: environment.mainQueue())
           .eraseToEffect()
+          .map(AppAction.madeSDK)
       )
     } else {
       state.flow = .driverID(drID, dPK, newMVS, .none)
@@ -91,8 +92,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
     state.flow = .signIn(.editingCredentials(tep, .right(.waitingForDeepLink)))
     return .merge(
       timer,
-      environment
-        .deepLink
+      environment.deepLink
         .continueUserActivity(a)
         .fireAndForget()
     )
@@ -111,11 +111,11 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       state.flow = .signIn(.editingCredentials(tep, .right(.waitingForSDKWith(pk, drID, mvs))))
       return .merge(
         .cancel(id: TimerID()),
-        environment
-          .hyperTrack
+        environment.hyperTrack
           .makeSDK(pk)
-          .map(AppAction.madeSDK)
+          .receive(on: environment.mainQueue())
           .eraseToEffect()
+          .map(AppAction.madeSDK)
       )
     } else {
       state.flow = .driverID(nil, pk, mvs, nil)
@@ -296,8 +296,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         environment
           .hyperTrack
           .makeSDK(pk)
-          .map(AppAction.madeSDK)
+          .receive(on: environment.mainQueue())
           .eraseToEffect()
+          .map(AppAction.madeSDK)
       )
     default: return .cancel(id: TimerID())
     }
@@ -305,8 +306,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
     return environment
       .deepLink
       .subscribeToDeepLinks()
-      .map(AppAction.receivedDeepLink)
+      .receive(on: environment.mainQueue())
       .eraseToEffect()
+      .map(AppAction.receivedDeepLink)
   case let (_, .deepLinkOpened(a)):
     return environment
       .deepLink

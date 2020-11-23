@@ -236,6 +236,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             state.flow = .signIn(.signingIn(e, p))
             return environment.api
               .signIn(e, p)
+              .receive(on: environment.mainQueue())
+              .eraseToEffect()
               .map(AppAction.signedIn)
               .cancellable(id: SignInID(), cancelInFlight: true)
           } else {
@@ -285,6 +287,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if let drID = drID {
           return environment.hyperTrack
             .makeSDK(pk)
+            .receive(on: environment.mainQueue())
+            .eraseToEffect()
             .map(AppAction.madeSDK)
         }
         return .none
@@ -306,9 +310,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .merge(
             environment.hyperTrack
               .subscribeToStatusUpdates()
+              .receive(on: environment.mainQueue())
+              .eraseToEffect()
               .map(AppAction.statusUpdated),
             environment.hyperTrack
               .setDriverID(drID)
+              .receive(on: environment.mainQueue())
+              .eraseToEffect()
               .fireAndForget()
           )
         } else {
@@ -333,6 +341,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(filterOutOldVisits(v, now: environment.date()), pk, drID, deID, us, p, .refreshingVisits, d)
           return environment.api
             .getVisits(pk, deID)
+            .receive(on: environment.mainQueue())
+            .eraseToEffect()
             .cancellable(id: RefreshingVisitsID())
             .map(AppAction.visitsUpdated)
         }
@@ -659,6 +669,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case .requestMotionPermissions:
         return environment.hyperTrack
           .requestMotionPermissions()
+          .receive(on: environment.mainQueue())
+          .eraseToEffect()
           .map(AppAction.statusUpdated)
       case let .statusUpdated(s, p):
         switch s {
@@ -682,9 +694,11 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .visits(filterOutOldVisits(v, now: environment.date()), pk, drID, deID, us, p, .refreshingVisits, d)
           effects.append(
             environment.api
-            .getVisits(pk, deID)
-            .cancellable(id: RefreshingVisitsID())
-            .map(AppAction.visitsUpdated)
+              .getVisits(pk, deID)
+              .receive(on: environment.mainQueue())
+              .eraseToEffect()
+              .cancellable(id: RefreshingVisitsID())
+              .map(AppAction.visitsUpdated)
           )
         }
         return .merge(effects)
