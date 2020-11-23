@@ -199,7 +199,7 @@ struct WebView: UIViewRepresentable {
     webView.load(
       URLRequest(
         url: URL(
-          string: "https://embed.hypertrack.com/devices/\(deviceID)?publishable_key=\(publishableKey)"
+          string: "https://embed.hypertrack.com/devices/\(deviceID)?publishable_key=\(publishableKey)&back=false"
         )!
       )
     )
