@@ -6,12 +6,77 @@ import Coordinate
 import CoreLocation
 import DeviceID
 import GLKit
+import History
 import MapKit
 import NonEmpty
 import Prelude
 import PublishableKey
 import Visit
 
+// MARK: - Get History
+
+public func getHistory(_ pk: PublishableKey, _ dID: DeviceID, _ date: Date) -> Effect<Either<History, NonEmptyString>, Never> {
+  getTokenFuture(auth: pk.rawValue, deviceID: dID.rawValue)
+    .flatMap { historyFuture(auth: $0, deviceID: dID.rawValue, date: date) }
+    .map { .left($0) }
+    .catch { Just(.right($0)) }
+    .eraseToEffect()
+}
+
+extension History: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case distance
+    case locations
+  }
+  
+  enum LocationsCodingKeys: String, CodingKey {
+    case coordinates
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    let distance = try values.decode(UInt.self, forKey: .distance)
+    let locationsJSON = try values.nestedContainer(keyedBy: LocationsCodingKeys.self, forKey: .locations)
+    var coordinatesJSON = try locationsJSON.nestedUnkeyedContainer(forKey: .coordinates)
+    var coordinatesM: [Coordinate] = []
+    while !coordinatesJSON.isAtEnd {
+      var nestedCoordinatesJSON = try coordinatesJSON.nestedUnkeyedContainer()
+      if let count = nestedCoordinatesJSON.count, count >= 2 {
+        let longitude = try nestedCoordinatesJSON.decode(Double.self)
+        let latitude = try nestedCoordinatesJSON.decode(Double.self)
+        if let coordinate = Coordinate(latitude: latitude, longitude: longitude) {
+          coordinatesM.append(coordinate)
+        }
+      }
+    }
+    let coordinates = coordinatesM
+    self.init(coordinates: coordinates, distance: distance)
+  }
+}
+
+func historyFuture(auth token: NonEmptyString, deviceID: NonEmptyString, date: Date) -> AnyPublisher<History, NonEmptyString> {
+  URLSession.shared.dataTaskPublisher(for: historyRequest(auth: token, deviceID: deviceID, date: date))
+    .map { data, _ in data }
+    .decode(type: History.self, decoder: JSONDecoder())
+    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
+    .eraseToAnyPublisher()
+}
+
+func historyRequest(auth token: NonEmptyString, deviceID: NonEmptyString, date: Date) -> URLRequest {
+  let url = URL(string: "https://live-app-backend.htprod.hypertrack.com/client/devices/\(deviceID.rawValue)/history/\(historyDate(from: date))")!
+  var request = URLRequest(url: url)
+  request.setValue("Bearer \(token.rawValue)", forHTTPHeaderField: "Authorization")
+  request.httpMethod = "GET"
+  return request
+}
+
+func historyDate(from date: Date) -> String {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "yyyy-MM-dd"
+  return formatter.string(from: date)
+}
+
+// MARK: - Get Visits
 
 public func getVisits(_ pk: PublishableKey, _ dID: DeviceID) -> Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never> {
   getDeliveries(pk.rawValue, dID.rawValue)
@@ -75,7 +140,7 @@ enum GeofenceType: String {
 typealias DeliveriesListOrErrorString = Either<[VisitModel], NonEmptyString>
 
 func getDeliveries(_ publishableKey: NonEmptyString, _ deviceID: NonEmptyString) -> Effect<DeliveriesListOrErrorString, Never> {
-  return getTokenFuture(auth: publishableKey, deviceID: deviceID)
+  getTokenFuture(auth: publishableKey, deviceID: deviceID)
     .flatMap { deliveriesFuture(auth: $0, deviceID: deviceID) }
     .map { DeliveriesListOrErrorString.left($0) }
     .catch { Just(DeliveriesListOrErrorString.right($0)) }
@@ -84,7 +149,7 @@ func getDeliveries(_ publishableKey: NonEmptyString, _ deviceID: NonEmptyString)
 
 extension NonEmptyString: Error {}
 
-// MARK: - Visit model
+// MARK: Visit model
 
 struct VisitModel: Identifiable {
   let id: NonEmptyString
@@ -262,7 +327,7 @@ func sortDeliveries(deliveries: [VisitModel]) -> AnyPublisher<[VisitModel], Erro
   .eraseToAnyPublisher()
 }
 
-// MARK: - AuthenticateResponse model
+// MARK: AuthenticateResponse model
 
 struct AuthenticateResponse: Decodable {
   let tokenType: String
@@ -283,7 +348,7 @@ struct AuthenticateResponse: Decodable {
   }
 }
 
-// MARK: - Pipeline
+// MARK: Pipeline
 
 func authorizationRequest(auth publishableKey: NonEmptyString, deviceID: NonEmptyString) -> URLRequest {
   let url = URL(string: "https://live-api.htprod.hypertrack.com/authenticate")!

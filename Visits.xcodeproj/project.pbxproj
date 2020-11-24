@@ -132,6 +132,7 @@
 		3161D13D2512A2B700AAFCCD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3161D16C2512A65100AAFCCD /* Visits.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Visits.entitlements; sourceTree = "<group>"; };
 		316AA8642547FFBA00FC3D55 /* AppScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppScreen; sourceTree = "<group>"; };
+		3189AFB2256D98FE00A081C0 /* History */ = {isa = PBXFileReference; lastKnownFileType = folder; path = History; sourceTree = "<group>"; };
 		318E585C2546B7EA00EAA61A /* PublishableKey */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PublishableKey; sourceTree = "<group>"; };
 		318E585E2546BA7200EAA61A /* DriverID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverID; sourceTree = "<group>"; };
 		319453CB2548417700D86A04 /* AppAdapter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AppAdapter; path = Visits/Adapter/AppAdapter; sourceTree = SOURCE_ROOT; };
@@ -336,6 +337,7 @@
 				31466FD32551F8A000247BDA /* Credentials */,
 				31466FD02551EBB600247BDA /* DeviceID */,
 				318E585E2546BA7200EAA61A /* DriverID */,
+				3189AFB2256D98FE00A081C0 /* History */,
 				31072BD3254DEEAE00ECBA34 /* ManualVisitsStatus */,
 				318E585C2546B7EA00EAA61A /* PublishableKey */,
 				31F0724D2553E75F002A7A53 /* RestorationState */,
