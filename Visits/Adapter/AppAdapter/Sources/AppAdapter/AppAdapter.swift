@@ -57,7 +57,7 @@ public extension Store where State == AppScreen.State, Action == AppScreen.Actio
 
 func fromAppState(_ appState: AppState) -> AppScreen.State {
   switch appState.flow {
-  case .created, .appLaunching: return .launch
+  case .created, .appLaunching: return .loading
   case .noMotionServices: return .blocker(.noMotionServices)
   case let .signIn(.editingCredentials(_, .right(p))): return processingDeepLink(p)
   case let .signIn(s):

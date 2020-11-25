@@ -18,41 +18,46 @@ public struct DriverIDScreen: View {
     case nextEnterKeyboardButtonTapped
   }
   
-  let store: Store<State, Action>
+  let state: State
+  let send: (Action) -> Void
   
-  public init(store: Store<State, Action>) { self.store = store }
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
+    self.state = state
+    self.send = send
+  }
   
   public var body: some View {
-    WithViewStore(store) { viewStore in
-      VStack {
-        Title(title: "Enter your Driver ID")
-        TextFieldBlock(
-          text: viewStore.binding(
-            get: \.driverID,
-            send: Action.driverIDChanged
-          ),
-          name: "Driver ID",
-          errorText: "",
-          focused: true,
-          textContentType: .emailAddress,
-          keyboardType: .asciiCapable,
-          returnKeyType: .next,
-          enterButtonPressed: { viewStore.send(.nextEnterKeyboardButtonTapped) }
-        )
-        .padding(.top, 50)
-        .padding([.trailing, .leading], 16)
-        PrimaryButton(
-          variant: viewStore.buttonDisabled ? .disabled(title: "Next") : .normal(title: "Next")) {
-          viewStore.send(.buttonTapped)
-        }
-        .disabled(viewStore.buttonDisabled)
-        .padding(.top, 39)
-        .padding([.trailing, .leading], 58)
-        Spacer()
+    VStack {
+      Title(title: "Enter your Driver ID")
+      TextFieldBlock(
+        text: Binding(
+          get: { state.driverID },
+          set: { send(.driverIDChanged($0)) }
+        ),
+        name: "Driver ID",
+        errorText: "",
+        focused: true,
+        textContentType: .emailAddress,
+        keyboardType: .asciiCapable,
+        returnKeyType: .next,
+        enterButtonPressed: { send(.nextEnterKeyboardButtonTapped) }
+      )
+      .padding(.top, 50)
+      .padding([.trailing, .leading], 16)
+      PrimaryButton(
+        variant: state.buttonDisabled ? .disabled(title: "Next") : .normal(title: "Next")) {
+        send(.buttonTapped)
       }
-      .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.all)
+      .disabled(state.buttonDisabled)
+      .padding(.top, 39)
+      .padding([.trailing, .leading], 58)
+      Spacer()
     }
+    .modifier(AppBackground())
+    .edgesIgnoringSafeArea(.all)
   }
 }
 
@@ -63,11 +68,8 @@ extension DriverIDScreen.Action: Equatable {}
 struct DriverIDScreen_Previews: PreviewProvider {
   static var previews: some View {
     DriverIDScreen(
-      store: .init(
-        initialState: .init(driverID: "+123456789", buttonDisabled: false),
-        reducer: .empty,
-        environment: ()
-      )
+      state: .init(driverID: "+123456789", buttonDisabled: false),
+      send: { _ in }
     )
   }
 }

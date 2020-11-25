@@ -82,73 +82,78 @@ public struct VisitScreen: View {
   
   @Environment(\.colorScheme) var colorScheme
   @GestureState private var dragOffset = CGSize.zero
-  let store: Store<State, Action>
+  let state: State
+  let send: (Action) -> Void
   
-  public init(store: Store<State, Action>) { self.store = store }
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
+    self.state = state
+    self.send = send
+  }
   
   public var body: some View {
-    WithViewStore(store) { viewStore in
-      Navigation(
-        title: viewStore.title,
-        leading: {
-          if viewStore.visitType == .manualVisit(status: .notSent) {
-            CancelButton { viewStore.send(.backButtonTapped) }
-          } else if viewStore.visitType == .manualVisit(status: .checkedIn) {
-            EmptyView()
-          } else {
-            BackButton { viewStore.send(.backButtonTapped) }
+    Navigation(
+      title: state.title,
+      leading: {
+        if state.visitType == .manualVisit(status: .notSent) {
+          CancelButton { send(.backButtonTapped) }
+        } else if state.visitType == .manualVisit(status: .checkedIn) {
+          EmptyView()
+        } else {
+          BackButton { send(.backButtonTapped) }
+        }
+      },
+      trailing: { EmptyView() }
+    ) {
+      ZStack {
+        VisitInformationView(
+          visitType: state.visitType,
+          showButtons: !state.finished,
+          visitNote: state.visitNote,
+          deleveryNoteBinding: Binding(
+            get: { state.visitNote },
+            set: { send(.noteFieldChanged($0)) }
+          ),
+          noteFieldFocused: state.noteFieldFocused,
+          visitNoteWantsToBecomeFocused: { send(.noteTapped) },
+          visitNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
+          mapTapped: { send(.mapTapped) },
+          copyTextPressed: {
+            if let na = NonEmptyString(rawValue: $0) {
+              send(.copyTextPressed(na))
+            }
           }
-        },
-        trailing: { EmptyView() }
-      ) {
-        ZStack {
-          VisitInformationView(
-            visitType: viewStore.visitType,
-            showButtons: !viewStore.finished,
-            visitNote: viewStore.visitNote,
-            deleveryNoteBinding: viewStore.binding(
-              get: \.visitNote,
-              send: { .noteFieldChanged($0) }
-            ),
-            noteFieldFocused: viewStore.noteFieldFocused,
-            visitNoteWantsToBecomeFocused: { viewStore.send(.noteTapped) },
-            visitNoteEnterButtonPressed: { viewStore.send(.noteEnterKeyboardButtonTapped) },
-            mapTapped: { viewStore.send(.mapTapped) },
-            copyTextPressed: {
-              if let na = NonEmptyString(rawValue: $0) {
-                viewStore.send(.copyTextPressed(na))
+        )
+        VisitButtonView(
+          visitType: state.visitType,
+          cancelButtonTapped: { send(.cancelButtonTapped) },
+          checkInButtonTapped: { send(.checkInButtonTapped) },
+          checkOutButtonTapped: { send(.checkOutButtonTapped) },
+          pickedUpButtonTapped: { send(.pickedUpButtonTapped) }
+        )
+      }
+      .modifier(AppBackground())
+      .edgesIgnoringSafeArea(.bottom)
+      .onTapGesture {
+        if state.noteFieldFocused {
+          send(.tappedOutsideFocusedTextField)
+        }
+      }
+      .gesture(
+        DragGesture()
+          .updating(
+            $dragOffset,
+            body: { value, state, transaction in
+              if(value.startLocation.x < 20 && value.translation.width > 100) {
+                if self.state.visitType != .manualVisit(status: .checkedIn) {
+                  send(.backButtonTapped)
+                }
               }
             }
           )
-          VisitButtonView(
-            visitType: viewStore.visitType,
-            cancelButtonTapped: { viewStore.send(.cancelButtonTapped) },
-            checkInButtonTapped: { viewStore.send(.checkInButtonTapped) },
-            checkOutButtonTapped: { viewStore.send(.checkOutButtonTapped) },
-            pickedUpButtonTapped: { viewStore.send(.pickedUpButtonTapped) }
-          )
-        }
-        .modifier(AppBackground())
-        .edgesIgnoringSafeArea(.bottom)
-        .onTapGesture {
-          if viewStore.noteFieldFocused {
-            viewStore.send(.tappedOutsideFocusedTextField)
-          }
-        }
-        .gesture(
-          DragGesture()
-            .updating(
-              $dragOffset,
-              body: { value, state, transaction in
-                if(value.startLocation.x < 20 && value.translation.width > 100) {
-                  if viewStore.visitType != .manualVisit(status: .checkedIn) {
-                    viewStore.send(.backButtonTapped)
-                  }
-                }
-              }
-            )
-        )
-      }
+      )
     }
   }
 }
@@ -343,39 +348,33 @@ struct Screen_Previews: PreviewProvider {
   static var previews: some View {
     Group {
       VisitScreen(
-        store: .init(
-          initialState: .init(
-            title: "Rauscherstraße 5",
-            visitNote: "Waiting for client",
-            noteFieldFocused: false,
-            visitType: .assignedVisit(
-              coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
-              address: "Rauscherstraße 5, 1200 Wien, Австрия",
-              metadata: [
-                .init(key: "Key1", value: "Value1"),
-                .init(key: "Key2", value: "Value2"),
-                .init(key: "Key3", value: "Value3"),
-                .init(key: "Key4", value: "Value4")
-              ],
-              status: .canceled
-            )
-          ),
-          reducer: .empty,
-          environment: ()
-        )
+        state: .init(
+          title: "Rauscherstraße 5",
+          visitNote: "Waiting for client",
+          noteFieldFocused: false,
+          visitType: .assignedVisit(
+            coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
+            address: "Rauscherstraße 5, 1200 Wien, Австрия",
+            metadata: [
+              .init(key: "Key1", value: "Value1"),
+              .init(key: "Key2", value: "Value2"),
+              .init(key: "Key3", value: "Value3"),
+              .init(key: "Key4", value: "Value4")
+            ],
+            status: .canceled
+          )
+        ),
+        send: { _ in }
       )
       .previewScheme(.light)
       VisitScreen(
-        store: .init(
-          initialState: .init(
-            title: "New Visit",
-            visitNote: "Waiting for client",
-            noteFieldFocused: false,
-            visitType: .manualVisit(status: .checkedOut("5 PM"))
-          ),
-          reducer: .empty,
-          environment: ()
-        )
+        state: .init(
+          title: "New Visit",
+          visitNote: "Waiting for client",
+          noteFieldFocused: false,
+          visitType: .manualVisit(status: .checkedOut("5 PM"))
+        ),
+        send: { _ in}
       )
       .previewScheme(.light)
     }

@@ -43,83 +43,88 @@ public struct SignInScreen: View {
     case tappedOutsideFocus
   }
   
-  let store: Store<State, Action>
+  let state: State
+  let send: (Action) -> Void
   
-  public init(store: Store<State, Action>) { self.store = store }
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
+    self.state = state
+    self.send = send
+  }
   
   public var body: some View {
-    WithViewStore(store) { viewStore in
-      VStack {
-        Title(title: "Sign in to your account")
-        TextFieldBlock(
-          text: viewStore.binding(
-            get: \.email,
-            send: Action.emailChanged
-          ),
-          name: "Email address",
-          errorText: "",
-          focused: viewStore.fieldInFocus == .email,
-          textContentType: .emailAddress,
-          keyboardType: .emailAddress,
-          returnKeyType: .next,
-          wantsToBecomeFocused: { viewStore.send(.emailTapped) },
-          enterButtonPressed: { viewStore.send(.emailEnterKeyboardButtonTapped) }
-        )
-        .disabled(viewStore.signingIn)
-        .padding(.top, 50)
-        .padding([.trailing, .leading], 16)
-        TextFieldBlock(
-          text: viewStore.binding(
-            get: \.password,
-            send: Action.passwordChanged
-          ),
-          name: "Password",
-          errorText: viewStore.errorMessage,
-          focused: viewStore.fieldInFocus == .password,
-          textContentType: .password,
-          secure: true,
-          keyboardType: .default,
-          returnKeyType: .send,
-          enablesReturnKeyAutomatically: false,
-          wantsToBecomeFocused: { viewStore.send(.passwordTapped) },
-          enterButtonPressed: { viewStore.send(.passwordEnterKeyboardButtonTapped) }
-        )
-        .disabled(viewStore.signingIn)
-        .padding(.top, 17)
-        .padding([.trailing, .leading], 16)
-        switch viewStore.buttonState {
-        case .normal:
-          PrimaryButton(
-            variant: .normal(title: "Sign in")
-          ) {
-            viewStore.send(.signInTapped)
-          }
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
-        case .destructive:
-          PrimaryButton(
-            variant: .destructive(),
-            showActivityIndicator: viewStore.signingIn) {
-            viewStore.send(.cancelSignInTapped)
-          }
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
-        case .disabled:
-          PrimaryButton(
-            variant: .disabled(title: "Sign in")
-          ) {}
-          .disabled(true)
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
+    VStack {
+      Title(title: "Sign in to your account")
+      TextFieldBlock(
+        text: Binding(
+          get: { state.email },
+          set: { send(.emailChanged($0)) }
+        ),
+        name: "Email address",
+        errorText: "",
+        focused: state.fieldInFocus == .email,
+        textContentType: .emailAddress,
+        keyboardType: .emailAddress,
+        returnKeyType: .next,
+        wantsToBecomeFocused: { send(.emailTapped) },
+        enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
+      )
+      .disabled(state.signingIn)
+      .padding(.top, 50)
+      .padding([.trailing, .leading], 16)
+      TextFieldBlock(
+        text: Binding(
+          get: { state.password },
+          set: { send(.passwordChanged($0)) }
+        ),
+        name: "Password",
+        errorText: state.errorMessage,
+        focused: state.fieldInFocus == .password,
+        textContentType: .password,
+        secure: true,
+        keyboardType: .default,
+        returnKeyType: .send,
+        enablesReturnKeyAutomatically: false,
+        wantsToBecomeFocused: { send(.passwordTapped) },
+        enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
+      )
+      .disabled(state.signingIn)
+      .padding(.top, 17)
+      .padding([.trailing, .leading], 16)
+      switch state.buttonState {
+      case .normal:
+        PrimaryButton(
+          variant: .normal(title: "Sign in")
+        ) {
+          send(.signInTapped)
         }
-        Spacer()
+        .padding(.top, 39)
+        .padding([.trailing, .leading], 58)
+      case .destructive:
+        PrimaryButton(
+          variant: .destructive(),
+          showActivityIndicator: state.signingIn) {
+          send(.cancelSignInTapped)
+        }
+        .padding(.top, 39)
+        .padding([.trailing, .leading], 58)
+      case .disabled:
+        PrimaryButton(
+          variant: .disabled(title: "Sign in")
+        ) {}
+        .disabled(true)
+        .padding(.top, 39)
+        .padding([.trailing, .leading], 58)
       }
-      .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.all)
-      .onTapGesture {
-        if .none != viewStore.fieldInFocus {
-          viewStore.send(.tappedOutsideFocus)
-        }
+      Spacer()
+    }
+    .modifier(AppBackground())
+    .edgesIgnoringSafeArea(.all)
+    .onTapGesture {
+      if .none != state.fieldInFocus {
+        send(.tappedOutsideFocus)
       }
     }
   }
@@ -133,18 +138,15 @@ extension SignInScreen.Action: Equatable {}
 struct SignInScreen_Previews: PreviewProvider {
   static var previews: some View {
     SignInScreen(
-      store: .init(
-        initialState: .init(
-          buttonState: .destructive,
-          email: "email@example.com",
-          errorMessage: "Network error, please try again.",
-          fieldInFocus: .none,
-          password: "blablabla",
-          signingIn: true
-        ),
-        reducer: .empty,
-        environment: ()
-      )
+      state: .init(
+        buttonState: .destructive,
+        email: "email@example.com",
+        errorMessage: "Network error, please try again.",
+        fieldInFocus: .none,
+        password: "blablabla",
+        signingIn: true
+      ),
+      send: { _ in }
     )
   }
 }

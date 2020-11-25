@@ -35,32 +35,37 @@ public struct Blocker: View {
     case motionNotDeterminedButtonTapped
   }
   
-  let store: Store<State, Action>
+  let state: State
+  let send: (Action) -> Void
   
-  public init(store: Store<State, Action>) { self.store = store }
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
+    self.state = state
+    self.send = send
+  }
   
   public var body: some View {
-    WithViewStore(store) { viewStore in
-      VStack {
-        Title(title: title(from: viewStore.state))
-        CustomText(text: message(from: viewStore.state))
-          .defaultTextColor()
-          .padding(.top, 30)
-          .padding([.trailing, .leading], 16)
-        Spacer()
-        if let (title, action) = button(from: viewStore.state) {
-          PrimaryButton(
-            variant: .normal(title: title)
-          ) {
-            viewStore.send(action)
-          }
-          .padding(.bottom, 40)
-          .padding([.trailing, .leading], 58)
+    VStack {
+      Title(title: title(from: state))
+      CustomText(text: message(from: state))
+        .defaultTextColor()
+        .padding(.top, 30)
+        .padding([.trailing, .leading], 16)
+      Spacer()
+      if let (title, action) = button(from: state) {
+        PrimaryButton(
+          variant: .normal(title: title)
+        ) {
+          send(action)
         }
+        .padding(.bottom, 40)
+        .padding([.trailing, .leading], 58)
       }
-      .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.all)
     }
+    .modifier(AppBackground())
+    .edgesIgnoringSafeArea(.all)
   }
 }
 
@@ -156,11 +161,8 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
 struct BlockerScreen_Previews: PreviewProvider {
   static var previews: some View {
     Blocker(
-      store: .init(
-        initialState: .motionNotDetermined,
-        reducer: .empty,
-        environment: ()
-      )
+      state: .motionNotDetermined,
+      send: { _ in }
     )
   }
 }

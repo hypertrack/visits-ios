@@ -73,10 +73,16 @@ public struct VisitsScreen: View {
   }
   
   @Environment(\.colorScheme) var colorScheme
-  let store: Store<State, Action>
+  let state: State
+  let send: (Action) -> Void
   
-  public init(store: Store<State, Action>) {
-    self.store = store
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
+    self.state = state
+    self.send = send
+    
     UITableView.appearance().separatorInset = .zero
     UITableView.appearance().backgroundColor = .clear
     UITableView.appearance().separatorColor = UIColor(
@@ -94,99 +100,97 @@ public struct VisitsScreen: View {
   }
   
   public var body: some View {
-    WithViewStore(store) { viewStore in
-      TabView {
-        Navigation(
-          title: "Visits",
-          leading: {
-            Button("Clock Out") {
-              viewStore.send(.clockOutButtonTapped)
-            }
-            .font(.normalHighBold)
-            .foregroundColor(colorScheme == .dark ? .white : .black)
-            .frame(width: 110, height: 44, alignment: .leading)
-          },
-          trailing: {
-            RefreshButton(state: viewStore.refreshing ? .refreshing : .enabled) {
-              viewStore.send(.refreshButtonTapped)
-            }
-          },
-          content: {
-            ZStack {
-              VStack(spacing: 0) {
+    TabView {
+      Navigation(
+        title: "Visits",
+        leading: {
+          Button("Clock Out") {
+            send(.clockOutButtonTapped)
+          }
+          .font(.normalHighBold)
+          .foregroundColor(colorScheme == .dark ? .white : .black)
+          .frame(width: 110, height: 44, alignment: .leading)
+        },
+        trailing: {
+          RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
+            send(.refreshButtonTapped)
+          }
+        },
+        content: {
+          ZStack {
+            VStack(spacing: 0) {
+              VisitStatus(
+                text: state.refreshing ? "Updating deliveries list." : state.noVisits ? "No visits for today, tap refresh to update." : "You've made \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
+                state: state.noVisits ? .custom(color: Color.gray) : .visited
+              )
+              .padding(.top, 44)
+              if !state.isNetworkAvailable {
                 VisitStatus(
-                  text: viewStore.refreshing ? "Updating deliveries list." : viewStore.noVisits ? "No visits for today, tap refresh to update." : "You've made \(viewStore.completed.count + viewStore.canceled.count) out of \(viewStore.totalVisits) visits so far.",
-                  state: viewStore.noVisits ? .custom(color: Color.gray) : .visited
+                  text: "Network unavailable.",
+                  state: .custom(color: Color.red)
                 )
-                .padding(.top, 44)
-                if !viewStore.isNetworkAvailable {
-                  VisitStatus(
-                    text: "Network unavailable.",
-                    state: .custom(color: Color.red)
-                  )
-                }
-                List {
-                  if !viewStore.pending.isEmpty {
-                    visitSection(
-                      for: .pending,
-                      items: viewStore.pending
-                    ) { viewStore.send(.visitTapped($0.id)) }
-                  }
-                  if !viewStore.visited.isEmpty {
-                    visitSection(
-                      for: .visited,
-                      items: viewStore.visited
-                    ) { viewStore.send(.visitTapped($0.id)) }
-                  }
-                  if !viewStore.completed.isEmpty {
-                    visitSection(
-                      for: .completed,
-                      items: viewStore.completed
-                    ) { viewStore.send(.visitTapped($0.id)) }
-                  }
-                  if !viewStore.canceled.isEmpty {
-                    visitSection(
-                      for: .canceled,
-                      items: viewStore.canceled
-                    ) { viewStore.send(.visitTapped($0.id)) }
-                  }
-                }
-                .modifier(AppBackground())
-                .listStyle(GroupedListStyle())
-                .environment(\.horizontalSizeClass, .regular)
               }
-              .padding([.bottom], viewStore.showManualVisits ? 78 : 0)
-              if viewStore.showManualVisits {
-                VStack {
-                  Spacer()
-                  RoundedStack {
-                    PrimaryButton(
-                      variant: .normal(title: "Add Visit")
-                    ) {
-                      viewStore.send(.addVisitButtonTapped)
-                    }
-                    .padding([.trailing, .leading], 58)
-                  }
-                  .padding(.bottom, -10)
+              List {
+                if !state.pending.isEmpty {
+                  visitSection(
+                    for: .pending,
+                    items: state.pending
+                  ) { send(.visitTapped($0.id)) }
                 }
+                if !state.visited.isEmpty {
+                  visitSection(
+                    for: .visited,
+                    items: state.visited
+                  ) { send(.visitTapped($0.id)) }
+                }
+                if !state.completed.isEmpty {
+                  visitSection(
+                    for: .completed,
+                    items: state.completed
+                  ) { send(.visitTapped($0.id)) }
+                }
+                if !state.canceled.isEmpty {
+                  visitSection(
+                    for: .canceled,
+                    items: state.canceled
+                  ) { send(.visitTapped($0.id)) }
+                }
+              }
+              .modifier(AppBackground())
+              .listStyle(GroupedListStyle())
+              .environment(\.horizontalSizeClass, .regular)
+            }
+            .padding([.bottom], state.showManualVisits ? 78 : 0)
+            if state.showManualVisits {
+              VStack {
+                Spacer()
+                RoundedStack {
+                  PrimaryButton(
+                    variant: .normal(title: "Add Visit")
+                  ) {
+                    send(.addVisitButtonTapped)
+                  }
+                  .padding([.trailing, .leading], 58)
+                }
+                .padding(.bottom, -10)
               }
             }
           }
-        )
-        .modifier(AppBackground())
-        .tabItem {
-          Image(systemName: "list.dash")
-          Text("Visits")
         }
-        WebView(
-          deviceID: viewStore.deviceID,
-          publishableKey: viewStore.publishableKey
-        )
-        .edgesIgnoringSafeArea(.top)
-        .tabItem {
-          Image(systemName: "map")
-          Text("Map")
-        }
+      )
+      .modifier(AppBackground())
+      .tabItem {
+        Image(systemName: "list.dash")
+        Text("Visits")
+      }
+      WebView(
+        deviceID: state.deviceID,
+        publishableKey: state.publishableKey
+      )
+      .edgesIgnoringSafeArea(.top)
+      .tabItem {
+        Image(systemName: "map")
+        Text("Map")
       }
     }
   }
@@ -233,21 +237,18 @@ extension VisitsScreen {
 struct VisitsScreen_Previews: PreviewProvider {
   static var previews: some View {
     VisitsScreen(
-      store: .init(
-        initialState: .init(
-          pending: [.init(id: "1", title: "1301 Market St")],
-          visited: [.init(id: "5", title: "2402 Davey St")],
-          completed: [.init(id: "2", title: "275 Hayes St"), .init(id: "3", title: "Visit 12:30 AM — 01:15 PM")],
-          canceled: [.init(id: "4", title: "4 Embracadero Ctr")],
-          isNetworkAvailable: false,
-          refreshing: false,
-          showManualVisits: true,
-          deviceID: "blank",
-          publishableKey: "blank"
-        ),
-        reducer: .empty,
-        environment: ()
-      )
+      state: .init(
+        pending: [.init(id: "1", title: "1301 Market St")],
+        visited: [.init(id: "5", title: "2402 Davey St")],
+        completed: [.init(id: "2", title: "275 Hayes St"), .init(id: "3", title: "Visit 12:30 AM — 01:15 PM")],
+        canceled: [.init(id: "4", title: "4 Embracadero Ctr")],
+        isNetworkAvailable: false,
+        refreshing: false,
+        showManualVisits: true,
+        deviceID: "blank",
+        publishableKey: "blank"
+      ),
+      send: { _ in }
     )
     .previewScheme(.dark)
   }
