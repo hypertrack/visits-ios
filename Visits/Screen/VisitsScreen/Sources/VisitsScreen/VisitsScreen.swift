@@ -118,7 +118,7 @@ public struct VisitsScreen: View {
         ZStack {
           VStack(spacing: 0) {
             VisitStatus(
-              text: state.refreshing ? "Updating deliveries list." : state.noVisits ? "No visits for today, tap refresh to update." : "You've made \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
+              text: state.refreshing ? "Updating visits." : state.noVisits ? "No visits for today, tap refresh to update." : "You've made \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
               state: state.noVisits ? .custom(color: Color.gray) : .visited
             )
             .padding(.top, 44)
