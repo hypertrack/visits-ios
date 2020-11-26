@@ -2,7 +2,6 @@ import ComposableArchitecture
 import SwiftUI
 import UIKit
 import Views
-import WebKit
 
 
 public struct VisitHeader: Equatable, Hashable, Identifiable {
@@ -100,127 +99,88 @@ public struct VisitsScreen: View {
   }
   
   public var body: some View {
-    TabView {
-      Navigation(
-        title: "Visits",
-        leading: {
-          Button("Clock Out") {
-            send(.clockOutButtonTapped)
-          }
-          .font(.normalHighBold)
-          .foregroundColor(colorScheme == .dark ? .white : .black)
-          .frame(width: 110, height: 44, alignment: .leading)
-        },
-        trailing: {
-          RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
-            send(.refreshButtonTapped)
-          }
-        },
-        content: {
-          ZStack {
-            VStack(spacing: 0) {
+    Navigation(
+      title: "Visits",
+      leading: {
+        Button("Clock Out") {
+          send(.clockOutButtonTapped)
+        }
+        .font(.normalHighBold)
+        .foregroundColor(colorScheme == .dark ? .white : .black)
+        .frame(width: 110, height: 44, alignment: .leading)
+      },
+      trailing: {
+        RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
+          send(.refreshButtonTapped)
+        }
+      },
+      content: {
+        ZStack {
+          VStack(spacing: 0) {
+            VisitStatus(
+              text: state.refreshing ? "Updating deliveries list." : state.noVisits ? "No visits for today, tap refresh to update." : "You've made \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
+              state: state.noVisits ? .custom(color: Color.gray) : .visited
+            )
+            .padding(.top, 44)
+            if !state.isNetworkAvailable {
               VisitStatus(
-                text: state.refreshing ? "Updating deliveries list." : state.noVisits ? "No visits for today, tap refresh to update." : "You've made \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
-                state: state.noVisits ? .custom(color: Color.gray) : .visited
+                text: "Network unavailable.",
+                state: .custom(color: Color.red)
               )
-              .padding(.top, 44)
-              if !state.isNetworkAvailable {
-                VisitStatus(
-                  text: "Network unavailable.",
-                  state: .custom(color: Color.red)
-                )
-              }
-              List {
-                if !state.pending.isEmpty {
-                  visitSection(
-                    for: .pending,
-                    items: state.pending
-                  ) { send(.visitTapped($0.id)) }
-                }
-                if !state.visited.isEmpty {
-                  visitSection(
-                    for: .visited,
-                    items: state.visited
-                  ) { send(.visitTapped($0.id)) }
-                }
-                if !state.completed.isEmpty {
-                  visitSection(
-                    for: .completed,
-                    items: state.completed
-                  ) { send(.visitTapped($0.id)) }
-                }
-                if !state.canceled.isEmpty {
-                  visitSection(
-                    for: .canceled,
-                    items: state.canceled
-                  ) { send(.visitTapped($0.id)) }
-                }
-              }
-              .modifier(AppBackground())
-              .listStyle(GroupedListStyle())
-              .environment(\.horizontalSizeClass, .regular)
             }
-            .padding([.bottom], state.showManualVisits ? 78 : 0)
-            if state.showManualVisits {
-              VStack {
-                Spacer()
-                RoundedStack {
-                  PrimaryButton(
-                    variant: .normal(title: "Add Visit")
-                  ) {
-                    send(.addVisitButtonTapped)
-                  }
-                  .padding([.trailing, .leading], 58)
-                }
-                .padding(.bottom, -10)
+            List {
+              if !state.pending.isEmpty {
+                visitSection(
+                  for: .pending,
+                  items: state.pending
+                ) { send(.visitTapped($0.id)) }
               }
+              if !state.visited.isEmpty {
+                visitSection(
+                  for: .visited,
+                  items: state.visited
+                ) { send(.visitTapped($0.id)) }
+              }
+              if !state.completed.isEmpty {
+                visitSection(
+                  for: .completed,
+                  items: state.completed
+                ) { send(.visitTapped($0.id)) }
+              }
+              if !state.canceled.isEmpty {
+                visitSection(
+                  for: .canceled,
+                  items: state.canceled
+                ) { send(.visitTapped($0.id)) }
+              }
+            }
+            .modifier(AppBackground())
+            .listStyle(GroupedListStyle())
+            .environment(\.horizontalSizeClass, .regular)
+          }
+          .padding([.bottom], state.showManualVisits ? 78 : 0)
+          if state.showManualVisits {
+            VStack {
+              Spacer()
+              RoundedStack {
+                PrimaryButton(
+                  variant: .normal(title: "Add Visit")
+                ) {
+                  send(.addVisitButtonTapped)
+                }
+                .padding([.trailing, .leading], 58)
+              }
+              .padding(.bottom, -10)
             }
           }
         }
-      )
-      .modifier(AppBackground())
-      .tabItem {
-        Image(systemName: "list.dash")
-        Text("Visits")
       }
-      WebView(
-        deviceID: state.deviceID,
-        publishableKey: state.publishableKey
-      )
-      .edgesIgnoringSafeArea(.top)
-      .tabItem {
-        Image(systemName: "map")
-        Text("Map")
-      }
-    }
-  }
-}
-
-struct WebView: UIViewRepresentable {
-  let deviceID: String
-  let publishableKey: String
-  
-  func makeUIView(context: Context) -> WKWebView {
-    let webView = WKWebView(frame: .zero)
-    webView.scrollView.bounces = false
-    webView.load(
-      URLRequest(
-        url: URL(
-          string: "https://embed.hypertrack.com/devices/\(deviceID)?publishable_key=\(publishableKey)&back=false"
-        )!
-      )
     )
-    return webView
+    .modifier(AppBackground())
   }
-  
-  func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 
-extension WKWebView {
-  override open var safeAreaInsets: UIEdgeInsets {
-    return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-  }
-}
+
 
 extension VisitsScreen {
   func visitSection(for status: Status, items: [VisitHeader], didSelect cell: @escaping (VisitHeader) -> Void) -> some View {

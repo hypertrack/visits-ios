@@ -95,14 +95,14 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       switch v {
       case let .mixed(visits):
         let (pending, visited, completed, canceled) = visitHeaders(from: Array(visits))
-        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue))
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)))
       case let .assigned(assignedVisits):
         let (pending, visited, completed, canceled) = visitHeaders(from: assignedVisits.map(Either.right))
-        return .visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue))
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshing, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)))
       case let .selectedMixed(selectedVisit, _):
-        return .visit(visitScreen(from: selectedVisit))
+        return .visits(.visit(visitScreen(from: selectedVisit, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)))
       case let .selectedAssigned(selectedAssignedVisit, _):
-        return .visit(visitScreen(from: .right(selectedAssignedVisit)))
+        return .visits(.visit(visitScreen(from: .right(selectedAssignedVisit), pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)))
       }
     }
   }
@@ -252,7 +252,7 @@ func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHead
   return (pending, visited, completed, canceled)
 }
 
-func visitScreen(from v: Visit) -> VisitScreen.State {
+func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
   let visitNote: String
   let visitType: VisitScreen.State.VisitType
   let noteFieldFocused: Bool
@@ -281,7 +281,14 @@ func visitScreen(from v: Visit) -> VisitScreen.State {
     }
     visitType = .assignedVisit(coordinate: a.location, address: assignedVisitFullAddress(from: a), metadata: assignedVisitMetadata(from: a), status: status)
   }
-  return .init(title: visitTitle(from: v), visitNote: visitNote, noteFieldFocused: noteFieldFocused, visitType: visitType)
+  return .init(
+    title: visitTitle(from: v),
+    visitNote: visitNote,
+    noteFieldFocused: noteFieldFocused,
+    visitType: visitType,
+    deviceID: dID,
+    publishableKey: pk
+  )
 }
 
 func visitTitle(from v: Visit) -> String {

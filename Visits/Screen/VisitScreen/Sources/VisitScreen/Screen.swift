@@ -12,6 +12,8 @@ public struct VisitScreen: View {
     public var visitNote: String
     public var noteFieldFocused: Bool
     public var visitType: VisitType
+    public var deviceID: String
+    public var publishableKey: String
     
     public struct Metadata: Hashable {
       public let key: String
@@ -57,12 +59,16 @@ public struct VisitScreen: View {
       title: String,
       visitNote: String,
       noteFieldFocused: Bool,
-      visitType: VisitScreen.State.VisitType
+      visitType: VisitScreen.State.VisitType,
+      deviceID: String,
+      publishableKey: String
     ) {
       self.title = title
       self.visitNote = visitNote
       self.noteFieldFocused = noteFieldFocused
       self.visitType = visitType
+      self.deviceID = deviceID
+      self.publishableKey = publishableKey
     }
   }
   
@@ -284,44 +290,44 @@ struct VisitButtonView: View {
     case .manualVisit(.notSent):
       RoundedStack {
         PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
-        .padding([.trailing, .leading], 58)
+          .padding([.trailing, .leading], 58)
       }
     case .manualVisit(.checkedIn):
       RoundedStack {
         PrimaryButton(variant: .normal(title: "Check Out"), checkOutButtonTapped)
-        .padding([.trailing, .leading], 58)
+          .padding([.trailing, .leading], 58)
       }
     case .assignedVisit(_, _, _, .notSent):
       RoundedStack {
         HStack {
           PrimaryButton(variant: .normal(title: "Pick Up"), pickedUpButtonTapped)
-          .padding([.leading], 16)
-          .padding([.trailing], 2.5)
+            .padding([.leading], 16)
+            .padding([.trailing], 2.5)
           PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
-          .padding([.leading], 2.5)
-          .padding([.trailing], 16)
+            .padding([.leading], 2.5)
+            .padding([.trailing], 16)
         }
       }
     case .assignedVisit(_, _, _, .pickedUp):
       RoundedStack {
         HStack {
           PrimaryButton(variant: .disabled(title: "Picked Up")) {}
-          .padding([.leading], 16)
-          .padding([.trailing], 2.5)
+            .padding([.leading], 16)
+            .padding([.trailing], 2.5)
           PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
-          .padding([.leading], 2.5)
-          .padding([.trailing], 16)
+            .padding([.leading], 2.5)
+            .padding([.trailing], 16)
         }
       }
     case .assignedVisit(_, _, _, .checkedIn):
       RoundedStack {
         HStack {
           PrimaryButton(variant: .normal(title: "Check Out"), checkOutButtonTapped)
-          .padding([.leading], 16)
-          .padding([.trailing], 2.5)
+            .padding([.leading], 16)
+            .padding([.trailing], 2.5)
           PrimaryButton(variant: .destructive(), cancelButtonTapped)
-          .padding([.leading], 2.5)
-          .padding([.trailing], 16)
+            .padding([.leading], 2.5)
+            .padding([.trailing], 16)
         }
       }
     default:
@@ -362,7 +368,9 @@ struct Screen_Previews: PreviewProvider {
               .init(key: "Key4", value: "Value4")
             ],
             status: .canceled
-          )
+          ),
+          deviceID: "",
+          publishableKey: ""
         ),
         send: { _ in }
       )
@@ -372,7 +380,9 @@ struct Screen_Previews: PreviewProvider {
           title: "New Visit",
           visitNote: "Waiting for client",
           noteFieldFocused: false,
-          visitType: .manualVisit(status: .checkedOut("5 PM"))
+          visitType: .manualVisit(status: .checkedOut("5 PM")),
+          deviceID: "",
+          publishableKey: ""
         ),
         send: { _ in}
       )
