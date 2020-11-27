@@ -7,6 +7,7 @@ import CoreLocation
 import DeviceID
 import GLKit
 import History
+import Log
 import MapKit
 import NonEmpty
 import Prelude
@@ -16,7 +17,8 @@ import Visit
 // MARK: - Get History
 
 public func getHistory(_ pk: PublishableKey, _ dID: DeviceID, _ date: Date) -> Effect<Either<History, NonEmptyString>, Never> {
-  getTokenFuture(auth: pk.rawValue, deviceID: dID.rawValue)
+  logEffect("getHistory", failureType: NonEmptyString.self)
+    .flatMap { getTokenFuture(auth: pk.rawValue, deviceID: dID.rawValue) }
     .flatMap { historyFuture(auth: $0, deviceID: dID.rawValue, date: date) }
     .map { .left($0) }
     .catch { Just(.right($0)) }
@@ -79,57 +81,61 @@ func historyDate(from date: Date) -> String {
 // MARK: - Get Visits
 
 public func getVisits(_ pk: PublishableKey, _ dID: DeviceID) -> Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never> {
-  getDeliveries(pk.rawValue, dID.rawValue)
-    .map { visitOrError in
-      switch visitOrError {
-      case let .left(ds):
-        let aas = ds.compactMap { d -> AssignedVisit? in
-          let address: These<AssignedVisit.Street, AssignedVisit.FullAddress>?
-          switch (NonEmptyString(rawValue: d.shortAddress), NonEmptyString(rawValue: d.fullAddress)) {
-          case let (.some(street), .some(full)):
-            address = .both(AssignedVisit.Street(rawValue: street), AssignedVisit.FullAddress(rawValue: full))
-          case let (.some(street), .none):
-            address = .this(AssignedVisit.Street(rawValue: street))
-          case let (.none, .some(full)):
-            address = .that(AssignedVisit.FullAddress(rawValue: full))
-          case (.none, .none):
-            address = nil
-          }
-          let metadata = NonEmptyDictionary(
-            rawValue: d.metadata.compactMap { metadata -> (AssignedVisit.Name, AssignedVisit.Contents)? in
-              if let nonemptyName = NonEmptyString(rawValue: metadata.key),
-                 let nonemptyContents = NonEmptyString(rawValue: metadata.value) {
-                return (AssignedVisit.Name(rawValue: nonemptyName), AssignedVisit.Contents(rawValue: nonemptyContents))
+  logEffect("getVisits", failureType: Never.self)
+    .flatMap {
+      getDeliveries(pk.rawValue, dID.rawValue)
+        .map { visitOrError in
+          switch visitOrError {
+          case let .left(ds):
+            let aas = ds.compactMap { d -> AssignedVisit? in
+              let address: These<AssignedVisit.Street, AssignedVisit.FullAddress>?
+              switch (NonEmptyString(rawValue: d.shortAddress), NonEmptyString(rawValue: d.fullAddress)) {
+              case let (.some(street), .some(full)):
+                address = .both(AssignedVisit.Street(rawValue: street), AssignedVisit.FullAddress(rawValue: full))
+              case let (.some(street), .none):
+                address = .this(AssignedVisit.Street(rawValue: street))
+              case let (.none, .some(full)):
+                address = .that(AssignedVisit.FullAddress(rawValue: full))
+              case (.none, .none):
+                address = nil
+              }
+              let metadata = NonEmptyDictionary(
+                rawValue: d.metadata.compactMap { metadata -> (AssignedVisit.Name, AssignedVisit.Contents)? in
+                  if let nonemptyName = NonEmptyString(rawValue: metadata.key),
+                     let nonemptyContents = NonEmptyString(rawValue: metadata.value) {
+                    return (AssignedVisit.Name(rawValue: nonemptyName), AssignedVisit.Contents(rawValue: nonemptyContents))
+                  }
+                  return nil
+                }.reduce(into: Dictionary<AssignedVisit.Name, AssignedVisit.Contents>()) { (dict, tuple) in
+                  dict.updateValue(tuple.1, forKey: tuple.0)
+                }
+              )
+              if let coordinate = Coordinate(latitude: d.lat, longitude: d.lng) {
+                return AssignedVisit(
+                  id: .init(rawValue: d.id),
+                  createdAt: d.createdAt,
+                  source: .geofence,
+                  location: coordinate,
+                  geotagSent: .notSent,
+                  noteFieldFocused: false,
+                  address: address,
+                  visitNote: nil,
+                  metadata: metadata
+                )
               }
               return nil
-            }.reduce(into: Dictionary<AssignedVisit.Name, AssignedVisit.Contents>()) { (dict, tuple) in
-              dict.updateValue(tuple.1, forKey: tuple.0)
             }
-          )
-          if let coordinate = Coordinate(latitude: d.lat, longitude: d.lng) {
-            return AssignedVisit(
-              id: .init(rawValue: d.id),
-              createdAt: d.createdAt,
-              source: .geofence,
-              location: coordinate,
-              geotagSent: .notSent,
-              noteFieldFocused: false,
-              address: address,
-              visitNote: nil,
-              metadata: metadata
-            )
+            if let nons = NonEmptySet(rawValue: Set(aas)) {
+              return .left(nons)
+            } else {
+              return .right("No results")
+            }
+          case let .right(e):
+            return .right(e)
           }
-          return nil
         }
-        if let nons = NonEmptySet(rawValue: Set(aas)) {
-          return .left(nons)
-        } else {
-          return .right("No results")
-        }
-      case let .right(e):
-        return .right(e)
-      }
     }
+    .eraseToEffect()
 }
 
 enum GeofenceType: String {

@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Log
 import Prelude
 
 public func send<State, Action>(_ viewStore: ViewStore<State, Action>) -> (Action) -> Void {
@@ -29,7 +30,7 @@ public extension Reducer {
     self.debug() { _ in
       DebugEnvironment(
         printer: {
-          print("\n---\n\(DateFormatter.iso8601MillisecondsDateFormatter.string(from: Date()))\n\($0)\n---\n")
+          logAction($0)
         }
       )
     }

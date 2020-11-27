@@ -11,6 +11,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
+    .package(path: "Log"),
   ],
   targets: [
     .target(
@@ -19,6 +20,6 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]
     ),
-    .target(name: "HapticFeedbackEnvironmentLive", dependencies: ["HapticFeedbackEnvironment"])
+    .target(name: "HapticFeedbackEnvironmentLive", dependencies: ["HapticFeedbackEnvironment", "Log"])
   ]
 )

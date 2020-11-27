@@ -13,6 +13,7 @@ let package = Package(
     .package(name: "Branch", url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("0.35.1")),
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
     .package(path: "DriverID"),
+    .package(path: "Log"),
     .package(path: "ManualVisitsStatus"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
     .package(path: "PublishableKey")
@@ -32,7 +33,8 @@ let package = Package(
       name: "DeepLinkEnvironmentLive",
       dependencies: [
         "Branch",
-        "DeepLinkEnvironment"
+        "DeepLinkEnvironment",
+        "Log"
       ]
     ),
     .testTarget(

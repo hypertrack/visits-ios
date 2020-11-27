@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Log
 import MapEnvironment
 import MapKit
 import Prelude
@@ -9,7 +10,7 @@ public extension MapEnvironment {
   static let live = Self(
     openMap: { coordinate, address in
       .fireAndForget {
-        print("🚀 openMap")
+        logEffect("openMap")
         let region = MKCoordinateRegion(
           center: coordinate.coordinate2D,
           span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.02)

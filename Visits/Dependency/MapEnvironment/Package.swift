@@ -12,7 +12,8 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
     .package(path: "Coordinate"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.9")),
+    .package(path: "Log"),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.10")),
     .package(path: "Visit")
   ],
   targets: [
@@ -25,6 +26,6 @@ let package = Package(
         "Visit"
       ]
     ),
-    .target(name: "MapEnvironmentLive", dependencies: ["MapEnvironment"])
+    .target(name: "MapEnvironmentLive", dependencies: ["Log", "MapEnvironment"])
   ]
 )

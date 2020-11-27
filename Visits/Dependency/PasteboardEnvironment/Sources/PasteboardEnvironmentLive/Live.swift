@@ -1,3 +1,4 @@
+import Log
 import PasteboardEnvironment
 import UIKit
 
@@ -6,7 +7,7 @@ public extension PasteboardEnvironment {
   static let live = Self(
     copyToPasteboard: { s in
       .fireAndForget {
-        print("🚀 copyToPasteboard")
+        logEffect("copyToPasteboard: \(s)")
         UIPasteboard.general.string = s.rawValue
       }
     }

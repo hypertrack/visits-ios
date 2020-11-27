@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Credentials
 import DriverID
+import Log
 import ManualVisitsStatus
 import NonEmpty
 import Prelude
@@ -15,7 +16,7 @@ public extension StateRestorationEnvironment {
   static let live = StateRestorationEnvironment(
     loadState: {
       Effect<StorageState?, Never>.result {
-        print("🚀 loadState")
+        logEffect("loadState")
         return .success(
           restoredStateFrom(
             screen: UserDefaults.standard.string(forKey: RestorationKey.screen.rawValue)
@@ -39,7 +40,7 @@ public extension StateRestorationEnvironment {
     },
     saveState: { s in
       .fireAndForget {
-        print("🚀 saveState")
+        logEffect("saveState: \(String(describing: s))")
         
         let ud = UserDefaults.standard
         

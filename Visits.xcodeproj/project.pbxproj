@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		31072BA62549F8F900ECBA34 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31072BA52549F8F900ECBA34 /* Store.swift */; };
 		31072BAF254A0EA500ECBA34 /* Architecture in Frameworks */ = {isa = PBXBuildFile; productRef = 31072BAE254A0EA500ECBA34 /* Architecture */; };
+		3117579F257185D9004CB568 /* Log in Frameworks */ = {isa = PBXBuildFile; productRef = 3117579E257185D9004CB568 /* Log */; };
 		313C7634255EDAB5009BE86C /* DeepLinkScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7633255EDAB5009BE86C /* DeepLinkScreen */; };
 		313C7637255EDB8F009BE86C /* APIEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7636255EDB8F009BE86C /* APIEnvironment */; };
 		313C7639255EDB93009BE86C /* APIEnvironmentLive in Frameworks */ = {isa = PBXBuildFile; productRef = 313C7638255EDB93009BE86C /* APIEnvironmentLive */; };
@@ -108,6 +109,7 @@
 		31072BCA254C60E300ECBA34 /* DriverIDScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverIDScreen; sourceTree = "<group>"; };
 		31072BCD254C765B00ECBA34 /* BlockerScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BlockerScreen; sourceTree = "<group>"; };
 		31072BD3254DEEAE00ECBA34 /* ManualVisitsStatus */ = {isa = PBXFileReference; lastKnownFileType = text; name = ManualVisitsStatus; path = Visits/Screen/ManualVisitsStatus; sourceTree = SOURCE_ROOT; };
+		3117579C25702B51004CB568 /* Log */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Log; sourceTree = "<group>"; };
 		311E240C25594D6F002A122E /* VisitScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitScreen; sourceTree = "<group>"; };
 		31466FD02551EBB600247BDA /* DeviceID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeviceID; sourceTree = "<group>"; };
 		31466FD32551F8A000247BDA /* Credentials */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Credentials; sourceTree = "<group>"; };
@@ -210,6 +212,7 @@
 				3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */,
 				31072BAF254A0EA500ECBA34 /* Architecture in Frameworks */,
 				313C764B255EDC02009BE86C /* DriverIDScreen in Frameworks */,
+				3117579F257185D9004CB568 /* Log in Frameworks */,
 				31E1752A255AF9AB00DF5219 /* HyperTrack in Frameworks */,
 				313C7673255EDC06009BE86C /* VisitScreen in Frameworks */,
 			);
@@ -309,6 +312,7 @@
 		316AA86A25480B3B00FC3D55 /* Dependency */ = {
 			isa = PBXGroup;
 			children = (
+				3117579C25702B51004CB568 /* Log */,
 				31E17537255C3C9D00DF5219 /* APIEnvironment */,
 				31072BAB254A0DF800ECBA34 /* Architecture */,
 				31072B932548BB9000ECBA34 /* DeepLinkEnvironment */,
@@ -430,6 +434,7 @@
 				313C7674255EDC07009BE86C /* VisitsScreen */,
 				313C767D255EE14E009BE86C /* Views */,
 				31FA079125657B69008B84F4 /* LoadingScreen */,
+				3117579E257185D9004CB568 /* Log */,
 			);
 			productName = Visits;
 			productReference = 3161D1212512A2B500AAFCCD /* Visits.app */;
@@ -853,7 +858,7 @@
 			repositoryURL = "https://github.com/hypertrack/prelude-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 0.0.9;
+				version = 0.0.10;
 			};
 		};
 		31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */ = {
@@ -870,6 +875,10 @@
 		31072BAE254A0EA500ECBA34 /* Architecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Architecture;
+		};
+		3117579E257185D9004CB568 /* Log */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Log;
 		};
 		313C7633255EDAB5009BE86C /* DeepLinkScreen */ = {
 			isa = XCSwiftPackageProductDependency;

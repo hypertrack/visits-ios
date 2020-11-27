@@ -15,8 +15,9 @@ let package = Package(
     .package(path: "Credentials"),
     .package(path: "DeviceID"),
     .package(path: "History"),
+    .package(path: "Log"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.9")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.10")),
     .package(path: "PublishableKey"),
     .package(path: "Visit")
   ],
@@ -35,6 +36,6 @@ let package = Package(
         "Visit"
       ]
     ),
-    .target(name: "APIEnvironmentLive", dependencies: ["APIEnvironment"]),
+    .target(name: "APIEnvironmentLive", dependencies: ["APIEnvironment", "Log"]),
   ]
 )

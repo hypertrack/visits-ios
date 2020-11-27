@@ -13,8 +13,9 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
     .package(path: "Credentials"),
     .package(path: "DriverID"),
+    .package(path: "Log"),
     .package(path: "ManualVisitsStatus"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.9")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.10")),
     .package(path: "PublishableKey"),
     .package(path: "RestorationState"),
     .package(path: "Visit")
@@ -35,7 +36,7 @@ let package = Package(
     ),
     .target(
       name: "StateRestorationEnvironmentLive",
-      dependencies: ["StateRestorationEnvironment"]
+      dependencies: ["Log", "StateRestorationEnvironment"]
     )
   ]
 )

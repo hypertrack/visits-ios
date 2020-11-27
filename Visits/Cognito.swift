@@ -3,20 +3,26 @@ import APIEnvironment
 import Combine
 import ComposableArchitecture
 import Credentials
+import Log
 import NonEmpty
 import Prelude
 import PublishableKey
 
+
 func signIn(_ e: Email, _ p: Password) -> Effect<Either<PublishableKey, NonEmptyString>, Never> {
-  signIn(email: e.rawValue, password: p.rawValue)
-    .map { pkOrError in
-      switch pkOrError {
-      case let .left(pk):
-        return .left(PublishableKey(rawValue: pk))
-      case let .right(e):
-        return .right(e)
-      }
+  logEffect("signIn: email: \(e) password: \(p)", failureType: Never.self)
+    .flatMap {
+      signIn(email: e.rawValue, password: p.rawValue)
+        .map { pkOrError in
+          switch pkOrError {
+          case let .left(pk):
+            return .left(PublishableKey(rawValue: pk))
+          case let .right(e):
+            return .right(e)
+          }
+        }
     }
+    .eraseToEffect()
 }
 
 

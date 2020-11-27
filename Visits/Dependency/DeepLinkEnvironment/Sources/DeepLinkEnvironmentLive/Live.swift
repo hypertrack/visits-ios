@@ -3,6 +3,7 @@ import Combine
 import ComposableArchitecture
 import DeepLinkEnvironment
 import DriverID
+import Log
 import ManualVisitsStatus
 import NonEmpty
 import PublishableKey
@@ -12,7 +13,7 @@ public extension DeepLinkEnvironment {
   static let live = DeepLinkEnvironment(
     subscribeToDeepLinks: {
       Effect.run { subscriber in
-        print("🚀 subscribeToDeepLinks")
+        logEffect("subscribeToDeepLinks")
         Branch
           .getInstance()
           .initSession(
@@ -24,7 +25,7 @@ public extension DeepLinkEnvironment {
     },
     continueUserActivity: { userActivity in
       .fireAndForget {
-        print("🚀 continueUserActivity")
+        logEffect("continueUserActivity")
         Branch
           .getInstance()
           .continue(userActivity)
@@ -37,7 +38,7 @@ func handleBranchCallback(
   _ f: @escaping ((PublishableKey, DriverID?, ManualVisitsStatus?)) -> Void
 ) -> ([AnyHashable : Any]?, Error?) -> Void {
   { params, error in
-    print("Params:\n\(String(describing: params))\nError:\n\(String(describing: error))\n")
+    logEffect("subscribeToDeepLinks.handleBranchCallback Params: \(String(describing: params)) Error: \(String(describing: error))")
     if error == nil,
        let params = params,
        let nonEmptyPublishableKey = NonEmptyString(dict: params, key: "publishable_key")  {

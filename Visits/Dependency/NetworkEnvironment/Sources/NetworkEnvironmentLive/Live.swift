@@ -1,5 +1,6 @@
 import Combine
 import ComposableArchitecture
+import Log
 import NetworkEnvironment
 import Network
 
@@ -8,16 +9,15 @@ public extension NetworkEnvironment {
   static let live = Self(
     networkStatus: {
       Effect.future { callback in
-        print("🚀 networkStatus")
+        logEffect("networkStatus")
         callback(.success(networkPath(pathMonitor.currentPath)))
       }
     },
     subscribeToNetworkUpdates: {
       Effect.run { subscriber in
-        print("🚀 subscribeToNetworkUpdates")
+        logEffect("subscribeToNetworkUpdates")
         pathMonitor.start(queue: DispatchQueue.main)
         pathMonitor.pathUpdateHandler = {
-          print("🚀 subscribeToNetworkUpdates.pathUpdateHandler")
           subscriber.send(networkPath($0))
         }
         return AnyCancellable { pathMonitor.cancel() }

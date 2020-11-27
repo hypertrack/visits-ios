@@ -6,6 +6,7 @@ import DeviceID
 import DriverID
 import HyperTrack
 import HyperTrackEnvironment
+import Log
 import NonEmpty
 import PublishableKey
 import SDK
@@ -16,7 +17,7 @@ public extension HyperTrackEnvironment {
   static let live = Self(
     addGeotag: { geotag in
       .fireAndForget {
-        print("🚀 addGeotag: \(geotag)")
+        logEffect("addGeotag: \(geotag)")
         let metadata: [String: String]
         switch geotag {
         case let .cancel(a):
@@ -68,56 +69,56 @@ public extension HyperTrackEnvironment {
     },
     checkDeviceTrackability: {
       Effect.result {
-        print("🚀 checkDeviceTrackability")
+        logEffect("checkDeviceTrackability")
         return .success(servicesAvailability())
       }
     },
     didFailToRegisterForRemoteNotificationsWithError: { error in
       .fireAndForget {
-        print("🚀 didFailToRegisterForRemoteNotificationsWithError: \(error)")
+        logEffect("didFailToRegisterForRemoteNotificationsWithError: \(error)")
         HyperTrack.didFailToRegisterForRemoteNotificationsWithError(error)
       }
     },
     didReceiveRemoteNotification: { userInfo, callback in
       .fireAndForget {
-        print("🚀 didReceiveRemoteNotification: \(userInfo)")
+        logEffect("didReceiveRemoteNotification: \(userInfo)")
         HyperTrack.didReceiveRemoteNotification(userInfo, fetchCompletionHandler: callback)
       }
     },
     didRegisterForRemoteNotificationsWithDeviceToken: { deviceToken in
       .fireAndForget {
-        print("🚀 didRegisterForRemoteNotificationsWithDeviceToken")
+        logEffect("didRegisterForRemoteNotificationsWithDeviceToken")
         HyperTrack.didRegisterForRemoteNotificationsWithDeviceToken(deviceToken)
       }
     },
     makeSDK: { pk in
       Effect.result {
-        print("🚀 makeSDK: \(pk.rawValue.rawValue)")
+        logEffect("makeSDK: \(pk.rawValue.rawValue)")
         ht = try! HyperTrack(publishableKey: HyperTrack.PublishableKey(pk.rawValue.rawValue)!)
         return .success(statusUpdate())
       }
     },
     openSettings: {
       .fireAndForget {
-        print("🚀 openSettings")
+        logEffect("openSettings")
         UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
       }
     },
     registerForRemoteNotifications: {
       .fireAndForget {
-        print("🚀 registerForRemoteNotifications")
+        logEffect("registerForRemoteNotifications")
         HyperTrack.registerForRemoteNotifications()
       }
     },
     requestLocationPermissions: {
       .fireAndForget {
-        print("🚀 requestLocationPermissions")
+        logEffect("requestLocationPermissions")
         lm.requestAlwaysAuthorization()
       }
     },
     requestMotionPermissions: {
       Effect.future { callback in
-        print("🚀 requestMotionPermissions")
+        logEffect("requestMotionPermissions")
         mm.queryActivityStarting(
           from: Date(),
           to: Date(),
@@ -128,7 +129,7 @@ public extension HyperTrackEnvironment {
     },
     setDriverID: { dID in
       .fireAndForget {
-        print("🚀 setDriverID: \(dID.rawValue.rawValue)")
+        logEffect("setDriverID: \(dID.rawValue.rawValue)")
         ht?.setDeviceMetadata(
           HyperTrack.Metadata(
             dictionary: [C.driverID.rawValue: dID.rawValue.rawValue]
@@ -138,19 +139,19 @@ public extension HyperTrackEnvironment {
     },
     startTracking: {
       .fireAndForget {
-        print("🚀 startTracking")
+        logEffect("startTracking")
         ht?.start()
       }
     },
     stopTracking: {
       .fireAndForget {
-        print("🚀 stopTracking")
+        logEffect("stopTracking")
         ht?.stop()
       }
     },
     subscribeToStatusUpdates: {
       Effect.run { subscriber in
-        print("🚀 subscribeToStatusUpdates")
+        logEffect("subscribeToStatusUpdates")
         lmd = LocationManagerClientDelegate { subscriber.send(statusUpdate()) }
         
         NotificationCenter.default
@@ -187,7 +188,7 @@ public extension HyperTrackEnvironment {
     },
     syncDeviceSettings: {
       .fireAndForget {
-        print("🚀 syncDeviceSettings")
+        logEffect("syncDeviceSettings")
         ht?.syncDeviceSettings()
       }
     }

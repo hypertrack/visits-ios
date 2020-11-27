@@ -11,6 +11,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
+    .package(path: "Log"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4"))
   ],
   targets: [
@@ -21,6 +22,6 @@ let package = Package(
         .product(name: "NonEmpty", package: "swift-nonempty")
       ]
     ),
-    .target(name: "PasteboardEnvironmentLive", dependencies: ["PasteboardEnvironment"])
+    .target(name: "PasteboardEnvironmentLive", dependencies: ["Log", "PasteboardEnvironment"])
   ]
 )
