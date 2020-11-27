@@ -858,7 +858,7 @@
 			repositoryURL = "https://github.com/hypertrack/prelude-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 0.0.10;
+				version = 0.0.11;
 			};
 		};
 		31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */ = {

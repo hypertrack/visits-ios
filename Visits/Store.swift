@@ -6,7 +6,7 @@ import Prelude
 
 let store = Store<AppState, AppAction>(
   initialState: .initialState,
-  reducer: appReducer,
+  reducer: appReducer.prettyDebug(),
   environment: SystemEnvironment.live(environment: AppEnvironment.live(signIn))
 )
 

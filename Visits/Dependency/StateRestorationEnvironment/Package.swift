@@ -15,7 +15,7 @@ let package = Package(
     .package(path: "DriverID"),
     .package(path: "Log"),
     .package(path: "ManualVisitsStatus"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.10")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
     .package(path: "RestorationState"),
     .package(path: "Visit")

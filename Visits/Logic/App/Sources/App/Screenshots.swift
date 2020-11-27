@@ -58,6 +58,7 @@ extension AppState {
           )
         ]
       ),
+      nil,
       PublishableKey(rawValue: "Key"),
       DriverID(rawValue: "ID"),
       DeviceID(rawValue: "ID"),
@@ -96,6 +97,7 @@ extension AppState {
         ),
         []
       ),
+      nil,
       PublishableKey(rawValue: "Key"),
       DriverID(rawValue: "ID"),
       DeviceID(rawValue: "ID"),

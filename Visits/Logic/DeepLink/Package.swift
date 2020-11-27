@@ -12,7 +12,7 @@ let package = Package(
     .package(path: "DriverID"),
     .package(path: "ManualVisitsStatus"),
     .package(path: "NetworkEnvironment"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.9")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
     .package(path: "RestorationState"),
     .package(path: "SDK")

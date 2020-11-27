@@ -1,6 +1,6 @@
 import Coordinate
 
-public struct History {
+public struct History: Equatable {
   public init(coordinates: [Coordinate], distance: UInt) {
     self.coordinates = coordinates
     self.distance = distance

@@ -4,7 +4,7 @@ import RestorationState
 
 extension Reducer where State == AppState, Action == AppAction, Environment == SystemEnvironment<AppEnvironment> {
   func autosave() -> Reducer {
-    return .init { state, action, environment in
+    .init { state, action, environment in
       let previousState = state
       let effects = self.run(&state, action, environment)
       let nextState = state
@@ -47,7 +47,7 @@ func saveFlow(_ appFlow: AppFlow) -> StorageState? {
     return nil
   case let .driverID(drID, pk, mvs, _):
     return .driverID(drID, pk, mvs)
-  case let .visits(v, pk, drID, _, _, _, _, _):
+  case let .visits(v, _, pk, drID, _, _, _, _, _):
     return .visits(v, pk, drID)
   }
 }

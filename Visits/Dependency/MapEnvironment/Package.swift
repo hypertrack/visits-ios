@@ -13,7 +13,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
     .package(path: "Coordinate"),
     .package(path: "Log"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.10")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "Visit")
   ],
   targets: [

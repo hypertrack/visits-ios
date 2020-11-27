@@ -29,7 +29,7 @@ let package = Package(
     .package(
       name: "Prelude",
       url: "https://github.com/hypertrack/prelude-swift",
-      .exact("0.0.10")
+      .exact("0.0.11")
     ),
     .package(path: "PublishableKey"),
     .package(path: "SDK"),
