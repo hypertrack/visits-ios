@@ -31,6 +31,7 @@ let package = Package(
     .package(path: "RestorationState"),
     .package(path: "SDK"),
     .package(path: "StateRestorationEnvironment"),
+    .package(path: "TabSelection"),
     .package(name: "Tagged", url: "https://github.com/pointfreeco/swift-tagged", .exact("0.5.0")),
     .package(path: "Visit")
   ],
@@ -59,6 +60,7 @@ let package = Package(
         "RestorationState",
         "SDK",
         "StateRestorationEnvironment",
+        "TabSelection",
         "Tagged",
         "Visit"
       ]

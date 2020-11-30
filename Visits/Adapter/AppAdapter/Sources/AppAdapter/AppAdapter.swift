@@ -75,8 +75,8 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .driverID(.some(drID), _, _, _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .visits(_, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
-  case let .visits(v, _, pk, _, deID, us, p, r, _):
+  case let .visits(_, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
+  case let .visits(v, _, s, pk, _, deID, us, p, r, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions) {
     case (_, _, .disabled, _):              return .blocker(.locationDisabled)
     case (_, _, .denied, _):                return .blocker(.locationDenied)
@@ -101,14 +101,14 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       switch v {
       case let .mixed(visits):
         let (pending, visited, completed, canceled) = visitHeaders(from: Array(visits))
-        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)))
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), s)
       case let .assigned(assignedVisits):
         let (pending, visited, completed, canceled) = visitHeaders(from: assignedVisits.map(Either.right))
-        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)))
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), s)
       case let .selectedMixed(selectedVisit, _):
-        return .visits(.visit(visitScreen(from: selectedVisit, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)))
+        return .visits(.visit(visitScreen(from: selectedVisit, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), s)
       case let .selectedAssigned(selectedAssignedVisit, _):
-        return .visits(.visit(visitScreen(from: .right(selectedAssignedVisit), pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)))
+        return .visits(.visit(visitScreen(from: .right(selectedAssignedVisit), pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), s)
       }
     }
   }
@@ -159,6 +159,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .visit(.noteTapped): return .focusVisitNote
   case .visit(.pickedUpButtonTapped): return .pickUpVisit
   case .visit(.tappedOutsideFocusedTextField): return .dismissFocus
+  case .tab(.map): return .switchToMap
+  case .tab(.visits): return .switchToVisits
   }
 }
 

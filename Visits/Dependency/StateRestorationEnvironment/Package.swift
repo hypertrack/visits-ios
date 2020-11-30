@@ -18,6 +18,7 @@ let package = Package(
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
     .package(path: "RestorationState"),
+    .package(path: "TabSelection"),
     .package(path: "Visit")
   ],
   targets: [
@@ -25,18 +26,22 @@ let package = Package(
       name: "StateRestorationEnvironment",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "Credentials",
-        "DriverID",
-        "ManualVisitsStatus",
-        "Prelude",
-        "PublishableKey",
         "RestorationState",
-        "Visit"
       ]
     ),
     .target(
       name: "StateRestorationEnvironmentLive",
-      dependencies: ["Log", "StateRestorationEnvironment"]
+      dependencies: [
+        "Credentials",
+        "DriverID",
+        "Log",
+        "ManualVisitsStatus",
+        "Prelude",
+        "PublishableKey",
+        "StateRestorationEnvironment",
+        "TabSelection",
+        "Visit"
+      ]
     )
   ]
 )

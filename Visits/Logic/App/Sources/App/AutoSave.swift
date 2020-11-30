@@ -47,7 +47,7 @@ func saveFlow(_ appFlow: AppFlow) -> StorageState? {
     return nil
   case let .driverID(drID, pk, mvs, _):
     return .driverID(drID, pk, mvs)
-  case let .visits(v, _, pk, drID, _, _, _, _, _):
-    return .visits(v, pk, drID)
+  case let .visits(v, _, s, pk, drID, _, _, _, _, _):
+    return .visits(v, s, pk, drID)
   }
 }

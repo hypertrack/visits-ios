@@ -8,6 +8,7 @@ import Prelude
 import PublishableKey
 import RestorationState
 import StateRestorationEnvironment
+import TabSelection
 import Visit
 
 
@@ -33,7 +34,9 @@ public extension StateRestorationEnvironment {
             mvs: UserDefaults.standard.string(forKey: RestorationKey.manualVisitsStatus.rawValue)
               >>- ManualVisitsStatus.init(rawValue:),
             visits: (UserDefaults.standard.object(forKey: RestorationKey.visits.rawValue) as? Data)
-              >>- { try? JSONDecoder().decode(Visits.self, from: $0) }
+              >>- { try? JSONDecoder().decode(Visits.self, from: $0) },
+            tabSelection: (UserDefaults.standard.string(forKey: RestorationKey.tabSelection.rawValue))
+              >>- TabSelection.init(rawValue:)
           )
         )
       }
@@ -59,11 +62,12 @@ public extension StateRestorationEnvironment {
             ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
             ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
             ud.set(mvs <¡> \.rawValue, forKey: RestorationKey.manualVisitsStatus.rawValue)
-          case let .visits(v, pk, dID):
+          case let .visits(v, s, pk, dID):
             ud.set(Screen.visits.rawValue, forKey: RestorationKey.screen.rawValue)
             ud.set(try? JSONEncoder().encode(v), forKey: RestorationKey.visits.rawValue)
             ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
             ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
+            ud.set(s.rawValue, forKey: RestorationKey.tabSelection.rawValue)
           }
         }
       }
@@ -77,28 +81,29 @@ func restoredStateFrom(
   publishableKey: PublishableKey?,
   driverID: DriverID?,
   mvs: ManualVisitsStatus?,
-  visits: Visits?
+  visits: Visits?,
+  tabSelection: TabSelection?
 ) -> StorageState? {
-  switch (screen, email, publishableKey, driverID, mvs, visits) {
+  switch (screen, email, publishableKey, driverID, mvs, visits, tabSelection) {
   // Old app that got to deliveries screen. Assuming no manual visits by default
-  case let (.none, _, .some(publishableKey), .some(driverID), _, _):
-    return .visits(.assigned([]), publishableKey, driverID)
+  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _):
+    return .visits(.assigned([]), .visits, publishableKey, driverID)
   // Old app that only got to the DriverID screen
-  case let (.none, _, .some(publishableKey), .none, _, _):
+  case let (.none, _, .some(publishableKey), .none, _, _, _):
     return .driverID(nil, publishableKey, nil)
   // Freshly installed app that didn't go though the deep link search,
   // or an old app that didn't open the deep link
-  case (.none, _, .none, .none, _, _):
+  case (.none, _, .none, .none, _, _, _):
     return nil
   // Sign in screen
-  case let (.signIn, email, _, _, _, _):
+  case let (.signIn, email, _, _, _, _, _):
     return .signIn(email)
   // Driver ID screen
-  case let (.driverID, _, .some(publishableKey), driverID, mvs, _):
+  case let (.driverID, _, .some(publishableKey), driverID, mvs, _, _):
     return .driverID(driverID, publishableKey, mvs)
   // Visits screens
-  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits)):
-    return .visits(visits, publishableKey, driverID)
+  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection):
+    return .visits(visits, tabSelection ?? .visits, publishableKey, driverID)
   // State restoration failed, back to the starting screen
   default: return nil
   }
@@ -111,6 +116,7 @@ enum RestorationKey: String, CaseIterable {
   case screen = "ZJNLfS0Nhw"
   case email = "sXwAlVbnPT"
   case manualVisitsStatus = "T7XH9g2sFQ"
+  case tabSelection = "8VGkczct6P"
 }
 
 enum Screen: String {

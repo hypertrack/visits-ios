@@ -17,6 +17,7 @@ let package = Package(
     .package(path: "DriverIDScreen"),
     .package(path: "LoadingScreen"),
     .package(path: "SignInScreen"),
+    .package(path: "TabSelection"),
     .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.6")),
     .package(path: "VisitScreen"),
     .package(path: "VisitsScreen"),
@@ -31,6 +32,7 @@ let package = Package(
         "DriverIDScreen",
         "LoadingScreen",
         "SignInScreen",
+        "TabSelection",
         "Views",
         "VisitScreen",
         "VisitsScreen"

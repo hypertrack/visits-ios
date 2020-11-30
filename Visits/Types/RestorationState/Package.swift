@@ -13,6 +13,7 @@ let package = Package(
     .package(path: "ManualVisitsStatus"),
     .package(path: "PublishableKey"),
     .package(path: "SDK"),
+    .package(path: "TabSelection"),
     .package(path: "Visit")
   ],
   targets: [
@@ -25,6 +26,7 @@ let package = Package(
         "ManualVisitsStatus",
         "PublishableKey",
         "SDK",
+        "TabSelection",
         "Visit"
       ]
     )

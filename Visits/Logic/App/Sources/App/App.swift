@@ -19,6 +19,7 @@ import PublishableKey
 import RestorationState
 import SDK
 import StateRestorationEnvironment
+import TabSelection
 import Tagged
 import Visit
 import UIKit
@@ -38,7 +39,7 @@ public enum AppFlow: Equatable {
   case noMotionServices
   case signIn(SignInState)
   case driverID(DriverID?, PublishableKey, ManualVisitsStatus?, ProcessingDeepLink?)
-  case visits(Visits, History?, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, These<RefreshingVisits, RefreshingHistory>?, ProcessingDeepLink?)
+  case visits(Visits, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, These<RefreshingVisits, RefreshingHistory>?, ProcessingDeepLink?)
 }
 
 public struct RefreshingVisits: Equatable {}
@@ -92,6 +93,9 @@ public enum AppAction: Equatable {
   case openAppleMaps
   case pickUpVisit
   case visitsUpdated(Either<NonEmptySet<AssignedVisit>, NonEmptyString>)
+  // TabView
+  case switchToVisits
+  case switchToMap
   // History
   case historyUpdated(Either<History, NonEmptyString>)
   // Generic UI
@@ -333,7 +337,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           case .showManualVisits:
             visits = .mixed([])
           }
-          state.flow = .visits(visits, nil, pk, drID, deID, us, p, nil, nil)
+          state.flow = .visits(visits, nil, .visits, pk, drID, deID, us, p, nil, nil)
           return .merge(
             environment.hyperTrack
               .subscribeToStatusUpdates()
@@ -359,7 +363,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // Visits
   Reducer { state, action, environment in
     switch state.flow {
-    case let .visits(v, h, pk, drID, deID, us, p, r, d):
+    case let .visits(v, h, s, pk, drID, deID, us, p, r, d):
       let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
       let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
       
@@ -376,7 +380,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case .some(.both):
           return .none
         }
-        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), d)
+        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), d)
         return .merge(effects)
       case .updateVisits:
         let effect: Effect<AppAction, Never>
@@ -393,7 +397,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case .some(.that), .some(.both):
           refreshing = .both(RefreshingVisits(), RefreshingHistory())
         }
-        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, pk, drID, deID, us, p, refreshing, d)
+        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, s, pk, drID, deID, us, p, refreshing, d)
         return effect
       case let .copyToPasteboard(s):
         return .merge(
@@ -413,7 +417,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             geotagSent: .notSent,
             noteFieldFocused: false
           )
-          state.flow = .visits(.selectedMixed(Visit.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(Visit.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         default:
           return .none
@@ -439,7 +443,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             }
           }) {
             let selected = msSel.remove(at: i)
-            state.flow = .visits(.selectedMixed(selected, msSel), h, pk, drID, deID, us, p, r, d)
+            state.flow = .visits(.selectedMixed(selected, msSel), h, s, pk, drID, deID, us, p, r, d)
             return .none
           } else {
             return .none
@@ -448,7 +452,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           var msSel = aas
           if let i = msSel.firstIndex(where: { $0.id.rawValue.rawValue == str }) {
             let selected = msSel.remove(at: i)
-            state.flow = .visits(.selectedAssigned(selected, msSel), h, pk, drID, deID, us, p, r, d)
+            state.flow = .visits(.selectedAssigned(selected, msSel), h, s, pk, drID, deID, us, p, r, d)
             return .none
           } else {
             return .none
@@ -461,7 +465,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas) where a.geotagSent == .checkedIn:
           var a = a
           a.geotagSent = .cancelled(environment.date())
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.cancel(.init(id: a.id, source: a.source, visitNote: a.visitNote)))
@@ -473,7 +477,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.right(a), vs) where a.geotagSent == .checkedIn:
           var a = a
           a.geotagSent = .cancelled(environment.date())
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.cancel(.init(id: a.id, source: a.source, visitNote: a.visitNote)))
@@ -490,7 +494,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas) where a.geotagSent == .pickedUp || a.geotagSent == .notSent:
           var a = a
           a.geotagSent = .checkedIn
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkIn(.right(.init(id: a.id, source: a.source))))
@@ -502,7 +506,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.right(a), vs) where a.geotagSent == .pickedUp || a.geotagSent == .notSent:
           var a = a
           a.geotagSent = .checkedIn
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkIn(.right(.init(id: a.id, source: a.source))))
@@ -514,7 +518,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.left(m), vs) where m.geotagSent == .notSent:
           var m = m
           m.geotagSent = .checkedIn
-          state.flow = .visits(.selectedMixed(.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkIn(.left(m.id)))
@@ -531,7 +535,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas) where a.geotagSent == .checkedIn:
           var a = a
           a.geotagSent = .checkedOut(environment.date())
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, visitNote: a.visitNote))))
@@ -543,7 +547,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.right(a), vs) where a.geotagSent == .checkedIn:
           var a = a
           a.geotagSent = .checkedOut(environment.date())
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkOut(.right(.init(id: a.id, source: a.source, visitNote: a.visitNote))))
@@ -555,7 +559,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.left(m), vs) where m.geotagSent == .checkedIn:
           var m = m
           m.geotagSent = .checkedOut(environment.date())
-          state.flow = .visits(.selectedMixed(.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.checkOut(.left(.init(id: m.id, visitNote: m.visitNote))))
@@ -576,7 +580,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           } else {
             a.visitNote = nil
           }
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.left(m), vs):
           var m = m
@@ -585,7 +589,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           } else {
             m.visitNote = nil
           }
-          state.flow = .visits(.selectedMixed(.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.right(a), vs):
           var a = a
@@ -594,7 +598,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           } else {
             a.visitNote = nil
           }
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         default:
           return .none
@@ -604,17 +608,17 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case .mixed, .assigned:
           return .none
         case let .selectedMixed(.left(m), vs) where m.geotagSent == .notSent:
-          state.flow = .visits(.mixed(vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.mixed(vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
-        case let .selectedMixed(s, vs):
+        case let .selectedMixed(sv, vs):
           var res = vs
-          res.insert(s)
-          state.flow = .visits(.mixed(res), h, pk, drID, deID, us, p, r, d)
+          res.insert(sv)
+          state.flow = .visits(.mixed(res), h, s, pk, drID, deID, us, p, r, d)
           return .none
-        case let .selectedAssigned(s, aas):
+        case let .selectedAssigned(sv, aas):
           var res = aas
-          res.insert(s)
-          state.flow = .visits(.assigned(res), h, pk, drID, deID, us, p, r, d)
+          res.insert(sv)
+          state.flow = .visits(.assigned(res), h, s, pk, drID, deID, us, p, r, d)
           return .none
         }
       case .focusVisitNote:
@@ -622,17 +626,17 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas):
           var a = a
           a.noteFieldFocused = true
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.left(m), vs):
           var m = m
           m.noteFieldFocused = true
-          state.flow = .visits(.selectedMixed(.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.right(a), vs):
           var a = a
           a.noteFieldFocused = true
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         default:
           return .none
@@ -662,7 +666,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas) where a.geotagSent == .notSent:
           var a = a
           a.geotagSent = .pickedUp
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.pickUp(a.id, a.source))
@@ -674,7 +678,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedMixed(.right(a), vs) where a.geotagSent == .notSent:
           var a = a
           a.geotagSent = .pickedUp
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .merge(
             environment.hyperTrack
               .addGeotag(.pickUp(a.id, a.source))
@@ -691,17 +695,17 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case let .selectedAssigned(a, aas):
           var a = a
           a.noteFieldFocused = false
-          state.flow = .visits(.selectedAssigned(a, aas), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.left(m), vs):
           var m = m
           m.noteFieldFocused = false
-          state.flow = .visits(.selectedMixed(.left(m), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         case let .selectedMixed(.right(a), vs):
           var a = a
           a.noteFieldFocused = false
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, d)
           return .none
         default:
           return .none
@@ -720,13 +724,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           .receive(on: environment.mainQueue())
           .eraseToEffect()
           .map(AppAction.statusUpdated)
-      case let .statusUpdated(s, p):
-        switch s {
+      case let .statusUpdated(st, p):
+        switch st {
         case .locked:
           state.flow = .noMotionServices
           return .none
         case let .unlocked(deID, us):
-          state.flow = .visits(v, h, pk, drID, deID, us, p, r, d)
+          state.flow = .visits(v, h, s, pk, drID, deID, us, p, r, d)
           return .none
         }
       case .startTracking:
@@ -748,7 +752,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         case .some(.both):
           break
         }
-        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), d)
+        state.flow = .visits(filterOutOldVisits(v, now: environment.date()), h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), d)
         return .merge(effects)
       case .stopTracking:
         var effects: [Effect<AppAction, Never>] = [
@@ -772,18 +776,47 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             .cancel(id: RefreshingHistoryID())
           ]
         }
-        state.flow = .visits(v, h, pk, drID, deID, us, p, .none, d)
+        state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, d)
         return .merge(effects)
       case let .visitsUpdated(vs):
         let newV = filterOutOldVisits((eitherLeft(vs) <¡> mergeVisits(vs: v)) ?? v, now: environment.date())
-        state.flow = .visits(newV, h, pk, drID, deID, us, p, r >>- removeThis, d)
+        state.flow = .visits(newV, h, s, pk, drID, deID, us, p, r >>- removeThis, d)
         return .none
       case let .historyUpdated(h):
-        state.flow = .visits(v, eitherLeft(h), pk, drID, deID, us, p, r >>- removeThat, d)
+        state.flow = .visits(v, eitherLeft(h), s, pk, drID, deID, us, p, r >>- removeThat, d)
         return .none
       default:
         return .none
       }
+    default:
+      return .none
+    }
+  },
+  // TabView
+  Reducer { state, action, environment in
+    switch (state.flow, action) {
+    case let (.visits(v, h, .map, pk, drID, deID, us, p, r, d), .switchToVisits):
+      state.flow = .visits(v, h, .visits, pk, drID, deID, us, p, r, d)
+      return Effect(value: .updateVisits)
+    case let (.visits(v, h, .visits, pk, drID, deID, us, p, r, d), .switchToMap):
+      state.flow = .visits(v, h, .map, pk, drID, deID, us, p, r, d)
+      
+      let effect: Effect<AppAction, Never>
+      let refreshing: These<RefreshingVisits, RefreshingHistory>
+      switch r {
+      case .none, .some(.this):
+        effect = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
+      case .some(.that), .some(.both):
+        effect = .none
+      }
+      switch r {
+      case .none, .some(.that):
+        refreshing = .that(RefreshingHistory())
+      case .some(.this), .some(.both):
+        refreshing = .both(RefreshingVisits(), RefreshingHistory())
+      }
+      state.flow = .visits(v, h, .map, pk, drID, deID, us, p, refreshing, d)
+      return effect
     default:
       return .none
     }
@@ -801,7 +834,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       switch (previousState.flow, nextState.flow) {
       case (.visits, .visits): return effects
-      case let (_, .visits(v, h, pk, drID, deID, s, p, r, d)):
+      case let (_, .visits(v, h, s, pk, drID, deID, us, p, r, d)):
         let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
         let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
         
@@ -817,7 +850,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
           return .none
         }
         
-        state.flow = .visits(v, h, pk, drID, deID, s, p, .both(RefreshingVisits(), RefreshingHistory()), d)
+        state.flow = .visits(v, h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), d)
         return .merge(effects)
       default: return effects
       }

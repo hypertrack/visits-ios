@@ -139,6 +139,7 @@
 		318E585E2546BA7200EAA61A /* DriverID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverID; sourceTree = "<group>"; };
 		319453CB2548417700D86A04 /* AppAdapter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AppAdapter; path = Visits/Adapter/AppAdapter; sourceTree = SOURCE_ROOT; };
 		31AC38802545CCE500D29345 /* App */ = {isa = PBXFileReference; lastKnownFileType = folder; path = App; sourceTree = "<group>"; };
+		31B262E52575835A00280DDF /* TabSelection */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TabSelection; sourceTree = "<group>"; };
 		31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PasteboardEnvironment; sourceTree = "<group>"; };
 		31E1752F255C028600DF5219 /* MapEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapEnvironment; sourceTree = "<group>"; };
 		31E17532255C098200DF5219 /* HapticFeedbackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HapticFeedbackEnvironment; sourceTree = "<group>"; };
@@ -346,6 +347,7 @@
 				318E585C2546B7EA00EAA61A /* PublishableKey */,
 				31F0724D2553E75F002A7A53 /* RestorationState */,
 				31F0725C2555E5E2002A7A53 /* SDK */,
+				31B262E52575835A00280DDF /* TabSelection */,
 				314A14D5254FEF2B0061892F /* Visit */,
 			);
 			path = Types;

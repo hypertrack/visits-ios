@@ -5,6 +5,7 @@ import DriverIDScreen
 import LoadingScreen
 import SignInScreen
 import SwiftUI
+import TabSelection
 import VisitScreen
 import VisitsScreen
 import WebKit
@@ -30,7 +31,7 @@ public struct AppScreen: View {
     case signIn(SignInScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case visits(VisitOrVisits)
+    case visits(VisitOrVisits, TabSelection)
   }
   
   public enum Action {
@@ -39,6 +40,7 @@ public struct AppScreen: View {
     case blocker(Blocker.Action)
     case visits(VisitsScreen.Action)
     case visit(VisitScreen.Action)
+    case tab(TabSelection)
   }
   
   let store: Store<State, Action>
@@ -64,11 +66,12 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .visits(s):
+      case let .visits(s, sel):
         VisitsBlock(
-          state: s,
+          state: (s, sel),
           sendVisit: { viewStore.send(.visit($0)) },
-          sendVisits: { viewStore.send(.visits($0)) }
+          sendVisits: { viewStore.send(.visits($0)) },
+          sendTab: { viewStore.send(.tab($0)) }
         )
       }
     }
@@ -76,13 +79,19 @@ public struct AppScreen: View {
 }
 
 struct VisitsBlock: View {
-  let state: VisitOrVisits
+  let state: (visits: VisitOrVisits, tabSelection: TabSelection)
   let sendVisit: (VisitScreen.Action) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
+  let sendTab: (TabSelection) -> Void
   
   var body: some View {
-    TabView {
-      switch state {
+    TabView(
+    selection: Binding(
+      get: { state.tabSelection },
+      set: { sendTab($0) }
+    )
+    ) {
+      switch state.visits {
       case let .visit(v):
         VisitScreen(state: v) {
           sendVisit($0)
@@ -91,6 +100,7 @@ struct VisitsBlock: View {
           Image(systemName: "list.dash")
           Text("Visits")
         }
+        .tag(TabSelection.visits)
       case let .visits(vs):
         VisitsScreen(state: vs) {
           sendVisits($0)
@@ -99,16 +109,18 @@ struct VisitsBlock: View {
           Image(systemName: "list.dash")
           Text("Visits")
         }
+        .tag(TabSelection.visits)
       }
       WebView(
-        deviceID: state.credentials.deviceID,
-        publishableKey: state.credentials.publishableKey
+        deviceID: state.visits.credentials.deviceID,
+        publishableKey: state.visits.credentials.publishableKey
       )
       .edgesIgnoringSafeArea(.top)
       .tabItem {
         Image(systemName: "map")
         Text("Map")
       }
+      .tag(TabSelection.map)
     }
   }
 }
