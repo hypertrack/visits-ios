@@ -313,12 +313,12 @@
 		316AA86A25480B3B00FC3D55 /* Dependency */ = {
 			isa = PBXGroup;
 			children = (
-				3117579C25702B51004CB568 /* Log */,
 				31E17537255C3C9D00DF5219 /* APIEnvironment */,
 				31072BAB254A0DF800ECBA34 /* Architecture */,
 				31072B932548BB9000ECBA34 /* DeepLinkEnvironment */,
 				31E17532255C098200DF5219 /* HapticFeedbackEnvironment */,
 				31F072562554091F002A7A53 /* HyperTrackEnvironment */,
+				3117579C25702B51004CB568 /* Log */,
 				31E1752F255C028600DF5219 /* MapEnvironment */,
 				31F072512553EBFE002A7A53 /* NetworkEnvironment */,
 				31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */,
