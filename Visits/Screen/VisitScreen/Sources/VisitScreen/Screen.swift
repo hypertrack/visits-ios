@@ -139,6 +139,7 @@ public struct VisitScreen: View {
           checkOutButtonTapped: { send(.checkOutButtonTapped) },
           pickedUpButtonTapped: { send(.pickedUpButtonTapped) }
         )
+        .padding(.bottom, -10)
       }
       .modifier(AppBackground())
       .edgesIgnoringSafeArea(.bottom)
@@ -274,7 +275,7 @@ struct VisitInformationView: View {
       }
     }
     .frame(maxWidth: .infinity)
-    .padding([.bottom], showButtons ? 88 + 8 : 8)
+    .padding([.bottom], showButtons ? 78 : 0)
   }
 }
 
