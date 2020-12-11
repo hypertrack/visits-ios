@@ -232,10 +232,10 @@ func signingIn(from s: SignInState) -> Bool {
 }
 
 func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHeader], [VisitHeader]) {
-  var pending: [VisitHeader] = []
-  var visited: [VisitHeader] = []
-  var completed: [VisitHeader] = []
-  var canceled: [VisitHeader] = []
+  var pending: [(Date, VisitHeader)] = []
+  var visited: [(Date, VisitHeader)] = []
+  var completed: [(Date, VisitHeader)] = []
+  var canceled: [(Date, VisitHeader)] = []
   
   for v in vs {
     let t = visitTitle(from: v)
@@ -243,21 +243,30 @@ func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHead
     case let .left(m):
       let h = VisitHeader(id: m.id.rawValue.rawValue, title: t)
       switch m.geotagSent {
-      case .checkedIn:  visited.append(h)
-      case .checkedOut: completed.append(h)
-      case .notSent: pending.append(h)
+      case .checkedIn:  visited.append((m.createdAt, h))
+      case .checkedOut: completed.append((m.createdAt, h))
+      case .notSent: pending.append((m.createdAt, h))
       }
     case let .right(a):
       let h = VisitHeader(id: a.id.rawValue.rawValue, title: t)
       switch a.geotagSent {
-      case .notSent, .pickedUp: pending.append(h)
-      case .checkedIn:          visited.append(h)
-      case .checkedOut:         completed.append(h)
-      case .cancelled:          canceled.append(h)
+      case .notSent, .pickedUp: pending.append((a.createdAt, h))
+      case .checkedIn:          visited.append((a.createdAt, h))
+      case .checkedOut:         completed.append((a.createdAt, h))
+      case .cancelled:          canceled.append((a.createdAt, h))
       }
     }
   }
-  return (pending, visited, completed, canceled)
+  return (
+    pending.sorted(by: sortHeaders).map(\.1),
+    visited.sorted(by: sortHeaders).map(\.1),
+    completed.sorted(by: sortHeaders).map(\.1),
+    canceled.sorted(by: sortHeaders).map(\.1)
+  )
+}
+
+func sortHeaders(_ left: (date: Date, visit: VisitHeader), _ right: (date: Date, visit: VisitHeader)) -> Bool {
+  left.date > right.date
 }
 
 func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
