@@ -21,7 +21,7 @@ import PublishableKey
 public extension AppEnvironment {
   static let live:(@escaping (Email, Password) -> Effect<Either<PublishableKey, NonEmptyString>, Never>) -> AppEnvironment = { signIn in
     AppEnvironment(
-      api: APIEnvironment(getHistory: getHistory, getVisits: getVisits, signIn: signIn),
+      api: APIEnvironment(getHistory: getHistory, getVisits: getVisits, reverseGeocode: reverseGeocode, signIn: signIn),
       deepLink: .live,
       hapticFeedback: .live,
       hyperTrack: .live,

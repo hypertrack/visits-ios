@@ -2,6 +2,7 @@ import APIEnvironment
 import Architecture
 import Combine
 import ComposableArchitecture
+import Coordinate
 import Credentials
 import DeepLinkEnvironment
 import DeviceID
@@ -61,6 +62,11 @@ public enum SignInFocus: Equatable { case email, password }
 public typealias SignInError = Tagged<SignInErrorTag, NonEmptyString>
 public enum SignInErrorTag {}
 
+public struct GeocodedResult: Equatable {
+  let coordinate: Coordinate
+  let address: These<AssignedVisit.Street, AssignedVisit.FullAddress>?
+}
+
 // MARK: - Action
 
 public enum AppAction: Equatable {
@@ -92,6 +98,7 @@ public enum AppAction: Equatable {
   case focusVisitNote
   case openAppleMaps
   case pickUpVisit
+  case reverseGeocoded([GeocodedResult])
   case visitsUpdated(Either<NonEmptySet<AssignedVisit>, NonEmptyString>)
   // TabView
   case switchToVisits
@@ -778,10 +785,22 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         }
         state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, d)
         return .merge(effects)
+      case let .reverseGeocoded(g):
+        state.flow = .visits(updateAddress(for: v, with: g), h, s, pk, drID, deID, us, p, r, d)
+        return .none
       case let .visitsUpdated(vs):
         let newV = filterOutOldVisits((eitherLeft(vs) <¡> mergeVisits(vs: v)) ?? v, now: environment.date())
         state.flow = .visits(newV, h, s, pk, drID, deID, us, p, r >>- removeThis, d)
-        return .none
+        if let reverseGeocodingCoordinates = NonEmptySet(rawValue: visitCoordinatesWithoutAddress(assignedVisits(from: newV))) {
+          return environment.api
+            .reverseGeocode(reverseGeocodingCoordinates.map(identity))
+            .map { $0.map { GeocodedResult(coordinate: $0.0, address: $0.1) } }
+            .receive(on: environment.mainQueue())
+            .eraseToEffect()
+            .map(AppAction.reverseGeocoded)
+        } else {
+          return .none
+        }
       case let .historyUpdated(h):
         state.flow = .visits(v, eitherLeft(h), s, pk, drID, deID, us, p, r >>- removeThat, d)
         return .none
@@ -908,4 +927,73 @@ func sameAssignedID(_ id: AssignedVisit.ID) -> (Visit) -> Bool {
       return false
     }
   }
+}
+
+func assignedVisits(from visits: Visits) -> Set<AssignedVisit> {
+  let assignedVisits: Set<AssignedVisit>
+  switch visits {
+  case let .mixed(vs):
+    assignedVisits = Set(vs.compactMap(eitherRight))
+  case let .assigned(vs):
+    assignedVisits = vs
+  case let .selectedMixed(.left, vs):
+    assignedVisits = Set(vs.compactMap(eitherRight))
+  case let .selectedMixed(.right(v), vs):
+    assignedVisits = Set(vs.compactMap(eitherRight) + [v])
+  case let .selectedAssigned(v, vs):
+    assignedVisits = insert(v, into: vs)
+  }
+  return assignedVisits
+}
+
+func insert<Element>(_ newMember: Element, into set: Set<Element>) -> Set<Element> {
+  var set = set
+  set.insert(newMember)
+  return set
+}
+
+func visitCoordinatesWithoutAddress(_ visits: Set<AssignedVisit>) -> Set<Coordinate> {
+  Set(visits.compactMap { $0.address == nil ? $0.location : nil })
+}
+
+func updateAddress(for visits: Visits, with geocodedResults: [GeocodedResult]) -> Visits {
+  switch visits {
+  case let .mixed(vs):
+    return .mixed(updateAddress(for: vs, with: geocodedResults))
+  case let .assigned(vs):
+    return .assigned(updateAddress(for: vs, with: geocodedResults))
+  case let .selectedMixed(.left(m), vs):
+    return .selectedMixed(.left(m), updateAddress(for: vs, with: geocodedResults))
+  case let .selectedMixed(.right(a), vs):
+    return .selectedMixed(.right(updateAddress(for: a, with: geocodedResults)), updateAddress(for: vs, with: geocodedResults))
+  case let .selectedAssigned(a, vs):
+    return .selectedAssigned(updateAddress(for: a, with: geocodedResults), updateAddress(for: vs, with: geocodedResults))
+  }
+}
+
+func updateAddress(for visits: Set<AssignedVisit>, with geocodedResults: [GeocodedResult]) -> Set<AssignedVisit> {
+  Set(
+    visits.map { updateAddress(for: $0, with: geocodedResults) }
+  )
+}
+
+func updateAddress(for visits: Set<Visit>, with geocodedResults: [GeocodedResult]) -> Set<Visit> {
+  Set(
+    visits.map { e in
+      switch e {
+      case .left: return e
+      case let .right(a): return .right(updateAddress(for: a, with: geocodedResults))
+      }
+    }
+  )
+}
+
+func updateAddress(for visit: AssignedVisit, with geocodedResults: [GeocodedResult]) -> AssignedVisit {
+  var v = visit
+  for g in geocodedResults {
+    if v.location == g.coordinate {
+      v.address = g.address
+    }
+  }
+  return v
 }

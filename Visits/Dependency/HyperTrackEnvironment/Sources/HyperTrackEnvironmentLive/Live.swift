@@ -198,6 +198,7 @@ public extension HyperTrackEnvironment {
 func fromAssignedSource(_ source: A.Source) -> String {
   switch source {
   case .geofence: return C.geofenceID.rawValue
+  case .trip: return C.tripID.rawValue
   }
 }
 
@@ -210,6 +211,7 @@ enum C: String {
   case visitNote = "visit_note"
   case driverID = "driver_id"
   case geofenceID = "geofence_id"
+  case tripID = "trip_id"
   case pickUp = "PICK_UP"
   case type = "type"
   case visitID = "visit_id"

@@ -14,11 +14,13 @@ let package = Package(
     .package(path: "Coordinate"),
     .package(path: "Credentials"),
     .package(path: "DeviceID"),
+    .package(path: "GeoJSON"),
     .package(path: "History"),
     .package(path: "Log"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
+    .package(name: "Tagged", url: "https://github.com/pointfreeco/swift-tagged", .exact("0.5.0")),
     .package(path: "Visit")
   ],
   targets: [
@@ -36,6 +38,18 @@ let package = Package(
         "Visit"
       ]
     ),
-    .target(name: "APIEnvironmentLive", dependencies: ["APIEnvironment", "Log"]),
+    .target(
+      name: "APIEnvironmentLive",
+      dependencies: [
+        "APIEnvironment",
+        "GeoJSON",
+        "Log",
+        "Tagged"
+      ]
+    ),
+    .testTarget(
+      name: "APIEnvironmentLiveTests",
+      dependencies: ["APIEnvironmentLive"]
+    )
   ]
 )

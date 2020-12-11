@@ -1,4 +1,4 @@
-// Generated using Sourcery 1.0.0 — https://github.com/krzysztofzablocki/Sourcery
+// Generated using Sourcery 1.0.2 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
 
 import Foundation
@@ -68,6 +68,7 @@ extension AssignedVisit.Source {
 
     enum CodingKeys: String, CodingKey {
         case geofence
+        case trip
     }
 
     public init(from decoder: Decoder) throws {
@@ -76,6 +77,7 @@ extension AssignedVisit.Source {
         let enumCase = try container.decode(String.self)
         switch enumCase {
         case CodingKeys.geofence.rawValue: self = .geofence
+        case CodingKeys.trip.rawValue: self = .trip
         default: throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unknown enum case '\(enumCase)'"))
         }
     }
@@ -85,6 +87,7 @@ extension AssignedVisit.Source {
 
         switch self {
         case .geofence: try container.encode(CodingKeys.geofence.rawValue)
+        case .trip: try container.encode(CodingKeys.trip.rawValue)
         }
     }
 

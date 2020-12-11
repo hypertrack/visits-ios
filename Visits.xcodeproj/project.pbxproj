@@ -140,6 +140,7 @@
 		319453CB2548417700D86A04 /* AppAdapter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AppAdapter; path = Visits/Adapter/AppAdapter; sourceTree = SOURCE_ROOT; };
 		31AC38802545CCE500D29345 /* App */ = {isa = PBXFileReference; lastKnownFileType = folder; path = App; sourceTree = "<group>"; };
 		31B262E52575835A00280DDF /* TabSelection */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TabSelection; sourceTree = "<group>"; };
+		31B7A37A257E84F200EE5C65 /* GeoJSON */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GeoJSON; sourceTree = "<group>"; };
 		31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PasteboardEnvironment; sourceTree = "<group>"; };
 		31E1752F255C028600DF5219 /* MapEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapEnvironment; sourceTree = "<group>"; };
 		31E17532255C098200DF5219 /* HapticFeedbackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HapticFeedbackEnvironment; sourceTree = "<group>"; };
@@ -338,6 +339,7 @@
 		319453C225483FB500D86A04 /* Types */ = {
 			isa = PBXGroup;
 			children = (
+				31B7A37A257E84F200EE5C65 /* GeoJSON */,
 				314A14D9255069070061892F /* Coordinate */,
 				31466FD32551F8A000247BDA /* Credentials */,
 				31466FD02551EBB600247BDA /* DeviceID */,

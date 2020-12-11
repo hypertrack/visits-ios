@@ -5,6 +5,7 @@ import Contacts
 import Coordinate
 import CoreLocation
 import DeviceID
+import GeoJSON
 import GLKit
 import History
 import Log
@@ -12,51 +13,65 @@ import MapKit
 import NonEmpty
 import Prelude
 import PublishableKey
+import Tagged
 import Visit
+
+let baseURL: NonEmptyString = "https://live-app-backend.htprod.hypertrack.com/client"
+let internalAPIURL: NonEmptyString = "https://live-api.htprod.hypertrack.com"
+
+extension NonEmptyString: Error {}
+
+// MARK: - Get Token
+
+typealias Token = Tagged<TokenTag, NonEmptyString>
+enum TokenTag {}
+
+func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPublisher<Token, NonEmptyString> {
+  URLSession.shared.dataTaskPublisher(for: authorizationRequest(auth: publishableKey, deviceID: deviceID))
+    .map { data, _ in data }
+    .decode(type: Authentication.self, decoder: JSONDecoder())
+    .map(\.accessToken)
+    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
+    .eraseToAnyPublisher()
+}
+
+func authorizationRequest(auth publishableKey: PublishableKey, deviceID: DeviceID) -> URLRequest {
+  let url = URL(string: "\(internalAPIURL.rawValue)/authenticate")!
+  var request = URLRequest(url: url)
+  request.setValue("Basic \(Data(publishableKey.rawValue.rawValue.utf8).base64EncodedString(options: []))", forHTTPHeaderField: "Authorization")
+  request.httpBody = try! JSONSerialization.data(
+    withJSONObject: ["device_id" : deviceID.rawValue.rawValue],
+    options: JSONSerialization.WritingOptions(rawValue: 0)
+  )
+  request.httpMethod = "POST"
+  return request
+}
+
+struct Authentication: Decodable {
+  let accessToken: Token
+  
+  enum CodingKeys: String, CodingKey {
+    case accessToken = "access_token"
+  }
+  
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    accessToken = try container.decode(Token.self, forKey: .accessToken)
+  }
+}
 
 // MARK: - Get History
 
 public func getHistory(_ pk: PublishableKey, _ dID: DeviceID, _ date: Date) -> Effect<Either<History, NonEmptyString>, Never> {
   logEffect("getHistory", failureType: NonEmptyString.self)
-    .flatMap { getTokenFuture(auth: pk.rawValue, deviceID: dID.rawValue) }
-    .flatMap { historyFuture(auth: $0, deviceID: dID.rawValue, date: date) }
-    .map { .left($0) }
+    .flatMap { getToken(auth: pk, deviceID: dID) }
+    .flatMap { getHistoryFromAPI(auth: $0, deviceID: dID, date: date) }
+    .map(Either.left)
     .catch { Just(.right($0)) }
     .eraseToEffect()
 }
 
-extension History: Decodable {
-  enum CodingKeys: String, CodingKey {
-    case distance
-    case locations
-  }
-  
-  enum LocationsCodingKeys: String, CodingKey {
-    case coordinates
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let values = try decoder.container(keyedBy: CodingKeys.self)
-    let distance = try values.decode(UInt.self, forKey: .distance)
-    let locationsJSON = try values.nestedContainer(keyedBy: LocationsCodingKeys.self, forKey: .locations)
-    var coordinatesJSON = try locationsJSON.nestedUnkeyedContainer(forKey: .coordinates)
-    var coordinatesM: [Coordinate] = []
-    while !coordinatesJSON.isAtEnd {
-      var nestedCoordinatesJSON = try coordinatesJSON.nestedUnkeyedContainer()
-      if let count = nestedCoordinatesJSON.count, count >= 2 {
-        let longitude = try nestedCoordinatesJSON.decode(Double.self)
-        let latitude = try nestedCoordinatesJSON.decode(Double.self)
-        if let coordinate = Coordinate(latitude: latitude, longitude: longitude) {
-          coordinatesM.append(coordinate)
-        }
-      }
-    }
-    let coordinates = coordinatesM
-    self.init(coordinates: coordinates, distance: distance)
-  }
-}
-
-func historyFuture(auth token: NonEmptyString, deviceID: NonEmptyString, date: Date) -> AnyPublisher<History, NonEmptyString> {
+func getHistoryFromAPI(auth token: Token, deviceID: DeviceID, date: Date) -> AnyPublisher<History, NonEmptyString> {
   URLSession.shared.dataTaskPublisher(for: historyRequest(auth: token, deviceID: deviceID, date: date))
     .map { data, _ in data }
     .decode(type: History.self, decoder: JSONDecoder())
@@ -64,8 +79,8 @@ func historyFuture(auth token: NonEmptyString, deviceID: NonEmptyString, date: D
     .eraseToAnyPublisher()
 }
 
-func historyRequest(auth token: NonEmptyString, deviceID: NonEmptyString, date: Date) -> URLRequest {
-  let url = URL(string: "https://live-app-backend.htprod.hypertrack.com/client/devices/\(deviceID.rawValue)/history/\(historyDate(from: date))")!
+func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLRequest {
+  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/history/\(historyDate(from: date))")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token.rawValue)", forHTTPHeaderField: "Authorization")
   request.httpMethod = "GET"
@@ -78,229 +93,205 @@ func historyDate(from date: Date) -> String {
   return formatter.string(from: date)
 }
 
+extension History: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case distance
+    case locations
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    let distance = try values.decode(UInt.self, forKey: .distance)
+    let locationsGeoJSON = try? values.decode(GeoJSON.self, forKey: .locations)
+    if let locationsGeoJSON = locationsGeoJSON {
+      switch locationsGeoJSON {
+      case let .point(coordinate):
+        self.init(coordinates: [coordinate], distance: distance)
+      case let .lineString(.left(coordinates)):
+        self.init(coordinates: coordinates.rawValue, distance: distance)
+      case let .lineString(.right(locations)):
+        self.init(coordinates: locations.rawValue.map(\.coordinate), distance: distance)
+      case .lineString(.none), .polygon:
+        self.init(coordinates: [], distance: distance)
+      }
+    } else {
+      self.init(coordinates: [], distance: distance)
+    }
+  }
+}
+
 // MARK: - Get Visits
 
-public func getVisits(_ pk: PublishableKey, _ dID: DeviceID) -> Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never> {
-  logEffect("getVisits", failureType: Never.self)
-    .flatMap {
-      getDeliveries(pk.rawValue, dID.rawValue)
-        .map { visitOrError in
-          switch visitOrError {
-          case let .left(ds):
-            let aas = ds.compactMap { d -> AssignedVisit? in
-              let address: These<AssignedVisit.Street, AssignedVisit.FullAddress>?
-              switch (NonEmptyString(rawValue: d.shortAddress), NonEmptyString(rawValue: d.fullAddress)) {
-              case let (.some(street), .some(full)):
-                address = .both(AssignedVisit.Street(rawValue: street), AssignedVisit.FullAddress(rawValue: full))
-              case let (.some(street), .none):
-                address = .this(AssignedVisit.Street(rawValue: street))
-              case let (.none, .some(full)):
-                address = .that(AssignedVisit.FullAddress(rawValue: full))
-              case (.none, .none):
-                address = nil
-              }
-              let metadata = NonEmptyDictionary(
-                rawValue: d.metadata.compactMap { metadata -> (AssignedVisit.Name, AssignedVisit.Contents)? in
-                  if let nonemptyName = NonEmptyString(rawValue: metadata.key),
-                     let nonemptyContents = NonEmptyString(rawValue: metadata.value) {
-                    return (AssignedVisit.Name(rawValue: nonemptyName), AssignedVisit.Contents(rawValue: nonemptyContents))
-                  }
-                  return nil
-                }.reduce(into: Dictionary<AssignedVisit.Name, AssignedVisit.Contents>()) { (dict, tuple) in
-                  dict.updateValue(tuple.1, forKey: tuple.0)
-                }
-              )
-              if let coordinate = Coordinate(latitude: d.lat, longitude: d.lng) {
-                return AssignedVisit(
-                  id: .init(rawValue: d.id),
-                  createdAt: d.createdAt,
-                  source: .geofence,
-                  location: coordinate,
-                  geotagSent: .notSent,
-                  noteFieldFocused: false,
-                  address: address,
-                  visitNote: nil,
-                  metadata: metadata
-                )
-              }
-              return nil
-            }
-            if let nons = NonEmptySet(rawValue: Set(aas)) {
-              return .left(nons)
-            } else {
-              return .right("No results")
-            }
-          case let .right(e):
-            return .right(e)
-          }
-        }
+public func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never> {
+  logEffect("getVisits", failureType: NonEmptyString.self)
+    .flatMap { getToken(auth: pk, deviceID: deID) }
+    .flatMap { t in
+      Publishers.Zip(
+        getGeofenceAssignedVisits(auth: t, deviceID: deID),
+        getTripAssignedVisits(auth: t, deviceID: deID)
+      )
     }
+    .map { (geofenceVisits, tripVisits) in
+      if let nonEmptyVisits = NonEmptySet(rawValue: geofenceVisits.union(tripVisits)) {
+        return Either.left(nonEmptyVisits)
+      } else {
+        return Either.right("Empty result")
+      }
+    }
+    .catch { Just(.right($0)) }
     .eraseToEffect()
 }
 
-enum GeofenceType: String {
-  case point = "Point"
-  case polygon = "Polygon"
+// MARK: Geofences
+
+func getGeofenceAssignedVisits(auth token: Token, deviceID: DeviceID) -> AnyPublisher<Set<AssignedVisit>, NonEmptyString> {
+  getGeofences(auth: token, deviceID: deviceID)
+    .map { Set($0.filter { !$0.archived }.map(toAssignedVisit)) }
+    .eraseToAnyPublisher()
 }
 
-typealias DeliveriesListOrErrorString = Either<[VisitModel], NonEmptyString>
-
-func getDeliveries(_ publishableKey: NonEmptyString, _ deviceID: NonEmptyString) -> Effect<DeliveriesListOrErrorString, Never> {
-  getTokenFuture(auth: publishableKey, deviceID: deviceID)
-    .flatMap { deliveriesFuture(auth: $0, deviceID: deviceID) }
-    .map { DeliveriesListOrErrorString.left($0) }
-    .catch { Just(DeliveriesListOrErrorString.right($0)) }
-    .eraseToEffect()
+func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], NonEmptyString> {
+  URLSession.shared.dataTaskPublisher(for: geofencesRequest(auth: token, deviceID: deviceID))
+    .map { data, _ in data }
+    .decode(type: [Geofence].self, decoder: JSONDecoder())
+    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
+    .eraseToAnyPublisher()
 }
 
-extension NonEmptyString: Error {}
+func geofencesRequest(auth token: Token, deviceID: DeviceID) -> URLRequest {
+  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/geofences")!
+  var request = URLRequest(url: url)
+  request.setValue("Bearer \(token.rawValue.rawValue)", forHTTPHeaderField: "Authorization")
+  request.httpMethod = "GET"
+  return request
+}
 
-// MARK: Visit model
+struct DynamicKey: CodingKey {
+  var intValue: Int?
+  var stringValue: String
+  
+  init?(intValue: Int) {
+    self.intValue = intValue
+    self.stringValue = "\(intValue)"
+  }
+  init?(stringValue: String) {
+    self.stringValue = stringValue
+  }
+}
 
-struct VisitModel: Identifiable {
+struct Geofence {
   let id: NonEmptyString
+  let archived: Bool
   let createdAt: Date
-  let lat: Double
-  let lng: Double
-  var shortAddress: String = ""
-  var fullAddress: String = ""
-  let metadata: [Metadata]
+  let coordinate: Coordinate
+  let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
+}
+
+extension Geofence: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case id = "geofence_id"
+    case archived
+    case createdAt = "created_at"
+    case geometry
+    case metadata
+  }
   
-  struct Metadata: Hashable {
-    let key: String
-    let value: String
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
     
-    init(key: String, value: String) {
-      self.key = key
-      self.value = value
-    }
-  }
-  
-  init(
-    id: NonEmptyString,
-    createdAt: Date,
-    lat: Double,
-    lng: Double,
-    shortAddress: String = "",
-    fullAddress: String = "",
-    metadata: [VisitModel.Metadata]
-  ) {
-    self.id = id
-    self.createdAt = createdAt
-    self.lat = lat
-    self.lng = lng
-    self.shortAddress = shortAddress
-    self.fullAddress = fullAddress
-    self.metadata = metadata
+    id = try values.decode(NonEmptyString.self, forKey: .id)
+    archived = try values.decode(Bool.self, forKey: .archived)
+    createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
+    coordinate = try decodeGeofenceCentroid(decoder: decoder, container: values, key: .geometry)
+    metadata = try decodeMetadata(decoder: decoder, container: values, key: .metadata)
   }
 }
 
-extension VisitModel: Equatable {
-  static func == (lhs: VisitModel, rhs: VisitModel) -> Bool {
-    return lhs.id == rhs.id
+func decodeGeofenceCentroid<CodingKey>(
+  decoder: Decoder,
+  container: KeyedDecodingContainer<CodingKey>,
+  key: CodingKey
+) throws -> Coordinate {
+  let geometryGeoJSON = try container.decode(GeoJSON.self, forKey: key)
+  switch geometryGeoJSON {
+  case let .point(coordinate):  return coordinate
+  case let .polygon(polygon):   return centroid(from: polygon)
+  case .lineString:
+    throw DecodingError.dataCorrupted(
+      DecodingError.Context(
+        codingPath: decoder.codingPath,
+        debugDescription: "Expected Polygon or Point, but got LineString"
+      )
+    )
   }
 }
 
-private enum GeofenceKeys: String {
-  case id = "geofence_id"
-  case geometry = "geometry"
-  case type = "type"
-  case coordinates = "coordinates"
-  case metadata = "metadata"
-  case createdAt = "created_at"
+func decodeTimestamp<CodingKey>(
+  decoder: Decoder,
+  container: KeyedDecodingContainer<CodingKey>,
+  key: CodingKey
+) throws -> Date {
+  let dateISO8601 = try container.decode(NonEmptyString.self, forKey: key)
+  guard let date = dateISO8601.iso8601 else {
+    let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "created_at does not conform to ISO8601 format")
+    throw DecodingError.dataCorrupted(context)
+  }
+  return date
 }
 
-func decodeVisitArrayData(data: Data) -> AnyPublisher<[VisitModel], Error> {
-  Future<[VisitModel], Error> { promise in
-    do {
-      let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]]
+func decodeMetadata<CodingKey>(
+  decoder: Decoder,
+  container: KeyedDecodingContainer<CodingKey>,
+  key: CodingKey
+) throws -> NonEmptyDictionary<NonEmptyString, NonEmptyString>? {
+  if let metadataContainer = try? container.nestedContainer(keyedBy: DynamicKey.self, forKey: key) {
+    var mutMetadata: [NonEmptyString: NonEmptyString] = [:]
+    for key in metadataContainer.allKeys {
+      guard !key.stringValue.hasPrefix("ht_") else { continue }
       
-      guard let deliveriesjson = json else {
-        promise(.failure(NonEmptyString("Can't parse deliveries response")))
-        return
-      }
-      
-      var decodedVisit: [VisitModel] = []
-      
-      for jsonItem in deliveriesjson {
-        
-        if let model = createVisitFrom(json: jsonItem) {
-          
-          decodedVisit.append(model)
-          
-        }
-        
-      }
-      
-      promise(.success(decodedVisit))
-    } catch let error {
-      promise(.failure(error))
-    }
-  }
-  .eraseToAnyPublisher()
-}
-
-func createVisitFrom(json: [String: Any]) -> VisitModel? {
-  let id = json[GeofenceKeys.id.rawValue] as? String
-  let geometry = json[GeofenceKeys.geometry.rawValue] as? [String: Any]
-  let type = geometry?[GeofenceKeys.type.rawValue] as? String
-  let createdAtString = json[GeofenceKeys.createdAt.rawValue] as? String
-  var metadataList: [VisitModel.Metadata] = []
-  let metadataJson = json[GeofenceKeys.metadata.rawValue] as? [String: Any]
-  
-  if let unwrappedMetadata = metadataJson {
-    for keyValue in unwrappedMetadata {
-      
-      let value = keyValue.value as? String
-      
-      if let metaValue = value {
-        metadataList.append(VisitModel.Metadata(key: keyValue.key, value: metaValue))
+      if let value = try? metadataContainer.decodeIfPresent(String.self, forKey: key),
+         let nonEmptyKey = NonEmptyString(rawValue: key.stringValue),
+         let nonEmptyValue = NonEmptyString(rawValue: value) {
+        mutMetadata[nonEmptyKey] = nonEmptyValue
       }
     }
-  }
-  
-  if let visitID = id, let visitType = type, let date = createdAtString?.iso8601 {
-    switch visitType {
-    case GeofenceType.point.rawValue:
-      
-      let pointCoordinate = geometry?[GeofenceKeys.coordinates.rawValue] as? [Double]
-      let lng = pointCoordinate?.first
-      let lat = pointCoordinate?.last
-      
-      if let latitude = lat, let longitude = lng {
-        return VisitModel(id: NonEmptyString(stringLiteral: visitID), createdAt: date, lat: latitude, lng: longitude, metadata: metadataList)
-      } else {
-        return nil
-      }
-    case GeofenceType.polygon.rawValue:
-      
-      let polygonCoordinate = geometry?[GeofenceKeys.coordinates.rawValue] as? [[Double]]
-      
-      if let coordinate = polygonCoordinate, coordinate.count > 2 {
-        
-        let points = coordinate.map { CLLocationCoordinate2D(latitude: $0.last!, longitude: $0.first!) }
-        
-        let centroidCoordinate = getPolygonCentroid(points)
-        
-        return VisitModel(id: NonEmptyString(stringLiteral: visitID), createdAt: date, lat: centroidCoordinate.latitude, lng: centroidCoordinate.longitude, metadata: metadataList)
-      } else {
-        return nil
-      }
-    default:
-      return nil
-    }
+    return NonEmptyDictionary(rawValue: mutMetadata)
   } else {
     return nil
   }
 }
+  
+func toAssignedVisit(_ geofenceVisit: Geofence) -> AssignedVisit {
+  let canBeEmptyMetadata = geofenceVisit.metadata?.reduce(into: [:]) { (result: inout [AssignedVisit.Name: AssignedVisit.Contents], tuple: (key: NonEmptyString, value: NonEmptyString)) in
+    result[.init(rawValue: tuple.key)] = .init(rawValue: tuple.value)
+  }
+  let metadata: NonEmptyDictionary<AssignedVisit.Name, AssignedVisit.Contents>?
+  if let canBeEmptyMetadata = canBeEmptyMetadata {
+    metadata = NonEmptyDictionary(rawValue: canBeEmptyMetadata)
+  } else {
+    metadata = nil
+  }
+  
+  return AssignedVisit(
+    id: AssignedVisit.ID(rawValue: geofenceVisit.id),
+    createdAt: geofenceVisit.createdAt,
+    source: .geofence,
+    location: geofenceVisit.coordinate,
+    geotagSent: .notSent,
+    noteFieldFocused: false,
+    metadata: metadata
+  )
+}
 
-func getPolygonCentroid(_ points: [CLLocationCoordinate2D]) -> CLLocationCoordinate2D {
+func centroid(from linearRings: NonEmptyArray<LinearRing>) -> Coordinate {
+  let points = linearRings.flatMap { [$0.origin] + [$0.first] + [$0.second] + $0.rest }
+  
   var x:Float = 0.0
   var y:Float = 0.0
   var z:Float = 0.0
-  for points in points {
-    let lat = GLKMathDegreesToRadians(Float(points.latitude))
-    let long = GLKMathDegreesToRadians(Float(points.longitude))
+  for point in points {
+    let lat = GLKMathDegreesToRadians(Float(point.latitude))
+    let long = GLKMathDegreesToRadians(Float(point.longitude))
     
     x += cos(lat) * cos(long)
     
@@ -314,144 +305,182 @@ func getPolygonCentroid(_ points: [CLLocationCoordinate2D]) -> CLLocationCoordin
   let resultLong = atan2(y, x)
   let resultHyp = sqrt(x * x + y * y)
   let resultLat = atan2(z, resultHyp)
-  let result = CLLocationCoordinate2D(latitude: CLLocationDegrees(GLKMathRadiansToDegrees(Float(resultLat))), longitude: CLLocationDegrees(GLKMathRadiansToDegrees(Float(resultLong))))
-  return result
+  let result = Coordinate(
+    latitude: CLLocationDegrees(GLKMathRadiansToDegrees(Float(resultLat))),
+    longitude: CLLocationDegrees(GLKMathRadiansToDegrees(Float(resultLong)))
+  )
+  return result!
 }
 
-func sortDeliveries(deliveries: [VisitModel]) -> AnyPublisher<[VisitModel], Error> {
-  Future<[VisitModel], Error> { promise in
-    var sortedDeliveries = deliveries
-    sortedDeliveries = sortedDeliveries.sorted {
-      if $0.createdAt == $1.createdAt {
-        return $0.id.rawValue < $1.id.rawValue
-      } else {
-        return $0.createdAt.timeIntervalSinceReferenceDate < $1.createdAt.timeIntervalSinceReferenceDate
-      }
-    }
-    promise(.success(sortedDeliveries))
-  }
-  .eraseToAnyPublisher()
-}
+// MARK Trips
 
-// MARK: AuthenticateResponse model
-
-struct AuthenticateResponse: Decodable {
-  let tokenType: String
-  let expiresIn: Int
-  let accessToken: String
-  
-  enum Keys: String, CodingKey {
-    case tokenType = "token_type"
-    case expiresIn = "expires_in"
-    case accessToken = "access_token"
-  }
-  
-  init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: Keys.self)
-    tokenType = try container.decode(String.self, forKey: .tokenType)
-    expiresIn = try container.decode(Int.self, forKey: .expiresIn)
-    accessToken = try container.decode(String.self, forKey: .accessToken)
-  }
-}
-
-// MARK: Pipeline
-
-func authorizationRequest(auth publishableKey: NonEmptyString, deviceID: NonEmptyString) -> URLRequest {
-  let url = URL(string: "https://live-api.htprod.hypertrack.com/authenticate")!
-  var request = URLRequest(url: url)
-  request.setValue("Basic \(Data(publishableKey.rawValue.utf8).base64EncodedString(options: []))", forHTTPHeaderField: "Authorization")
-  request.httpBody = try! JSONSerialization.data(withJSONObject: ["device_id" : deviceID.rawValue], options: JSONSerialization.WritingOptions(rawValue: 0))
-  request.httpMethod = "POST"
-  return request
-}
-
-func getTokenFuture(auth publishableKey: NonEmptyString, deviceID: NonEmptyString) -> AnyPublisher<NonEmptyString, NonEmptyString> {
-  URLSession.shared.dataTaskPublisher(for: authorizationRequest(auth: publishableKey, deviceID: deviceID))
-    .map { data, _ in data }
-    .decode(type: AuthenticateResponse.self, decoder: JSONDecoder())
-    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
-    .tryMap { token in
-      if let token = NonEmptyString(rawValue: token.accessToken) {
-        return token
-      } else {
-        throw failedToGetRestToken("VFSEQ0")
-      }
-    }
-    .mapError { $0 as! NonEmptyString }
+func getTripAssignedVisits(auth token: Token, deviceID: DeviceID) -> AnyPublisher<Set<AssignedVisit>, NonEmptyString> {
+  getTrips(auth: token, deviceID: deviceID)
+    .map { Set($0.map(toAssignedVisit)) }
     .eraseToAnyPublisher()
 }
 
-func deliveriesRequest(auth token: NonEmptyString, deviceID: NonEmptyString) -> URLRequest {
-  let url = URL(string: "https://live-app-backend.htprod.hypertrack.com/client/devices/\(deviceID.rawValue)/geofences")!
-  var request = URLRequest(url: url)
-  request.setValue("Bearer \(token.rawValue)", forHTTPHeaderField: "Authorization")
+func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], NonEmptyString> {
+  let paginationPublisher = CurrentValueSubject<NonEmptyString?, Never>(nil)
+  
+  return paginationPublisher
+    .setFailureType(to: NonEmptyString.self)
+    .flatMap { paginationToken in
+      getTripsPage(auth: token, deviceID: deviceID, paginationToken: paginationToken)
+    }
+    .handleEvents(receiveOutput: { page in
+      if let paginationToken = page.paginationToken {
+        paginationPublisher.send(paginationToken)
+      } else {
+        paginationPublisher.send(completion: .finished)
+      }
+    })
+    .reduce([Trip](), { allTrips, page in
+      page.trips + allTrips
+    })
+    .eraseToAnyPublisher()
+}
+
+func getTripsPage(auth token: Token, deviceID: DeviceID, paginationToken: NonEmptyString?) -> AnyPublisher<TripsPage, NonEmptyString> {
+  URLSession.shared.dataTaskPublisher(for: tripsRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
+    .map { data, _ in data }
+    .decode(type: TripsPage.self, decoder: JSONDecoder())
+    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
+    .eraseToAnyPublisher()
+}
+
+func tripsRequest(auth token: Token, deviceID: DeviceID, paginationToken: NonEmptyString?) -> URLRequest {
+  var urlString = "\(baseURL.rawValue)/trips?device_id=\(deviceID.rawValue.rawValue)"
+  if let paginationToken = paginationToken {
+    urlString += "&pagination_token=\(paginationToken.rawValue)"
+  }
+  var request = URLRequest(url: URL(string: urlString)!)
+  request.setValue("Bearer \(token.rawValue.rawValue)", forHTTPHeaderField: "Authorization")
   request.httpMethod = "GET"
   return request
 }
 
-func deliveriesFuture(auth token: NonEmptyString, deviceID: NonEmptyString) -> AnyPublisher<[VisitModel], NonEmptyString> {
-  URLSession.shared.dataTaskPublisher(for: deliveriesRequest(auth: token, deviceID: deviceID))
-    .map { data, _ in data }
-    .mapError { $0 as Error }
-    .flatMap { decodeVisitArrayData(data: $0) }
-    .flatMap { geocodingFor(deliveries: $0) }
-    .flatMap { sortDeliveries(deliveries: $0) }
-    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
-    .eraseToAnyPublisher()
+struct TripsPage {
+  let trips: [Trip]
+  let paginationToken: NonEmptyString?
+}
+  
+struct Trip: Hashable {
+  let id: NonEmptyString
+  let createdAt: Date
+  let coordinate: Coordinate
+  let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
 }
 
-func deliveriesDismissTimer(scheduler: AnySchedulerOf<DispatchQueue>) -> Effect<Void, Never> {
-  Just(())
-    .delay(for: .seconds(20), scheduler: scheduler)
+
+extension TripsPage: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case data
+    case paginationToken = "pagination_token"
+  }
+  
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    trips = try values.decode([Trip].self, forKey: .data)
+    paginationToken = try? values.decodeIfPresent(NonEmptyString.self, forKey: .paginationToken)
+  }
+}
+
+extension Trip: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case id = "trip_id"
+    case createdAt = "started_at"
+    case destination
+    case metadata
+  }
+  
+  enum DestinationCodingKeys: String, CodingKey {
+    case geometry
+  }
+  
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    id = try values.decode(NonEmptyString.self, forKey: .id)
+    createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
+    let destinationJSON = try values.nestedContainer(keyedBy: DestinationCodingKeys.self, forKey: .destination)
+    coordinate = try decodeGeofenceCentroid(decoder: decoder, container: destinationJSON, key: .geometry)
+    metadata = try decodeMetadata(decoder: decoder, container: values, key: .metadata)
+  }
+}
+
+func toAssignedVisit(_ tripVisit: Trip) -> AssignedVisit {
+  AssignedVisit(
+    id: AssignedVisit.ID(rawValue: tripVisit.id),
+    createdAt: tripVisit.createdAt,
+    source: .trip,
+    location: tripVisit.coordinate,
+    geotagSent: .notSent,
+    noteFieldFocused: false
+  )
+}
+
+// MARK: - Reverse Geocoding
+
+public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<AssignedVisit.Street, AssignedVisit.FullAddress>?)], Never> {
+  coordinates.publisher
+    .flatMap { reverseGeocodeCoordinate($0) }
+    .collect()
     .eraseToEffect()
 }
 
-func geocodingFor(deliveries: [VisitModel]) -> AnyPublisher<[VisitModel], Error> {
-  Publishers.Sequence(sequence: deliveries)
-    .flatMap { geocodingSingleSequence(visit: $0) }
-    .collect()
-    .eraseToAnyPublisher()
-}
 
-func geocodingSingleSequence(visit: VisitModel) -> AnyPublisher<VisitModel, Error> {
-  Future<VisitModel, Error> { promise in
-    makeSearchGeocode(model: visit) {
-      if let model = $0 {
-        promise(.success(model))
+func reverseGeocodeCoordinate(_ coordinate: Coordinate) -> AnyPublisher<(Coordinate, These<AssignedVisit.Street, AssignedVisit.FullAddress>?), Never> {
+  Future { promise in
+    reverseGeocodeLocation(coordinate) {
+      if let address = $0 {
+        promise(.success((coordinate, address)))
       } else {
-        promise(.success(visit))
+        promise(.success((coordinate, nil)))
       }
     }
   }
   .eraseToAnyPublisher()
 }
 
-private func makeSearchGeocode(model: VisitModel, completion: @escaping (VisitModel?) -> Void) {
-  var insideModel = model
-  CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: model.lat, longitude: model.lng), completionHandler: { (placemarks, error) -> Void in
-    guard error == nil else {
-      print("Received error on address serch result: \(String(describing: error)) | \(String(describing: error?.localizedDescription))")
+func reverseGeocodeLocation(_ coordinate: Coordinate, completion: @escaping (These<AssignedVisit.Street, AssignedVisit.FullAddress>?) -> Void) {
+  let locaiton = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+  CLGeocoder().reverseGeocodeLocation(locaiton) { placemarks, error in
+    guard error == nil, let first = placemarks?.first else {
       completion(nil)
       return
     }
-    guard let first = placemarks?.first else { completion(nil); return }
-    
-    let thoroughfare = first.thoroughfare ?? ""
-    let subThoroughfare = first.subThoroughfare ?? ""
-    
-    let placemarksName = "\(thoroughfare) \(subThoroughfare)"
-    let formattedAddress = first.formattedAddress ?? ""
-    
-    if placemarksName.clean().count > 0 {
-      insideModel.shortAddress = placemarksName
-    } else {
-      insideModel.shortAddress = formattedAddress
-    }
-    
-    insideModel.fullAddress = formattedAddress
-    
-    completion(insideModel)
-  })
+    completion(
+      constructAddress(
+        fromSubThoroughfare: first.subThoroughfare,
+        thoroughfare: first.thoroughfare,
+        formattedAddress: first.formattedAddress
+      )
+    )
+  }
+}
+
+func constructAddress(
+  fromSubThoroughfare subThoroughfare: String?,
+  thoroughfare: String?,
+  formattedAddress: String?
+) -> These<AssignedVisit.Street, AssignedVisit.FullAddress>? {
+  let streetString: String? = { streetNumber in { streetName in "\(streetNumber) \(streetName)" } }
+    <!> subThoroughfare
+    <*> thoroughfare
+    <|> thoroughfare
+  let fullAddressString = formattedAddress
+  
+  
+  let street = streetString
+    >>- NonEmptyString.init(rawValue:)
+    <¡> AssignedVisit.Street.init(rawValue:)
+  
+  let fullAddress = fullAddressString
+    >>- NonEmptyString.init(rawValue:)
+    <¡> AssignedVisit.FullAddress.init(rawValue:)
+  
+  return maybeThese(street)(fullAddress)
 }
 
 extension CLPlacemark {
@@ -463,6 +492,3 @@ extension CLPlacemark {
     ).replacingOccurrences(of: "\n", with: " ")
   }
 }
-
-let failedToGetRestToken = { NonEmptyString(stringLiteral: "Failed to get rest token with error: " + $0) }
-let failedToDownloadDeliveries = { NonEmptyString(stringLiteral: "Failed to download deliveries with error: " + $0) }

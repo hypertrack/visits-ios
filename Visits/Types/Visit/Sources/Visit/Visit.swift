@@ -57,7 +57,7 @@ public struct AssignedVisit {
   public var noteFieldFocused: Bool
   public var metadata: NonEmptyDictionary<Name, Contents>?
   
-  public enum Source { case geofence }
+  public enum Source { case geofence, trip }
   public enum Geotag {
     case notSent, pickedUp, checkedIn, checkedOut(Date), cancelled(Date)
   }
