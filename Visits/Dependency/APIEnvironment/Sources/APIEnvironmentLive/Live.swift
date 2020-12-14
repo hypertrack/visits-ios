@@ -80,7 +80,7 @@ func getHistoryFromAPI(auth token: Token, deviceID: DeviceID, date: Date) -> Any
 }
 
 func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLRequest {
-  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/history/\(historyDate(from: date))")!
+  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token.rawValue)", forHTTPHeaderField: "Authorization")
   request.httpMethod = "GET"
