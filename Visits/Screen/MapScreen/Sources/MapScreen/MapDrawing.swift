@@ -7,10 +7,23 @@ func putVisits(
   onMapView mapView: MKMapView
 ) {
   mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? VisitAnnotation })
+  remove(overlay: VisitCircle.self, fromMapView: mapView)
   
   for visit in visits {
     mapView.addAnnotation(VisitAnnotation(visit: visit))
+    
+    let geofenceOverlay = VisitCircle(center: visit.coordinate.coordinate2D, radius: 50)
+    geofenceOverlay.visit = visit
+    if let polylineOverlay = polyline(fromMapView: mapView) {
+      mapView.insertOverlay(geofenceOverlay, below: polylineOverlay)
+    } else {
+      mapView.addOverlay(geofenceOverlay)
+    }
   }
+}
+
+class VisitCircle: MKCircle {
+  var visit: MapVisit?
 }
 
 // MARK: Visit
@@ -113,22 +126,41 @@ class VisitCanceledAnnotationView: MKAnnotationView {
 
 func drawVisit(_ visitStatus: MapVisit.Status) {
   let emoji: String
+  let visited: Bool
   switch visitStatus {
-  case .pending: emoji = "⏳"
-  case .visited: emoji = "📦"
-  case .completed: emoji = "🏁"
-  case .canceled: emoji = "❌"
+  case .pending:
+    emoji = "⏳"
+    visited = false
+  case .visited:
+    emoji = "📦"
+    visited = true
+  case .completed:
+    emoji = "🏁"
+    visited = true
+  case .canceled:
+    emoji = "❌"
+    visited = true
   }
   
   //// General Declarations
   let context = UIGraphicsGetCurrentContext()!
+  
+  
+  //// Variable Declarations
+  let expression = visited ? UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1) : UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1)
+  
+  //// Oval Drawing
+  let ovalPath = UIBezierPath(ovalIn: CGRect(x: 0, y: 1, width: 26, height: 26))
+  expression.setFill()
+  ovalPath.fill()
+  
   
   //// Text Drawing
   let textRect = CGRect(x: 0, y: 0, width: 26, height: 28)
   let textStyle = NSMutableParagraphStyle()
   textStyle.alignment = .center
   let textFontAttributes = [
-    .font: UIFont.systemFont(ofSize: 24),
+    .font: UIFont.systemFont(ofSize: UIFont.systemFontSize),
     .foregroundColor: UIColor.black,
     .paragraphStyle: textStyle,
   ] as [NSAttributedString.Key: Any]
@@ -195,23 +227,16 @@ func putDevice(
       bearing: bearing
     ))
   }
-  remove(overlay: MKCircle.self, fromMapView: mapView)
-  if accuracy > 0 {
-    let accuracyCircleOverlay = MKCircle(center: coordinate, radius: accuracy)
-    if let polylineOverlay = polyline(fromMapView: mapView) {
-      mapView.insertOverlay(accuracyCircleOverlay, above: polylineOverlay)
-    } else {
-      mapView.addOverlay(accuracyCircleOverlay)
-    }
-  }
 }
 
 func remove<Overlay: MKOverlay>(
   overlay: Overlay.Type,
   fromMapView mapView: MKMapView
 ) {
-  if let overlay = mapView.overlays.first(ofType: Overlay.self) {
-    mapView.removeOverlay(overlay)
+  for someOverlay in mapView.overlays {
+    if let matchingOverlay = someOverlay as? Overlay {
+      mapView.removeOverlay(matchingOverlay)
+    }
   }
 }
 
@@ -233,7 +258,6 @@ extension Array where Element: AnyObject {
 
 func removeDeviceFrom(mapView: MKMapView) {
   remove(annotation: DeviceAnnotation.self, fromMapView: mapView)
-  remove(overlay: MKCircle.self, fromMapView: mapView)
 }
 
 func remove<Annotation: MKAnnotation>(
@@ -591,15 +615,15 @@ public func annotationViewForAnnotation(
 public func rendererForOverlay(
   _ overlay: MKOverlay
 ) -> MKOverlayRenderer? {
-  if overlay is MKCircle {
-    let circleRenderer = MKCircleRenderer(circle: overlay as! MKCircle)
-    circleRenderer.fillColor = UIColor(
-      red: 0.0 / 255.0,
-      green: 206.0 / 255.0,
-      blue: 91.0 / 255.0,
-      alpha: 0.24
-    )
-    circleRenderer.lineWidth = 1.5
+  if let visitCircle = overlay as? VisitCircle {
+    let circleRenderer = MKCircleRenderer(circle: visitCircle)
+    
+    let fillColor = visitCircle.visit?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
+    let strokeColor = visitCircle.visit?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
+    circleRenderer.fillColor = fillColor
+    
+    circleRenderer.strokeColor = strokeColor
+    circleRenderer.lineWidth = 1
     return circleRenderer
   } else if overlay is MKPolyline {
     let polylineRenderer = MKPolylineRenderer(polyline: overlay as! MKPolyline)
