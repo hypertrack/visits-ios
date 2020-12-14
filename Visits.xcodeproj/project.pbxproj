@@ -114,6 +114,7 @@
 		31466FD02551EBB600247BDA /* DeviceID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeviceID; sourceTree = "<group>"; };
 		31466FD32551F8A000247BDA /* Credentials */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Credentials; sourceTree = "<group>"; };
 		31466FD82552EF4900247BDA /* StateRestorationEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = StateRestorationEnvironment; sourceTree = "<group>"; };
+		3148A8552587BDF100F61453 /* MapScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapScreen; sourceTree = "<group>"; };
 		314A14D5254FEF2B0061892F /* Visit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Visit; sourceTree = "<group>"; };
 		314A14D9255069070061892F /* Coordinate */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Coordinate; sourceTree = "<group>"; };
 		315EAE9D255C6B720038F304 /* Cognito.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cognito.swift; sourceTree = "<group>"; };
@@ -290,11 +291,12 @@
 		316AA86625480B0C00FC3D55 /* Screen */ = {
 			isa = PBXGroup;
 			children = (
-				31FA078E25657969008B84F4 /* LoadingScreen */,
 				316AA8642547FFBA00FC3D55 /* AppScreen */,
 				31072BCD254C765B00ECBA34 /* BlockerScreen */,
 				31F2E95A251BD2520081C9BE /* DeepLinkScreen */,
 				31072BCA254C60E300ECBA34 /* DriverIDScreen */,
+				31FA078E25657969008B84F4 /* LoadingScreen */,
+				3148A8552587BDF100F61453 /* MapScreen */,
 				31072BBB254BF54300ECBA34 /* SignInScreen */,
 				311E240C25594D6F002A122E /* VisitScreen */,
 				31F0726525592399002A7A53 /* VisitsScreen */,

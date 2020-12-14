@@ -2,13 +2,14 @@ import BlockerScreen
 import ComposableArchitecture
 import DeepLinkScreen
 import DriverIDScreen
+import History
 import LoadingScreen
+import MapScreen
 import SignInScreen
 import SwiftUI
 import TabSelection
 import VisitScreen
 import VisitsScreen
-import WebKit
 
 public enum VisitOrVisits: Equatable {
   case visit(VisitScreen.State)
@@ -31,7 +32,7 @@ public struct AppScreen: View {
     case signIn(SignInScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case visits(VisitOrVisits, TabSelection)
+    case visits(VisitOrVisits, History?, TabSelection)
   }
   
   public enum Action {
@@ -66,9 +67,9 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .visits(s, sel):
+      case let .visits(s, h, sel):
         VisitsBlock(
-          state: (s, sel),
+          state: (s, h, sel),
           sendVisit: { viewStore.send(.visit($0)) },
           sendVisits: { viewStore.send(.visits($0)) },
           sendTab: { viewStore.send(.tab($0)) }
@@ -79,17 +80,17 @@ public struct AppScreen: View {
 }
 
 struct VisitsBlock: View {
-  let state: (visits: VisitOrVisits, tabSelection: TabSelection)
+  let state: (visits: VisitOrVisits, history: History?, tabSelection: TabSelection)
   let sendVisit: (VisitScreen.Action) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
   
   var body: some View {
     TabView(
-    selection: Binding(
-      get: { state.tabSelection },
-      set: { sendTab($0) }
-    )
+      selection: Binding(
+        get: { state.tabSelection },
+        set: { sendTab($0) }
+      )
     ) {
       switch state.visits {
       case let .visit(v):
@@ -111,44 +112,14 @@ struct VisitsBlock: View {
         }
         .tag(TabSelection.visits)
       }
-      WebView(
-        deviceID: state.visits.credentials.deviceID,
-        publishableKey: state.visits.credentials.publishableKey
-      )
-      .edgesIgnoringSafeArea(.top)
-      .tabItem {
-        Image(systemName: "map")
-        Text("Map")
-      }
-      .tag(TabSelection.map)
+      MapScreen(polyline: Binding.constant(state.history?.coordinates ?? []))
+        .edgesIgnoringSafeArea(.top)
+        .tabItem {
+          Image(systemName: "map")
+          Text("Map")
+        }
+        .tag(TabSelection.map)
     }
-  }
-}
-
-
-struct WebView: UIViewRepresentable {
-  let deviceID: String
-  let publishableKey: String
-  
-  func makeUIView(context: Context) -> WKWebView {
-    let webView = WKWebView(frame: .zero)
-    webView.scrollView.bounces = false
-    webView.load(
-      URLRequest(
-        url: URL(
-          string: "https://embed.hypertrack.com/devices/\(deviceID)?publishable_key=\(publishableKey)&back=false"
-        )!
-      )
-    )
-    return webView
-  }
-  
-  func updateUIView(_ webView: WKWebView, context: Context) {}
-}
-
-extension WKWebView {
-  override open var safeAreaInsets: UIEdgeInsets {
-    return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
   }
 }
 
