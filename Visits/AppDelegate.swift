@@ -9,6 +9,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     viewStore.send(.finishedLaunching)
+    
+    setupUIAppearance()
+    
     HyperTrack.registerForRemoteNotifications()
     return true
   }
