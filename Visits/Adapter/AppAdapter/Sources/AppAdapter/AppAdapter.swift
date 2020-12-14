@@ -5,6 +5,7 @@ import ComposableArchitecture
 import DeepLinkScreen
 import DriverIDScreen
 import LoadingScreen
+import MapScreen
 import Prelude
 import SignInScreen
 import Visit
@@ -98,17 +99,18 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       case .some(.this), .some(.both):
         refreshingVisits = true
       }
+      let mapVisitsList = mapVisits(from: assignedVisits(from: v))
       switch v {
       case let .mixed(visits):
         let (pending, visited, completed, canceled) = visitHeaders(from: Array(visits))
-        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, s)
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: true, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, mapVisitsList, s)
       case let .assigned(assignedVisits):
         let (pending, visited, completed, canceled) = visitHeaders(from: assignedVisits.map(Either.right))
-        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, s)
+        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, showManualVisits: false, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, mapVisitsList, s)
       case let .selectedMixed(selectedVisit, _):
-        return .visits(.visit(visitScreen(from: selectedVisit, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, s)
+        return .visits(.visit(visitScreen(from: selectedVisit, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, mapVisitsList, s)
       case let .selectedAssigned(selectedAssignedVisit, _):
-        return .visits(.visit(visitScreen(from: .right(selectedAssignedVisit), pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, s)
+        return .visits(.visit(visitScreen(from: .right(selectedAssignedVisit), pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, mapVisitsList, s)
       }
     }
   }
@@ -354,5 +356,18 @@ extension DateFormatter {
     dateFormat.locale = Locale(identifier: "en_US_POSIX")
     dateFormat.dateFormat = "h:mm a"
     return dateFormat.string(from: date)
+  }
+}
+
+func mapVisits(from visits: Set<AssignedVisit>) -> [MapVisit] {
+  visits.map { MapVisit(id: $0.id.rawValue.rawValue, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
+}
+
+func mapVisitStatus(from geotagSent: AssignedVisit.Geotag) -> MapVisit.Status {
+  switch geotagSent {
+  case .notSent, .pickedUp: return .pending
+  case .checkedIn:          return .visited
+  case .checkedOut:         return .completed
+  case .cancelled:          return .canceled
   }
 }

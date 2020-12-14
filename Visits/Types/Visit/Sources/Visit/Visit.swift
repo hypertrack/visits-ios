@@ -93,6 +93,28 @@ public struct AssignedVisit {
   public typealias Contents       = Tagged<(AssignedVisit, contents: ()),     NonEmptyString>
 }
 
+public func assignedVisits(from visits: Visits) -> Set<AssignedVisit> {
+  let assignedVisits: Set<AssignedVisit>
+  switch visits {
+  case let .mixed(vs):
+    assignedVisits = Set(vs.compactMap(eitherRight))
+  case let .assigned(vs):
+    assignedVisits = vs
+  case let .selectedMixed(.left, vs):
+    assignedVisits = Set(vs.compactMap(eitherRight))
+  case let .selectedMixed(.right(v), vs):
+    assignedVisits = Set(vs.compactMap(eitherRight) + [v])
+  case let .selectedAssigned(v, vs):
+    assignedVisits = insert(v, into: vs)
+  }
+  return assignedVisits
+}
+
+func insert<Element>(_ newMember: Element, into set: Set<Element>) -> Set<Element> {
+  var set = set
+  set.insert(newMember)
+  return set
+}
 
 // MARK: - Foundation
 

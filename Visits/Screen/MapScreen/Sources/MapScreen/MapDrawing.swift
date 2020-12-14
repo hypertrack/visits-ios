@@ -1,5 +1,145 @@
 import MapKit
 
+// MARK: - Visits
+
+func putVisits(
+  visits: [MapVisit],
+  onMapView mapView: MKMapView
+) {
+  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? VisitAnnotation })
+  
+  for visit in visits {
+    mapView.addAnnotation(VisitAnnotation(visit: visit))
+  }
+}
+
+// MARK: Visit
+
+class VisitAnnotation: NSObject, MKAnnotation {
+  var coordinate: CLLocationCoordinate2D
+  let visit: MapVisit
+
+  init(visit: MapVisit) {
+    self.visit = visit
+    self.coordinate = visit.coordinate.coordinate2D
+    
+    super.init()
+  }
+}
+
+class VisitPendingAnnotationView: MKAnnotationView {
+  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 26, height: 28)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {
+    drawVisit(.pending)
+  }
+}
+
+class VisitVisitedAnnotationView: MKAnnotationView {
+  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 26, height: 28)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {
+    drawVisit(.visited)
+  }
+}
+
+class VisitCompletedAnnotationView: MKAnnotationView {
+  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 26, height: 28)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {
+    drawVisit(.completed)
+  }
+}
+
+class VisitCanceledAnnotationView: MKAnnotationView {
+  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 26, height: 28)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {
+    drawVisit(.canceled)
+  }
+}
+
+func drawVisit(_ visitStatus: MapVisit.Status) {
+  let emoji: String
+  switch visitStatus {
+  case .pending: emoji = "⏳"
+  case .visited: emoji = "📦"
+  case .completed: emoji = "🏁"
+  case .canceled: emoji = "❌"
+  }
+  
+  //// General Declarations
+  let context = UIGraphicsGetCurrentContext()!
+  
+  //// Text Drawing
+  let textRect = CGRect(x: 0, y: 0, width: 26, height: 28)
+  let textStyle = NSMutableParagraphStyle()
+  textStyle.alignment = .center
+  let textFontAttributes = [
+    .font: UIFont.systemFont(ofSize: 24),
+    .foregroundColor: UIColor.black,
+    .paragraphStyle: textStyle,
+  ] as [NSAttributedString.Key: Any]
+  
+  let textTextHeight: CGFloat = emoji.boundingRect(with: CGSize(width: textRect.width, height: CGFloat.infinity), options: .usesLineFragmentOrigin, attributes: textFontAttributes, context: nil).height
+  context.saveGState()
+  context.clip(to: textRect)
+  emoji.draw(in: CGRect(x: textRect.minX, y: textRect.minY + (textRect.height - textTextHeight) / 2, width: textRect.width, height: textTextHeight), withAttributes: textFontAttributes)
+  context.restoreGState()
+}
+
 // MARK: - Polyline
 
 func putPolyline(
@@ -253,44 +393,39 @@ public func zoom(
   onMapView mapView: MKMapView,
   animated: Bool = true
 ) {
-  if let polyline = polyline(fromMapView: mapView) {
-    let polylineCoordinates = coordinatesFromMultiPoint(polyline)
-    if !polylineCoordinates.isEmpty {
-      var mapRect = mapRectFromCoordinates(polylineCoordinates)
+  let maybePolyline = polyline(fromMapView: mapView)
+  var coordinate: CLLocationCoordinate2D? = nil
+  if let device = device(fromMapView: mapView) {
+    coordinate = device.coordinate
+  } else if let userLocation = mapView.userLocation.location {
+    coordinate = userLocation.coordinate
+  }
+  let visits = mapView.annotations.compactMap { $0 as? VisitAnnotation }
+  
+  switch (maybePolyline, coordinate, visits.isEmpty) {
+  
+  case (.none, .none, true): return
+  
+  case let (maybePolyline, coordinate, _):
+    var coordinateCloud: [CLLocationCoordinate2D] = []
+    
+    if let polyline = maybePolyline {
+      coordinateCloud += coordinatesFromMultiPoint(polyline)
+    }
+    
+    if let coordinate = coordinate {
+      coordinateCloud += [coordinate]
+    }
+    
+    coordinateCloud += visits.map(\.visit.coordinate.coordinate2D)
+    
+    if !coordinateCloud.isEmpty {
+      var mapRect = mapRectFromCoordinates(coordinateCloud)
+      
       if let mapInsets = mapInsets {
         mapRect = outset(mapRect: mapRect, withEdges: mapInsets)
       }
-      if let interfaceInsets = interfaceInsets {
-        let (top, leading, bottom, trailing) = interfaceInsets.unpack()
-        mapView.setVisibleMapRect(
-          mapRect,
-          edgePadding: UIEdgeInsets(
-            top: CGFloat(top),
-            left: CGFloat(leading),
-            bottom: CGFloat(bottom),
-            right: CGFloat(trailing)
-          ),
-          animated: animated
-        )
-      } else {
-        mapView.setVisibleMapRect(mapRect, animated: animated)
-      }
-    }
-  } else {
-    
-    var coordinate: CLLocationCoordinate2D? = nil
-    if let device = device(fromMapView: mapView) {
-      coordinate = device.coordinate
-    } else if let userLocation = mapView.userLocation.location {
-      coordinate = userLocation.coordinate
-    }
-    if let coordinate = coordinate {
-      var mapRect = MKMapRect(
-        origin: MKMapPoint(coordinate),
-        size: MKMapSize()
-      )
-      let edges = mapInsets ?? .all(400)
-      mapRect = outset(mapRect: mapRect, withEdges: edges)
+      
       if let interfaceInsets = interfaceInsets {
         let (top, leading, bottom, trailing) = interfaceInsets.unpack()
         mapView.setVisibleMapRect(
@@ -428,6 +563,24 @@ public func annotationViewForAnnotation(
         annotation: sourceAnnotation,
         reuseIdentifier: reuseIdentifier
       )
+    }
+  } else if let visitAnnotation = annotation as? VisitAnnotation {
+    let reuseIdentifier: String
+    switch visitAnnotation.visit.status {
+    case .pending:   reuseIdentifier = "VisitPendingAnnotation"
+    case .visited:   reuseIdentifier = "VisitVisitedAnnotation"
+    case .completed: reuseIdentifier = "VisitCompletedAnnotation"
+    case .canceled:  reuseIdentifier = "VisitCanceledAnnotation"
+    }
+    if let visitAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) {
+      return visitAnnotationView
+    } else {
+      switch visitAnnotation.visit.status {
+      case .pending:   return VisitPendingAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
+      case .visited:   return VisitVisitedAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
+      case .completed: return VisitCompletedAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
+      case .canceled:  return VisitCanceledAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
+      }
     }
   } else {
     return nil

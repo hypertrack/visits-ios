@@ -929,29 +929,6 @@ func sameAssignedID(_ id: AssignedVisit.ID) -> (Visit) -> Bool {
   }
 }
 
-func assignedVisits(from visits: Visits) -> Set<AssignedVisit> {
-  let assignedVisits: Set<AssignedVisit>
-  switch visits {
-  case let .mixed(vs):
-    assignedVisits = Set(vs.compactMap(eitherRight))
-  case let .assigned(vs):
-    assignedVisits = vs
-  case let .selectedMixed(.left, vs):
-    assignedVisits = Set(vs.compactMap(eitherRight))
-  case let .selectedMixed(.right(v), vs):
-    assignedVisits = Set(vs.compactMap(eitherRight) + [v])
-  case let .selectedAssigned(v, vs):
-    assignedVisits = insert(v, into: vs)
-  }
-  return assignedVisits
-}
-
-func insert<Element>(_ newMember: Element, into set: Set<Element>) -> Set<Element> {
-  var set = set
-  set.insert(newMember)
-  return set
-}
-
 func visitCoordinatesWithoutAddress(_ visits: Set<AssignedVisit>) -> Set<Coordinate> {
   Set(visits.compactMap { $0.address == nil ? $0.location : nil })
 }

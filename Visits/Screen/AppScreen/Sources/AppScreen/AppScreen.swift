@@ -4,10 +4,12 @@ import DeepLinkScreen
 import DriverIDScreen
 import History
 import LoadingScreen
+import MapKit
 import MapScreen
 import SignInScreen
 import SwiftUI
 import TabSelection
+import Views
 import VisitScreen
 import VisitsScreen
 
@@ -32,7 +34,7 @@ public struct AppScreen: View {
     case signIn(SignInScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case visits(VisitOrVisits, History?, TabSelection)
+    case visits(VisitOrVisits, History?, [MapVisit], TabSelection)
   }
   
   public enum Action {
@@ -67,9 +69,9 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .visits(s, h, sel):
+      case let .visits(s, h, mv, sel):
         VisitsBlock(
-          state: (s, h, sel),
+          state: (s, h, mv, sel),
           sendVisit: { viewStore.send(.visit($0)) },
           sendVisits: { viewStore.send(.visits($0)) },
           sendTab: { viewStore.send(.tab($0)) }
@@ -80,7 +82,7 @@ public struct AppScreen: View {
 }
 
 struct VisitsBlock: View {
-  let state: (visits: VisitOrVisits, history: History?, tabSelection: TabSelection)
+  let state: (visits: VisitOrVisits, history: History?, assignedVisits: [MapVisit], tabSelection: TabSelection)
   let sendVisit: (VisitScreen.Action) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
@@ -112,17 +114,42 @@ struct VisitsBlock: View {
         }
         .tag(TabSelection.visits)
       }
-      MapScreen(polyline: Binding.constant(state.history?.coordinates ?? []))
+      ZStack() {
+        MapScreen(
+          polyline: Binding.constant(state.history?.coordinates ?? []),
+          visits: Binding.constant(state.assignedVisits)
+        )
         .edgesIgnoringSafeArea(.top)
-        .tabItem {
-          Image(systemName: "map")
-          Text("Map")
+        .padding([.bottom], state.history?.distance != nil ? state.history?.distance != 0 ? 78 : 0 : 0)
+        if let distance = state.history?.distance, distance != 0 {
+          VStack {
+            Spacer()
+            RoundedStack {
+              HStack {
+                Text("Distance: \(localizedDistance(state.history?.distance ?? 0))")
+                  .font(.normalHighBold)
+                  .padding()
+                Spacer()
+              }
+            }
+            .padding(.bottom, -10)
+          }
         }
-        .tag(TabSelection.map)
+      }
+      .tabItem {
+        Image(systemName: "map")
+        Text("Map")
+      }
+      .tag(TabSelection.map)
     }
   }
 }
 
+func localizedDistance(_ distanceMeters: UInt) -> String {
+  let formatter = MKDistanceFormatter()
+  formatter.unitStyle = .full
+  return formatter.string(fromDistance: CLLocationDistance(distanceMeters))
+}
 
 extension AppScreen.State: Equatable {}
 
@@ -130,10 +157,31 @@ struct SwiftUIView_Previews: PreviewProvider {
   static var previews: some View {
     AppScreen(
       store: .init(
-        initialState: .loading,
+        initialState: .visits(
+          .visits(
+            .init(
+              pending: [],
+              visited: [],
+              completed: [],
+              canceled: [],
+              isNetworkAvailable: true,
+              refreshing: false,
+              showManualVisits: false,
+              deviceID: "DeviceID",
+              publishableKey: "PublishableKey"
+            )
+          ),
+          .init(
+            coordinates: [],
+            distance: 50
+          ),
+          [
+          ],
+          .map),
         reducer: .empty,
         environment: ()
       )
     )
+    .previewScheme(.dark)
   }
 }

@@ -6,5 +6,6 @@ let package = Package(
   name: "MapScreen",
   platforms: [.iOS(.v13)],
   products: [.library(name: "MapScreen", targets: ["MapScreen"])],
-  targets: [.target(name: "MapScreen")]
+  dependencies: [.package(path: "Coordinate")],
+  targets: [.target(name: "MapScreen", dependencies: ["Coordinate"])]
 )

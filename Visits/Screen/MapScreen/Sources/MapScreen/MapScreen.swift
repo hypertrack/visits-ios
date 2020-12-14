@@ -2,12 +2,29 @@ import Coordinate
 import MapKit
 import SwiftUI
 
+public struct MapVisit: Equatable {
+  public enum Status: Equatable {
+    case pending, visited, completed, canceled
+  }
+  
+  public let id: String
+  public let coordinate: Coordinate
+  public let status: Status
+  
+  public init(id: String, coordinate: Coordinate, status: Status) {
+    self.id = id
+    self.coordinate = coordinate
+    self.status = status
+  }
+}
 
 public struct MapScreen: UIViewRepresentable {
   @Binding public var polyline: [Coordinate]
+  @Binding public var visits: [MapVisit]
   
-  public init(polyline: Binding<[Coordinate]>) {
+  public init(polyline: Binding<[Coordinate]>, visits: Binding<[MapVisit]>) {
     self._polyline = polyline
+    self._visits = visits
   }
   
   public func makeUIView(context: Context) -> MKMapView {
@@ -23,6 +40,7 @@ public struct MapScreen: UIViewRepresentable {
     mapView.showsUserLocation = polyline.isEmpty
     
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
+    putVisits(visits: visits, onMapView: mapView)
     zoom(withMapInsets: .all(100), interfaceInsets: nil, onMapView: mapView)
   }
   
