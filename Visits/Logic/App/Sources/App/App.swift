@@ -430,43 +430,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case let .selectVisit(str):
-        switch v {
-        case let .mixed(ms):
-          var msSel = ms
-          if let i = msSel.firstIndex(where: { vis in
-            switch vis {
-            case let .left(manual):
-              if manual.id.rawValue.rawValue == str {
-                return true
-              } else {
-                return false
-              }
-            case let .right(assigned):
-              if assigned.id.rawValue.rawValue == str {
-                return true
-              } else {
-                return false
-              }
-            }
-          }) {
-            let selected = msSel.remove(at: i)
-            state.flow = .visits(.selectedMixed(selected, msSel), h, s, pk, drID, deID, us, p, r, d)
-            return .none
-          } else {
-            return .none
-          }
-        case let .assigned(aas):
-          var msSel = aas
-          if let i = msSel.firstIndex(where: { $0.id.rawValue.rawValue == str }) {
-            let selected = msSel.remove(at: i)
-            state.flow = .visits(.selectedAssigned(selected, msSel), h, s, pk, drID, deID, us, p, r, d)
-            return .none
-          } else {
-            return .none
-          }
-        case .selectedMixed, .selectedAssigned:
-          return .none
-        }
+        let deselectedOld = deselectVisit(from: v)
+        let selectedNew = selectVisitID(str, in: v)
+        state.flow = .visits(selectedNew, h, .visits, pk, drID, deID, us, p, r, d)
+        return .none
       case .cancelVisit:
         switch v {
         case let .selectedAssigned(a, aas) where a.geotagSent == .checkedIn:
@@ -611,23 +578,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case .deselectVisit:
-        switch v {
-        case .mixed, .assigned:
-          return .none
-        case let .selectedMixed(.left(m), vs) where m.geotagSent == .notSent:
-          state.flow = .visits(.mixed(vs), h, s, pk, drID, deID, us, p, r, d)
-          return .none
-        case let .selectedMixed(sv, vs):
-          var res = vs
-          res.insert(sv)
-          state.flow = .visits(.mixed(res), h, s, pk, drID, deID, us, p, r, d)
-          return .none
-        case let .selectedAssigned(sv, aas):
-          var res = aas
-          res.insert(sv)
-          state.flow = .visits(.assigned(res), h, s, pk, drID, deID, us, p, r, d)
-          return .none
-        }
+        state.flow = .visits(deselectVisit(from: v), h, s, pk, drID, deID, us, p, r, d)
+        return .none
       case .focusVisitNote:
         switch v {
         case let .selectedAssigned(a, aas):
@@ -874,6 +826,61 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       default: return effects
       }
     }
+  }
+}
+
+func deselectVisit(from visits: Visits) -> Visits {
+  switch visits {
+  case .mixed, .assigned:
+    return visits
+  case let .selectedMixed(.left(m), vs) where m.geotagSent == .notSent:
+    return .mixed(vs)
+  case let .selectedMixed(sv, vs):
+    var res = vs
+    res.insert(sv)
+    return .mixed(res)
+  case let .selectedAssigned(sv, aas):
+    var res = aas
+    res.insert(sv)
+    return .assigned(res)
+  }
+}
+
+func selectVisitID(_ id: String, in visits: Visits) -> Visits {
+  switch visits {
+  case let .mixed(ms):
+    var msSel = ms
+    if let i = msSel.firstIndex(where: { vis in
+      switch vis {
+      case let .left(manual):
+        if manual.id.rawValue.rawValue == id {
+          return true
+        } else {
+          return false
+        }
+      case let .right(assigned):
+        if assigned.id.rawValue.rawValue == id {
+          return true
+        } else {
+          return false
+        }
+      }
+    }) {
+      let selected = msSel.remove(at: i)
+      return .selectedMixed(selected, msSel)
+    } else {
+      return visits
+    }
+  case let .assigned(aas):
+    var msSel = aas
+    if let i = msSel.firstIndex(where: { $0.id.rawValue.rawValue == id }) {
+      let selected = msSel.remove(at: i)
+      return .selectedAssigned(selected, msSel)
+    } else {
+      return visits
+    }
+  case .selectedMixed, .selectedAssigned:
+    return visits
   }
 }
 

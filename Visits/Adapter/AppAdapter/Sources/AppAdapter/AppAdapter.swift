@@ -163,6 +163,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .visit(.tappedOutsideFocusedTextField): return .dismissFocus
   case .tab(.map): return .switchToMap
   case .tab(.visits): return .switchToVisits
+  case let .map(id): return .selectVisit(id)
   }
 }
 

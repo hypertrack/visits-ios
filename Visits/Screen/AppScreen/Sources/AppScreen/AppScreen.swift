@@ -44,6 +44,7 @@ public struct AppScreen: View {
     case visits(VisitsScreen.Action)
     case visit(VisitScreen.Action)
     case tab(TabSelection)
+    case map(String)
   }
   
   let store: Store<State, Action>
@@ -72,6 +73,7 @@ public struct AppScreen: View {
       case let .visits(s, h, mv, sel):
         VisitsBlock(
           state: (s, h, mv, sel),
+          sendMap: { viewStore.send(.map($0)) },
           sendVisit: { viewStore.send(.visit($0)) },
           sendVisits: { viewStore.send(.visits($0)) },
           sendTab: { viewStore.send(.tab($0)) }
@@ -83,6 +85,7 @@ public struct AppScreen: View {
 
 struct VisitsBlock: View {
   let state: (visits: VisitOrVisits, history: History?, assignedVisits: [MapVisit], tabSelection: TabSelection)
+  let sendMap: (String) -> Void
   let sendVisit: (VisitScreen.Action) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
@@ -117,6 +120,7 @@ struct VisitsBlock: View {
       ZStack() {
         MapScreen(
           polyline: Binding.constant(state.history?.coordinates ?? []),
+          sendSelectedMapVisit: sendMap,
           visits: Binding.constant(state.assignedVisits)
         )
         .edgesIgnoringSafeArea(.top)

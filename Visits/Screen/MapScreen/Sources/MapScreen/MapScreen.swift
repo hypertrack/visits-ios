@@ -21,9 +21,11 @@ public struct MapVisit: Equatable {
 public struct MapScreen: UIViewRepresentable {
   @Binding public var polyline: [Coordinate]
   @Binding public var visits: [MapVisit]
+  var sendSelectedMapVisit: (String) -> Void
   
-  public init(polyline: Binding<[Coordinate]>, visits: Binding<[MapVisit]>) {
+  public init(polyline: Binding<[Coordinate]>, sendSelectedMapVisit: @escaping (String) -> Void, visits: Binding<[MapVisit]>) {
     self._polyline = polyline
+    self.sendSelectedMapVisit = sendSelectedMapVisit
     self._visits = visits
   }
   
@@ -65,6 +67,12 @@ public struct MapScreen: UIViewRepresentable {
     
     public func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
       zoom(withMapInsets: .all(100), interfaceInsets: nil, onMapView: mapView)
+    }
+    
+    public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+      if let visitAnnotation = view.annotation as? VisitAnnotation {
+        control.sendSelectedMapVisit(visitAnnotation.visit.id)
+      }
     }
   }
 }
