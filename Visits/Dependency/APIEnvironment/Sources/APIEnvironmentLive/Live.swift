@@ -4,6 +4,7 @@ import ComposableArchitecture
 import Contacts
 import Coordinate
 import CoreLocation
+import Credentials
 import DeviceID
 import GeoJSON
 import GLKit
@@ -16,10 +17,55 @@ import PublishableKey
 import Tagged
 import Visit
 
-let baseURL: NonEmptyString = "https://live-app-backend.htprod.hypertrack.com/client"
+
+public extension APIEnvironment {
+  static let live = Self(
+    getHistory: getHistory(_:_:_:),
+    getVisits: getVisits(_:_:),
+    reverseGeocode: reverseGeocode(_:),
+    signIn: signIn(_:_:)
+  )
+}
+
+let baseURL: NonEmptyString = "https://live-app-backend.htprod.hypertrack.com"
+let clientURL: NonEmptyString = baseURL + "/client"
 let internalAPIURL: NonEmptyString = "https://live-api.htprod.hypertrack.com"
 
 extension NonEmptyString: Error {}
+
+// MARK: - Sign In
+
+func signIn(_ email: Email, _ password: Password) -> Effect<Either<PublishableKey, NonEmptyString>, Never> {
+  URLSession.shared.dataTaskPublisher(for: signInRequest(email: email, password: password))
+    .map { data, _ in data }
+    .decode(type: SignIn.self, decoder: JSONDecoder())
+    .map(\.publishableKey >>> Either.left)
+    .mapError { NonEmptyString(rawValue: $0.localizedDescription) ?? NonEmptyString(stringLiteral: "Unknown error") }
+    .catch(Either.right >>> Just.init(_:))
+    .eraseToEffect()
+}
+
+struct SignIn: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case publishableKey = "publishable_key"
+  }
+  
+  let publishableKey: PublishableKey
+}
+
+func signInRequest(email: Email, password: Password) -> URLRequest {
+  let url = URL(string: baseURL.rawValue + "/get_publishable_key")!
+  var request = URLRequest(url: url)
+  request.httpBody = try! JSONSerialization.data(
+    withJSONObject: [
+      "username": email.rawValue.rawValue,
+      "password": password.rawValue.rawValue
+    ],
+    options: JSONSerialization.WritingOptions(rawValue: 0)
+  )
+  request.httpMethod = "POST"
+  return request
+}
 
 // MARK: - Get Token
 
@@ -53,11 +99,6 @@ struct Authentication: Decodable {
   enum CodingKeys: String, CodingKey {
     case accessToken = "access_token"
   }
-  
-  init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    accessToken = try container.decode(Token.self, forKey: .accessToken)
-  }
 }
 
 // MARK: - Get History
@@ -80,7 +121,7 @@ func getHistoryFromAPI(auth token: Token, deviceID: DeviceID, date: Date) -> Any
 }
 
 func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLRequest {
-  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
+  let url = URL(string: "\(clientURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token.rawValue)", forHTTPHeaderField: "Authorization")
   request.httpMethod = "GET"
@@ -159,7 +200,7 @@ func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofen
 }
 
 func geofencesRequest(auth token: Token, deviceID: DeviceID) -> URLRequest {
-  let url = URL(string: "\(baseURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/geofences")!
+  let url = URL(string: "\(clientURL.rawValue)/devices/\(deviceID.rawValue.rawValue)/geofences")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token.rawValue.rawValue)", forHTTPHeaderField: "Authorization")
   request.httpMethod = "GET"
@@ -350,7 +391,7 @@ func getTripsPage(auth token: Token, deviceID: DeviceID, paginationToken: NonEmp
 }
 
 func tripsRequest(auth token: Token, deviceID: DeviceID, paginationToken: NonEmptyString?) -> URLRequest {
-  var urlString = "\(baseURL.rawValue)/trips?device_id=\(deviceID.rawValue.rawValue)"
+  var urlString = "\(clientURL.rawValue)/trips?device_id=\(deviceID.rawValue.rawValue)"
   if let paginationToken = paginationToken {
     urlString += "&pagination_token=\(paginationToken.rawValue)"
   }
