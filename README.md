@@ -10,7 +10,7 @@ This is an open-sourced logistics application (also available in [AppStore](http
 
 ## Features
 
-| Visits Overview                | Visit Timeline                  | Visit Details                  |
+| Visits Overview                | Visits Timeline                 | Visit Details                  |
 | ------------------------------ | ------------------------------- | ------------------------------ |
 | <img src="images/visits.png"> | <img src="images/map.png"> | <img src="images/visit.png"> |
 
