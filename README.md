@@ -10,9 +10,9 @@ This is an open-sourced logistics application (also available in [AppStore](http
 
 ## Features
 
-| Driver Checkin                 | Overview of Deliveries          | Delivery Details               |
+| Visits Overview                | Visit Timeline                  | Visit Details                  |
 | ------------------------------ | ------------------------------- | ------------------------------ |
-| <img src="images/checkin.png"> | <img src="images/overview.png"> | <img src="images/details.png"> |
+| <img src="images/visits.png"> | <img src="images/map.png"> | <img src="images/visit.png"> |
 
 - Handle permission requests required for live location tracking
 - Track day's deliveries as geofences on HyperTrack
