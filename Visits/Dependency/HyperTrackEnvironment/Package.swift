@@ -19,7 +19,7 @@ let package = Package(
     .package(
       name: "HyperTrack",
       url: "https://github.com/hypertrack/sdk-ios",
-      .exact("4.6.0")
+      .exact("4.7.0")
     ),
     .package(path: "Log"),
     .package(
