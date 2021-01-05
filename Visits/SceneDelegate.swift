@@ -21,6 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       window.rootViewController = UIHostingController(
         rootView: AppScreen(store: .appScreenStore(from: store))
       )
+      window.tintColor = UIColor(named: "AccentColor") 
       self.window = window
       window.makeKeyAndVisible()
     }
