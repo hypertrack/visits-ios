@@ -7,7 +7,7 @@ let package = Package(
   platforms: [.iOS(.v13)],
   products: [.library(name: "DeepLink", targets: ["DeepLink"])],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0")),
     .package(path: "DeepLinkEnvironment"),
     .package(path: "DriverID"),
     .package(path: "ManualVisitsStatus"),

@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "HapticFeedbackEnvironmentLive", targets: ["HapticFeedbackEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0")),
     .package(path: "Log"),
   ],
   targets: [

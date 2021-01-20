@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
-      .exact("0.9.0")
+      .exact("0.10.0")
     ),
     .package(path: "DeviceID"),
     .package(path: "DriverID"),

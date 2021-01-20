@@ -6,6 +6,6 @@ let package = Package(
   name: "Log",
   platforms: [.iOS(.v13)],
   products: [.library(name: "Log", targets: ["Log"])],
-  dependencies: [.package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0"))],
+  dependencies: [.package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0"))],
   targets: [.target(name: "Log", dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")])]
 )

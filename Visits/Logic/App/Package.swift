@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(path: "APIEnvironment"),
     .package(path: "Architecture"),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.9.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0")),
     .package(path: "Credentials"),
     .package(path: "DeepLink"),
     .package(path: "DeepLinkEnvironment"),
