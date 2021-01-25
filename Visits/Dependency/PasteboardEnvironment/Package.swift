@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "PasteboardEnvironmentLive", targets: ["PasteboardEnvironmentLive"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
     .package(path: "Log"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4"))
   ],

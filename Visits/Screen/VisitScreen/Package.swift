@@ -7,7 +7,7 @@ let package = Package(
   platforms: [.iOS(.v13)],
   products: [.library(name: "VisitScreen", targets: ["VisitScreen"])],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.10.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
     .package(path: "Coordinate"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
     .package(name: "Views", url: "https://github.com/hypertrack/views-swiftui", .exact("0.0.6"))
