@@ -22,6 +22,7 @@ extension AppState {
       .running,
       permissions,
       nil,
+      .dialogSplash(.shown),
       nil
     )
   )
@@ -38,6 +39,7 @@ extension AppState {
       .running,
       permissions,
       nil,
+      .dialogSplash(.shown),
       nil
     )
   )
@@ -89,6 +91,7 @@ extension AppState {
       .running,
       permissions,
       nil,
+      .dialogSplash(.shown),
       nil
     )
   )

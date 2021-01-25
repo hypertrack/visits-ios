@@ -92,6 +92,7 @@
 		31AC38802545CCE500D29345 /* App */ = {isa = PBXFileReference; lastKnownFileType = folder; path = App; sourceTree = "<group>"; };
 		31B262E52575835A00280DDF /* TabSelection */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TabSelection; sourceTree = "<group>"; };
 		31B7A37A257E84F200EE5C65 /* GeoJSON */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GeoJSON; sourceTree = "<group>"; };
+		31B7CB3D25B9FC8D00CBDF95 /* PushStatus */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PushStatus; path = ../../../../../../../Volumes/970EVO/Source/PushStatus; sourceTree = "<group>"; };
 		31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PasteboardEnvironment; sourceTree = "<group>"; };
 		31E1752F255C028600DF5219 /* MapEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapEnvironment; sourceTree = "<group>"; };
 		31E17532255C098200DF5219 /* HapticFeedbackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HapticFeedbackEnvironment; sourceTree = "<group>"; };
@@ -112,6 +113,7 @@
 		31F0725C2555E5E2002A7A53 /* SDK */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SDK; sourceTree = "<group>"; };
 		31F0726525592399002A7A53 /* VisitsScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitsScreen; sourceTree = "<group>"; };
 		31F2E95A251BD2520081C9BE /* DeepLinkScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeepLinkScreen; sourceTree = "<group>"; };
+		31F4CC0C25BF2CBF00F6BBE8 /* PushEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PushEnvironment; sourceTree = "<group>"; };
 		31FA078E25657969008B84F4 /* LoadingScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = LoadingScreen; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -235,6 +237,7 @@
 				31E1752F255C028600DF5219 /* MapEnvironment */,
 				31F072512553EBFE002A7A53 /* NetworkEnvironment */,
 				31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */,
+				31F4CC0C25BF2CBF00F6BBE8 /* PushEnvironment */,
 				31466FD82552EF4900247BDA /* StateRestorationEnvironment */,
 			);
 			path = Dependency;
@@ -259,6 +262,7 @@
 				3189AFB2256D98FE00A081C0 /* History */,
 				31072BD3254DEEAE00ECBA34 /* ManualVisitsStatus */,
 				318E585C2546B7EA00EAA61A /* PublishableKey */,
+				31B7CB3D25B9FC8D00CBDF95 /* PushStatus */,
 				31F0724D2553E75F002A7A53 /* RestorationState */,
 				31F0725C2555E5E2002A7A53 /* SDK */,
 				31B262E52575835A00280DDF /* TabSelection */,

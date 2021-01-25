@@ -17,6 +17,7 @@ let package = Package(
     .package(path: "ManualVisitsStatus"),
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
+    .package(path: "PushStatus"),
     .package(path: "RestorationState"),
     .package(path: "TabSelection"),
     .package(path: "Visit")
@@ -38,6 +39,7 @@ let package = Package(
         "ManualVisitsStatus",
         "Prelude",
         "PublishableKey",
+        "PushStatus",
         "StateRestorationEnvironment",
         "TabSelection",
         "Visit"

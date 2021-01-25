@@ -7,6 +7,7 @@ import HyperTrackEnvironmentLive
 import MapEnvironmentLive
 import NetworkEnvironmentLive
 import PasteboardEnvironmentLive
+import PushEnvironmentLive
 import StateRestorationEnvironmentLive
 
 
@@ -19,6 +20,7 @@ public extension AppEnvironment {
     maps: .live,
     network: .live,
     pasteboard: .live,
+    push: .live,
     stateRestoration: .live
   )
 }

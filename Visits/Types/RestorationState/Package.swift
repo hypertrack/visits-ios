@@ -12,6 +12,7 @@ let package = Package(
     .package(path: "DriverID"),
     .package(path: "ManualVisitsStatus"),
     .package(path: "PublishableKey"),
+    .package(path: "PushStatus"),
     .package(path: "SDK"),
     .package(path: "TabSelection"),
     .package(path: "Visit")
@@ -25,6 +26,7 @@ let package = Package(
         "DriverID",
         "ManualVisitsStatus",
         "PublishableKey",
+        "PushStatus",
         "SDK",
         "TabSelection",
         "Visit"

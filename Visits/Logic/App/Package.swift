@@ -28,6 +28,8 @@ let package = Package(
     .package(path: "PasteboardEnvironment"),
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
     .package(path: "PublishableKey"),
+    .package(path: "PushEnvironment"),
+    .package(path: "PushStatus"),
     .package(path: "RestorationState"),
     .package(path: "SDK"),
     .package(path: "StateRestorationEnvironment"),
@@ -57,6 +59,8 @@ let package = Package(
         "PasteboardEnvironment",
         "Prelude",
         "PublishableKey",
+        "PushEnvironment",
+        "PushStatus",
         "RestorationState",
         "SDK",
         "StateRestorationEnvironment",
@@ -76,6 +80,7 @@ let package = Package(
         .product(name: "MapEnvironmentLive", package: "MapEnvironment"),
         .product(name: "NetworkEnvironmentLive", package: "NetworkEnvironment"),
         .product(name: "PasteboardEnvironmentLive", package: "PasteboardEnvironment"),
+        .product(name: "PushEnvironmentLive", package: "PushEnvironment"),
         .product(name: "StateRestorationEnvironmentLive", package: "StateRestorationEnvironment")
       ]
     ),

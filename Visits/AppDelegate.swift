@@ -36,11 +36,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _: UIApplication,
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler:
-    @escaping (UIBackgroundFetchResult) -> Void
+      @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    HyperTrack.didReceiveRemoteNotification(
-      userInfo,
-      fetchCompletionHandler: completionHandler
-    )
+    if userInfo["hypertrack"] != nil {
+      // This is HyperTrack SDK's notification
+      HyperTrack.didReceiveRemoteNotification(
+        userInfo,
+        fetchCompletionHandler: completionHandler)
+    } else {
+      viewStore.send(.receivedPushNotification)
+    }
   }
 }

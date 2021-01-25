@@ -19,6 +19,7 @@ public struct Blocker: View {
     case motionDenied
     case motionDisabled
     case motionNotDetermined
+    case pushNotShown
   }
   
   public enum Action: Equatable {
@@ -33,6 +34,7 @@ public struct Blocker: View {
     case motionDeniedButtonTapped
     case motionDisabledButtonTapped
     case motionNotDeterminedButtonTapped
+    case pushNotShownButtonTapped
   }
   
   let state: State
@@ -83,6 +85,7 @@ func title(from s: Blocker.State) -> String {
   case .motionDenied:          return "Allow Motion Access"
   case .motionDisabled:        return "Enable Motion & Fitness"
   case .motionNotDetermined:   return "Allow Motion Access"
+  case .pushNotShown:          return "Push Notifications"
   }
 }
 
@@ -138,6 +141,9 @@ func message(from s: Blocker.State) -> String {
            """
   case .motionNotDetermined:
     return "We use Motion & Fitness to efficiently use your battery when tracking milage."
+    
+  case .pushNotShown:
+    return "We use push notifications to notify about new visits."
   }
 }
 
@@ -155,6 +161,7 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   case .motionDenied:          return ("Open Settings", .motionDeniedButtonTapped)
   case .motionDisabled:        return ("Open Settings", .motionDisabledButtonTapped)
   case .motionNotDetermined:   return ("Allow Access", .motionNotDeterminedButtonTapped)
+  case .pushNotShown:          return ("Next", .pushNotShownButtonTapped)
   }
 }
 

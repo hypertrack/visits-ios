@@ -11,4 +11,3 @@ public struct PasteboardEnvironment {
     self.copyToPasteboard = copyToPasteboard
   }
 }
- 

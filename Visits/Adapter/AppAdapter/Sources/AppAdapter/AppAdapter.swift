@@ -19,6 +19,7 @@ import VisitsScreen
 public enum LifeCycleAction {
   case finishedLaunching
   case deepLinkOpened(NSUserActivity)
+  case receivedPushNotification
   case willEnterForeground
 }
 
@@ -29,9 +30,10 @@ public extension ViewStore where State == Prelude.Unit, Action == LifeCycleActio
         state: { _ in unit },
         action: { a in
           switch a {
-          case let .deepLinkOpened(a): return .deepLinkOpened(a)
-          case .finishedLaunching: return .osFinishedLaunching
-          case .willEnterForeground: return .willEnterForeground
+          case let .deepLinkOpened(a):    return .deepLinkOpened(a)
+          case .finishedLaunching:        return .osFinishedLaunching
+          case .receivedPushNotification: return .receivedPushNotification
+          case .willEnterForeground:      return .willEnterForeground
           }
         }
       )
@@ -76,21 +78,22 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .driverID(.some(drID), _, _, _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .visits(_, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
-  case let .visits(v, h, s, pk, _, deID, us, p, r, _):
-    switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions) {
-    case (_, _, .disabled, _):              return .blocker(.locationDisabled)
-    case (_, _, .denied, _):                return .blocker(.locationDenied)
-    case (_, _, .restricted, _):            return .blocker(.locationRestricted)
-    case (_, _, .notDetermined, _):         return .blocker(.locationNotDetermined)
-    case (_, .reduced, _, _):               return .blocker(.locationReduced)
-    case (_, _, _, .disabled):              return .blocker(.motionDisabled)
-    case (_, _, _, .denied):                return .blocker(.motionDenied)
-    case (_, _, _, .notDetermined):         return .blocker(.motionNotDetermined)
-    case (.deleted, _, _, _):               return .blocker(.deleted(deID.rawValue.rawValue))
-    case (.invalidPublishableKey, _, _, _): return .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
-    case (.stopped, _, _, _):               return .blocker(.stopped)
-    case (.running, .full, .authorized, .authorized):
+  case let .visits(_, _, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
+  case let .visits(v, h, s, pk, _, deID, us, p, r, ps, _):
+    switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
+    case (_, _, .disabled, _, _):                return .blocker(.locationDisabled)
+    case (_, _, .denied, _, _):                  return .blocker(.locationDenied)
+    case (_, _, .restricted, _, _):              return .blocker(.locationRestricted)
+    case (_, _, .notDetermined, _, _):           return .blocker(.locationNotDetermined)
+    case (_, .reduced, _, _, _):                 return .blocker(.locationReduced)
+    case (_, _, _, .disabled, _):                return .blocker(.motionDisabled)
+    case (_, _, _, .denied, _):                  return .blocker(.motionDenied)
+    case (_, _, _, .notDetermined, _):           return .blocker(.motionNotDetermined)
+    case (_, _, _, _, .dialogSplash(.notShown)): return .blocker(.pushNotShown)
+    case (.deleted, _, _, _, _):                 return .blocker(.deleted(deID.rawValue.rawValue))
+    case (.invalidPublishableKey, _, _, _, _):   return .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
+    case (.stopped, _, _, _, _):                 return .blocker(.stopped)
+    case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
       let refreshingVisits: Bool
       switch r {
@@ -145,6 +148,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.motionDeniedButtonTapped): return .openSettings
   case .blocker(.motionDisabledButtonTapped): return .openSettings
   case .blocker(.motionNotDeterminedButtonTapped): return .requestMotionPermissions
+  case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
   case .visits(.addVisitButtonTapped): return .addVisit
   case .visits(.clockOutButtonTapped): return .stopTracking
   case .visits(.refreshButtonTapped): return .updateVisits
