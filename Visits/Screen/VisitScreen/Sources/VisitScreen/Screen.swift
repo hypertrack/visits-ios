@@ -196,8 +196,8 @@ struct VisitStatusView: View {
       EmptyView()
     case let .manual(.checkedOut(time)):
       VisitStatus(text: "Visited: \(time)", state: .visited)
-        .padding(.top, 44)
-    case let .assigned(.entered(time)), let .assigned(.visited(time)):
+    case let .assigned(.entered(time)),
+         let .assigned(.visited(time)):
       VisitStatus(text: "Visited: \(time)", state: .visited)
     case let .assigned(.checkedOut(.some(visited), completed)):
       VisitStatus(text: "Visited: \(visited)", state: .visited)
@@ -229,7 +229,12 @@ struct VisitInformationView: View {
       VStack(spacing: 0) {
         switch visitType {
         case let .manualVisit(status):
-          VisitStatusView(status: .manual(status))
+          if case .checkedOut = status {
+            VisitStatusView(status: .manual(status))
+              .padding(.top, 44)
+          } else {
+            VisitStatusView(status: .manual(status))
+          }
           switch status {
           case .notSent:
             CustomText(text: "Pressing the Check In button will start a new visit. Visits not completed after 24 hours will be removed automatically.")
