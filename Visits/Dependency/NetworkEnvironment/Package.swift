@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "NetworkEnvironmentLive", targets: ["NetworkEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.14.0")),
     .package(path: "Log")
   ],
   targets: [
