@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "APIEnvironmentLive", targets: ["APIEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "Coordinate"),
     .package(path: "Credentials"),
     .package(path: "DeviceID"),
@@ -18,7 +18,7 @@ let package = Package(
     .package(path: "History"),
     .package(path: "Log"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),
     .package(path: "PublishableKey"),
     .package(name: "Tagged", url: "https://github.com/pointfreeco/swift-tagged", .exact("0.5.0")),
     .package(path: "Visit")
@@ -35,6 +35,7 @@ let package = Package(
         .product(name: "NonEmpty", package: "swift-nonempty"),
         "Prelude",
         "PublishableKey",
+        "Tagged",
         "Visit"
       ]
     ),

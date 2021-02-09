@@ -83,7 +83,7 @@ public enum AppAction: Equatable {
   case focusPassword
   case passwordChanged(Password?)
   case signIn
-  case signedIn(Either<PublishableKey, NonEmptyString>)
+  case signedIn(Result<PublishableKey, APIError>)
   // DriverID
   case driverIDChanged(DriverID?)
   case setDriverID
@@ -101,12 +101,12 @@ public enum AppAction: Equatable {
   case openAppleMaps
   case pickUpVisit
   case reverseGeocoded([GeocodedResult])
-  case visitsUpdated(Either<NonEmptySet<AssignedVisit>, NonEmptyString>)
+  case visitsUpdated(Result<[APIVisitID: APIVisit], APIError>)
   // TabView
   case switchToVisits
   case switchToMap
   // History
-  case historyUpdated(Either<History, NonEmptyString>)
+  case historyUpdated(Result<History, APIError>)
   // Generic UI
   case dismissFocus
   // Deeplink
@@ -175,7 +175,7 @@ struct RefreshingVisitsID: Hashable {}
 struct RefreshingHistoryID: Hashable {}
 
 let getVisitsEffect = { (
-  getVisits: Effect<Either<NonEmptySet<AssignedVisit>, NonEmptyString>, Never>,
+  getVisits: Effect<Result<[APIVisitID: APIVisit], APIError>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getVisits
@@ -186,7 +186,7 @@ let getVisitsEffect = { (
 }
 
 let getHistoryEffect = { (
-  getHistory: Effect<Either<History, NonEmptyString>, Never>,
+  getHistory: Effect<Result<History, APIError>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getHistory
@@ -308,11 +308,11 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case .cancelSignIn:
         state.flow = .signIn(.editingCredentials(.both(e, p), nil))
         return .cancel(id: SignInID())
-      case let .signedIn(.left(pk)):
+      case let .signedIn(.success(pk)):
         state.flow = .driverID(nil, pk, nil, nil)
         return .none
-      case let .signedIn(.right(error)):
-        state.flow = .signIn(.editingCredentials(.both(e, p), .left(.that(.init(rawValue: error)))))
+      case let .signedIn(.failure(error)):
+        state.flow = .signIn(.editingCredentials(.both(e, p), .left(.that("Unknown error"))))
         return .none
       default:
         return .none
@@ -445,9 +445,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         return .none
       case .cancelVisit:
         switch v {
-        case let .selectedAssigned(a, aas) where a.geotagSent == .checkedIn:
+        case let .selectedAssigned(a, aas) where a.geotagSent.checkedOut == nil && a.geotagSent.cancelled == nil:
           var a = a
-          a.geotagSent = .cancelled(environment.date())
+          a.geotagSent = .cancelled(a.geotagSent.isVisited, environment.date())
           state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, ps, d)
           return .merge(
             environment.hyperTrack
@@ -457,9 +457,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
               .notifySuccess()
               .fireAndForget()
           )
-        case let .selectedMixed(.right(a), vs) where a.geotagSent == .checkedIn:
+        case let .selectedMixed(.right(a), vs) where a.geotagSent.checkedOut == nil && a.geotagSent.cancelled == nil:
           var a = a
-          a.geotagSent = .cancelled(environment.date())
+          a.geotagSent = .cancelled(a.geotagSent.isVisited, environment.date())
           state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, ps, d)
           return .merge(
             environment.hyperTrack
@@ -474,37 +474,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         }
       case .checkInVisit:
         switch v {
-        case let .selectedAssigned(a, aas) where a.geotagSent == .pickedUp || a.geotagSent == .notSent:
-          var a = a
-          a.geotagSent = .checkedIn
-          state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, ps, d)
-          return .merge(
-            environment.hyperTrack
-              .addGeotag(.checkIn(.right(.init(id: a.id, source: a.source))))
-              .fireAndForget(),
-            environment.hapticFeedback
-              .notifySuccess()
-              .fireAndForget()
-          )
-        case let .selectedMixed(.right(a), vs) where a.geotagSent == .pickedUp || a.geotagSent == .notSent:
-          var a = a
-          a.geotagSent = .checkedIn
-          state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, ps, d)
-          return .merge(
-            environment.hyperTrack
-              .addGeotag(.checkIn(.right(.init(id: a.id, source: a.source))))
-              .fireAndForget(),
-            environment.hapticFeedback
-              .notifySuccess()
-              .fireAndForget()
-          )
         case let .selectedMixed(.left(m), vs) where m.geotagSent == .notSent:
           var m = m
           m.geotagSent = .checkedIn
           state.flow = .visits(.selectedMixed(.left(m), vs), h, s, pk, drID, deID, us, p, r, ps, d)
           return .merge(
             environment.hyperTrack
-              .addGeotag(.checkIn(.left(m.id)))
+              .addGeotag(.checkIn(m.id))
               .fireAndForget(),
             environment.hapticFeedback
               .notifySuccess()
@@ -515,9 +491,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         }
       case .checkOutVisit:
         switch v {
-        case let .selectedAssigned(a, aas) where a.geotagSent == .checkedIn:
+        case let .selectedAssigned(a, aas) where a.geotagSent.checkedOut == nil && a.geotagSent.cancelled == nil:
           var a = a
-          a.geotagSent = .checkedOut(environment.date())
+          a.geotagSent = .checkedOut(a.geotagSent.isVisited, environment.date())
           state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, drID, deID, us, p, r, ps, d)
           return .merge(
             environment.hyperTrack
@@ -527,9 +503,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
               .notifySuccess()
               .fireAndForget()
           )
-        case let .selectedMixed(.right(a), vs) where a.geotagSent == .checkedIn:
+        case let .selectedMixed(.right(a), vs) where a.geotagSent.checkedOut == nil && a.geotagSent.cancelled == nil:
           var a = a
-          a.geotagSent = .checkedOut(environment.date())
+          a.geotagSent = .checkedOut(a.geotagSent.isVisited, environment.date())
           state.flow = .visits(.selectedMixed(.right(a), vs), h, s, pk, drID, deID, us, p, r, ps, d)
           return .merge(
             environment.hyperTrack
@@ -755,7 +731,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         state.flow = .visits(updateAddress(for: v, with: g), h, s, pk, drID, deID, us, p, r, ps, d)
         return .none
       case let .visitsUpdated(vs):
-        let newV = filterOutOldVisits((eitherLeft(vs) <¡> mergeVisits(vs: v)) ?? v, now: environment.date())
+        let newV = filterOutOldVisits((resultSuccess(vs) <¡> updateVisits(visits: v)) ?? v, now: environment.date())
         state.flow = .visits(newV, h, s, pk, drID, deID, us, p, r >>- removeThis, ps, d)
         if let reverseGeocodingCoordinates = NonEmptySet(rawValue: visitCoordinatesWithoutAddress(assignedVisits(from: newV))) {
           return environment.api
@@ -768,7 +744,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case let .historyUpdated(h):
-        state.flow = .visits(v, eitherLeft(h), s, pk, drID, deID, us, p, r >>- removeThat, ps, d)
+        state.flow = .visits(v, resultSuccess(h), s, pk, drID, deID, us, p, r >>- removeThat, ps, d)
         return .none
       default:
         return .none
@@ -898,56 +874,81 @@ func selectVisitID(_ id: String, in visits: Visits) -> Visits {
   }
 }
 
-func mergeVisits(vs: Visits) -> (NonEmptySet<AssignedVisit>) -> Visits {
-  { aas in
-    switch vs {
-    case var .mixed(v):
-      for a in aas.rawValue {
-        if !v.contains(where: sameAssignedID(a.id)) {
-          v.insert(.right(a))
+public func resultSuccess<Success, Failure>(_ r: Result<Success, Failure>) -> Success? {
+  try? r.get()
+}
+
+func updateVisits(visits: Visits) -> ([APIVisitID: APIVisit]) -> Visits {
+  { visits |> Visits.assignedLens *~ transform(apiVisits: $0) }
+}
+
+func transform(apiVisits: [APIVisitID: APIVisit]) -> (Set<AssignedVisit>) -> Set<AssignedVisit> {
+  { avs in
+    Set(
+      apiVisits.map { tuple in
+        if let match = avs.first(where: { tuple.key.rawValue == $0.id.rawValue }) {
+          return update(visit: match, with: (tuple.key, tuple.value))
+        } else {
+          return AssignedVisit(apiVisit: (tuple.key, tuple.value))
         }
       }
-      return .mixed(v)
-    case var .assigned(v):
-      for a in aas.rawValue {
-        if !v.contains(where: { $0.id == a.id }) {
-          v.insert(a)
+      +
+      avs.compactMap { a in
+        if apiVisits[rewrap(a.id)] == nil {
+          return a
+        } else {
+          return nil
         }
       }
-      return .assigned(v)
-    case .selectedMixed(let s, var v):
-      var mutV = v
-      mutV.insert(s)
-      for a in aas.rawValue {
-        if !mutV.contains(where: sameAssignedID(a.id)) {
-          v.insert(.right(a))
-        }
-      }
-      return .selectedMixed(s, v)
-    case .selectedAssigned(let s, var v):
-      var mutV = v
-      mutV.insert(s)
-      for a in aas.rawValue {
-        if !mutV.contains(where: { $0.id == a.id }) {
-          v.insert(a)
-        }
-      }
-      return .selectedAssigned(s, v)
+    )
+  }
+}
+
+func update(visit: AssignedVisit?, with apiVisit: (id: APIVisitID, visit: APIVisit) ) -> AssignedVisit {
+  guard var visit = visit else { return .init(apiVisit: apiVisit) }
+
+  visit.geotagSent.isVisited = apiVisit.visit.visitStatus.map(AssignedVisit.Geotag.Visited.init(visitStatus:))
+  
+  return visit
+}
+
+extension AssignedVisit.Geotag.Visited {
+  init(visitStatus: VisitStatus) {
+    switch visitStatus {
+    case let .entered(entry): self = .entered(entry)
+    case let .visited(entry, exit): self = .visited(entry, exit)
     }
   }
 }
 
-func sameAssignedID(_ id: AssignedVisit.ID) -> (Visit) -> Bool {
-  { visit in
-    switch visit {
-    case .left:
-      return false
-    case let .right(a) where a.id == id:
-      return true
-    case .right:
-      return false
+extension AssignedVisit {
+  init(apiVisit: (id: APIVisitID, visit: APIVisit)) {
+    let source: AssignedVisit.Source
+    switch apiVisit.visit.source {
+    case .geofence: source = .geofence
+    case .trip: source = .trip
     }
+    
+    self.init(
+      id: rewrap(apiVisit.id),
+      createdAt: apiVisit.visit.createdAt,
+      source: source,
+      location: apiVisit.visit.centroid,
+      geotagSent: .notSent,
+      noteFieldFocused: false,
+      address: nil,
+      visitNote: nil,
+      metadata: rewrapDictionary(apiVisit.visit.metadata)
+    )
   }
+}
+
+func rewrapDictionary<A, B, C, D, E, F>(_ dict: Dictionary<Tagged<A, B>, Tagged<C, D>>) -> Dictionary<Tagged<E, B>, Tagged<F, D>> {
+  Dictionary(uniqueKeysWithValues: dict.map { (rewrap($0), rewrap($1)) })
+}
+
+func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
+  .init(rawValue: source.rawValue)
 }
 
 func visitCoordinatesWithoutAddress(_ visits: Set<AssignedVisit>) -> Set<Coordinate> {

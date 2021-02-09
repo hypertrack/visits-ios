@@ -44,7 +44,7 @@ public struct AssignedComplete: Equatable {
 
 public enum Geotag: Equatable {
   case cancel(AssignedComplete)
-  case checkIn(Either<M.ID, AssignedCheckIn>)
+  case checkIn(M.ID)
   case checkOut(Either<ManualCheckOut, AssignedComplete>)
   case clockIn
   case clockOut

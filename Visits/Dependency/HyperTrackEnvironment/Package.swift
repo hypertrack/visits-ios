@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
-      .exact("0.11.0")
+      .exact("0.13.0")
     ),
     .package(path: "DeviceID"),
     .package(path: "DriverID"),
@@ -29,7 +29,7 @@ let package = Package(
     .package(
       name: "Prelude",
       url: "https://github.com/hypertrack/prelude-swift",
-      .exact("0.0.11")
+      .exact("0.0.12")
     ),
     .package(path: "PublishableKey"),
     .package(path: "SDK"),

@@ -27,16 +27,10 @@ public extension HyperTrackEnvironment {
               C.type.rawValue: C.cancel.rawValue,
               C.visitNote.rawValue: a.visitNote?.rawValue.rawValue ?? ""
             ]
-        case let .checkIn(.left(m)):
+        case let .checkIn(m):
           metadata =
             [
               C.visitID.rawValue: m.rawValue.rawValue,
-              C.type.rawValue: C.checkIn.rawValue
-            ]
-        case let .checkIn(.right(a)):
-          metadata =
-            [
-              fromAssignedSource(a.source): a.id.rawValue.rawValue,
               C.type.rawValue: C.checkIn.rawValue
             ]
         case let .checkOut(.left(m)):

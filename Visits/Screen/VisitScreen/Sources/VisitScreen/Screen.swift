@@ -32,7 +32,12 @@ public struct VisitScreen: View {
       }
       
       public enum AssignedVisitStatus: Equatable {
-        case notSent, pickedUp, checkedIn, checkedOut(String), canceled
+        case notSent
+        case pickedUp
+        case entered(String)
+        case visited(String)
+        case checkedOut(visited: String?, completed: String)
+        case canceled(visited: String?, canceled: String)
       }
       
       case manualVisit(status: ManualVisitStatus)
@@ -165,6 +170,49 @@ public struct VisitScreen: View {
   }
 }
 
+enum VisitStatusModel {
+  case manual(VisitScreen.State.VisitType.ManualVisitStatus)
+  case assigned(VisitScreen.State.VisitType.AssignedVisitStatus)
+
+  init(visitType: VisitScreen.State.VisitType) {
+    switch visitType {
+    case let .manualVisit(status):
+      self = .manual(status)
+    case let .assignedVisit(_, _, _, status):
+      self = .assigned(status)
+    }
+  }
+}
+
+struct VisitStatusView: View {
+  let status: VisitStatusModel
+
+  var body: some View {
+    switch status {
+    case .manual(.notSent),
+         .manual(.checkedIn),
+         .assigned(.notSent),
+         .assigned(.pickedUp):
+      EmptyView()
+    case let .manual(.checkedOut(time)):
+      VisitStatus(text: "Visited: \(time)", state: .visited)
+        .padding(.top, 44)
+    case let .assigned(.entered(time)), let .assigned(.visited(time)):
+      VisitStatus(text: "Visited: \(time)", state: .visited)
+    case let .assigned(.checkedOut(.some(visited), completed)):
+      VisitStatus(text: "Visited: \(visited)", state: .visited)
+      VisitStatus(text: "Completed: \(completed)", state: .completed)
+    case let .assigned(.checkedOut(.none, completed)):
+      VisitStatus(text: "Completed at: \(completed)", state: .completed)
+    case let .assigned(.canceled(.some(visited), canceled)):
+      VisitStatus(text: "Visited: \(visited)", state: .visited)
+      VisitStatus(text: "Canceled at: \(canceled)", state: .custom(color: .red))
+    case let .assigned(.canceled(.none, canceled)):
+      VisitStatus(text: "Canceled at: \(canceled)", state: .custom(color: .red))
+    }
+  }
+}
+
 struct VisitInformationView: View {
   let visitType: VisitScreen.State.VisitType
   let showButtons: Bool
@@ -180,44 +228,47 @@ struct VisitInformationView: View {
     ScrollView {
       VStack(spacing: 0) {
         switch visitType {
-        case .manualVisit(.notSent):
-          CustomText(text: "Pressing the Check In button will start a new visit. Visits not completed after 24 hours will be removed automatically.")
-            .defaultTextColor()
-            .padding(.top, 44 + 16)
-            .padding([.trailing, .leading], 8)
-        case .manualVisit(.checkedIn):
-          TextFieldBlock(
-            text: $deleveryNoteBinding,
-            name: "Visit note",
-            errorText: "",
-            focused: noteFieldFocused,
-            textContentType: .addressCityAndState,
-            returnKeyType: .default,
-            enablesReturnKeyAutomatically: true,
-            wantsToBecomeFocused: visitNoteWantsToBecomeFocused,
-            enterButtonPressed: visitNoteEnterButtonPressed
-          )
-          .padding([.trailing, .leading], 16)
-          .padding(.top, 44 + 16)
-        case let .manualVisit(.checkedOut(time)):
-          VisitStatus(text: "Visited: \(time)", state: .visited)
-            .padding(.top, 44)
-          if !visitNote.isEmpty {
-            ContentCell(
-              title: "Visit note",
-              subTitle: visitNote,
-              leadingPadding: 16,
-              copyTextPressed
+        case let .manualVisit(status):
+          VisitStatusView(status: .manual(status))
+          switch status {
+          case .notSent:
+            CustomText(text: "Pressing the Check In button will start a new visit. Visits not completed after 24 hours will be removed automatically.")
+              .defaultTextColor()
+              .padding(.top, 44 + 16)
+              .padding([.trailing, .leading], 8)
+          case .checkedIn:
+            TextFieldBlock(
+              text: $deleveryNoteBinding,
+              name: "Visit note",
+              errorText: "",
+              focused: noteFieldFocused,
+              textContentType: .addressCityAndState,
+              returnKeyType: .default,
+              enablesReturnKeyAutomatically: true,
+              wantsToBecomeFocused: visitNoteWantsToBecomeFocused,
+              enterButtonPressed: visitNoteEnterButtonPressed
             )
-            .padding(.top, 16)
+            .padding([.trailing, .leading], 16)
+            .padding(.top, 44 + 16)
+          case .checkedOut:
+            if !visitNote.isEmpty {
+              ContentCell(
+                title: "Visit note",
+                subTitle: visitNote,
+                leadingPadding: 16,
+                copyTextPressed
+              )
+              .padding(.top, 16)
+            }
           }
         case let .assignedVisit(coordinate, address, metadata, status):
           AppleMapView(coordinate: coordinate.coordinate2D, span: 150)
             .frame(height: 160)
             .padding(.top, 44)
             .onTapGesture(perform: mapTapped)
+          VisitStatusView(status: .assigned(status))
           switch status {
-          case .notSent, .pickedUp, .checkedIn:
+          case .notSent, .pickedUp, .entered, .visited:
             TextFieldBlock(
               text: $deleveryNoteBinding,
               name: "Visit note",
@@ -230,19 +281,7 @@ struct VisitInformationView: View {
               enterButtonPressed: visitNoteEnterButtonPressed
             )
             .padding([.top, .trailing, .leading], 16)
-            
-          case let .checkedOut(time):
-            VisitStatus(text: "Visited: \(time)", state: .visited)
-            if !visitNote.isEmpty {
-              ContentCell(
-                title: "Visit note",
-                subTitle: visitNote,
-                leadingPadding: 16,
-                copyTextPressed
-              )
-            }
-          case .canceled:
-            VisitStatus(text: "Canceled", state: .custom(color: .red))
+          case .checkedOut, .canceled:
             if !visitNote.isEmpty {
               ContentCell(
                 title: "Visit note",
@@ -279,6 +318,7 @@ struct VisitInformationView: View {
   }
 }
 
+
 struct VisitButtonView: View {
   let visitType: VisitScreen.State.VisitType
   let cancelButtonTapped: () -> Void
@@ -290,40 +330,26 @@ struct VisitButtonView: View {
     switch visitType {
     case .manualVisit(.notSent):
       RoundedStack {
-        PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
+        PrimaryButton(variant: .normal(title: "Create"), checkInButtonTapped)
           .padding([.trailing, .leading], 58)
       }
     case .manualVisit(.checkedIn):
       RoundedStack {
-        PrimaryButton(variant: .normal(title: "Check Out"), checkOutButtonTapped)
+        PrimaryButton(variant: .normal(title: "Complete"), checkOutButtonTapped)
           .padding([.trailing, .leading], 58)
       }
     case .assignedVisit(_, _, _, .notSent):
       RoundedStack {
-        HStack {
-          PrimaryButton(variant: .normal(title: "Pick Up"), pickedUpButtonTapped)
-            .padding([.leading], 16)
-            .padding([.trailing], 2.5)
-          PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
-            .padding([.leading], 2.5)
-            .padding([.trailing], 16)
-        }
+        PrimaryButton(variant: .normal(title: "Picked Up"), pickedUpButtonTapped)
+          .padding([.leading], 16)
+          .padding([.trailing], 2.5)
       }
-    case .assignedVisit(_, _, _, .pickedUp):
+    case .assignedVisit(_, _, _, .pickedUp),
+         .assignedVisit(_, _, _, .entered),
+         .assignedVisit(_, _, _, .visited):
       RoundedStack {
         HStack {
-          PrimaryButton(variant: .disabled(title: "Picked Up")) {}
-            .padding([.leading], 16)
-            .padding([.trailing], 2.5)
-          PrimaryButton(variant: .normal(title: "Check In"), checkInButtonTapped)
-            .padding([.leading], 2.5)
-            .padding([.trailing], 16)
-        }
-      }
-    case .assignedVisit(_, _, _, .checkedIn):
-      RoundedStack {
-        HStack {
-          PrimaryButton(variant: .normal(title: "Check Out"), checkOutButtonTapped)
+          PrimaryButton(variant: .normal(title: "Complete"), checkOutButtonTapped)
             .padding([.leading], 16)
             .padding([.trailing], 2.5)
           PrimaryButton(variant: .destructive(), cancelButtonTapped)
@@ -331,7 +357,9 @@ struct VisitButtonView: View {
             .padding([.trailing], 16)
         }
       }
-    default:
+    case .manualVisit(status: .checkedOut),
+         .assignedVisit(_, _, _, .canceled),
+         .assignedVisit(_, _, _, .checkedOut):
       EmptyView()
     }
   }
@@ -351,43 +379,26 @@ struct CancelButton: View {
 }
 
 
-struct Screen_Previews: PreviewProvider {
+struct VisitScreen_Previews: PreviewProvider {
   static var previews: some View {
-    Group {
-      VisitScreen(
-        state: .init(
-          title: "Rauscherstraße 5",
-          visitNote: "Waiting for client",
-          noteFieldFocused: false,
-          visitType: .assignedVisit(
-            coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
-            address: "Rauscherstraße 5, 1200 Wien, Австрия",
-            metadata: [
-              .init(key: "Key1", value: "Value1"),
-              .init(key: "Key2", value: "Value2"),
-              .init(key: "Key3", value: "Value3"),
-              .init(key: "Key4", value: "Value4")
-            ],
-            status: .canceled
-          ),
-          deviceID: "",
-          publishableKey: ""
+    VisitScreen(
+      state: .init(
+        title: "Rauscherstraße 5",
+        visitNote: "Waiting for client",
+        noteFieldFocused: false,
+        visitType: .assignedVisit(
+          coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
+          address: "Rauscherstraße 5, 1200 Wien, Австрия",
+          metadata: [
+            .init(key: "Key4", value: "Value4")
+          ],
+          status: .checkedOut(visited: nil, completed: "5 PM")
         ),
-        send: { _ in }
-      )
-      .previewScheme(.light)
-      VisitScreen(
-        state: .init(
-          title: "New Visit",
-          visitNote: "Waiting for client",
-          noteFieldFocused: false,
-          visitType: .manualVisit(status: .checkedOut("5 PM")),
-          deviceID: "",
-          publishableKey: ""
-        ),
-        send: { _ in}
-      )
-      .previewScheme(.light)
-    }
+        deviceID: "",
+        publishableKey: ""
+      ),
+      send: { _ in }
+    )
+    .previewScheme(.light)
   }
 }

@@ -9,11 +9,11 @@ let package = Package(
   dependencies: [
     .package(path: "App"),
     .package(path: "AppScreen"),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "Coordinate"),
     .package(path: "DeepLinkScreen"),
     .package(path: "MapScreen"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),
     .package(path: "Visit")
   ],
   targets: [

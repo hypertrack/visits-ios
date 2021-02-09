@@ -17,13 +17,11 @@
 		3161D13C2512A2B700AAFCCD /* VisitsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3161D13B2512A2B700AAFCCD /* VisitsTests.swift */; };
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
 		316E08EC2587F6B600CE8FA4 /* UIAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */; };
+		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
 		318E586E25476B9700EAA61A /* AppLive in Frameworks */ = {isa = PBXBuildFile; productRef = 318E586D25476B9700EAA61A /* AppLive */; };
 		319453BA254835D400D86A04 /* AppScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 319453B9254835D400D86A04 /* AppScreen */; };
 		319453CE2548602400D86A04 /* AppAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = 319453CD2548602400D86A04 /* AppAdapter */; };
-		319453D52548674E00D86A04 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 319453D42548674E00D86A04 /* Prelude */; };
-		319453D62548674E00D86A04 /* Prelude in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 319453D42548674E00D86A04 /* Prelude */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		31AC38832545CD4C00D29345 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 31AC38822545CD4C00D29345 /* App */; };
-		31E1752A255AF9AB00DF5219 /* HyperTrack in Frameworks */ = {isa = PBXBuildFile; productRef = 31E17529255AF9AB00DF5219 /* HyperTrack */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,7 +41,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				319453D62548674E00D86A04 /* Prelude in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -67,11 +64,6 @@
 		3148A8552587BDF100F61453 /* MapScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapScreen; sourceTree = "<group>"; };
 		314A14D5254FEF2B0061892F /* Visit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Visit; sourceTree = "<group>"; };
 		314A14D9255069070061892F /* Coordinate */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Coordinate; sourceTree = "<group>"; };
-		315EAEA1255C85A10038F304 /* AWSAuthCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSAuthCore.framework; path = Carthage/Build/iOS/AWSAuthCore.framework; sourceTree = "<group>"; };
-		315EAEA2255C85A10038F304 /* AWSMobileClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSMobileClient.framework; path = Carthage/Build/iOS/AWSMobileClient.framework; sourceTree = "<group>"; };
-		315EAEA3255C85A10038F304 /* AWSCognitoIdentityProviderASF.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProviderASF.framework; path = Carthage/Build/iOS/AWSCognitoIdentityProviderASF.framework; sourceTree = "<group>"; };
-		315EAEA4255C85A10038F304 /* AWSCognitoIdentityProvider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProvider.framework; path = Carthage/Build/iOS/AWSCognitoIdentityProvider.framework; sourceTree = "<group>"; };
-		315EAEA5255C85A10038F304 /* AWSCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCore.framework; path = Carthage/Build/iOS/AWSCore.framework; sourceTree = "<group>"; };
 		3161D1212512A2B500AAFCCD /* Visits.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Visits.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3161D1242512A2B500AAFCCD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3161D1262512A2B500AAFCCD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -97,16 +89,6 @@
 		31E1752F255C028600DF5219 /* MapEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapEnvironment; sourceTree = "<group>"; };
 		31E17532255C098200DF5219 /* HapticFeedbackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HapticFeedbackEnvironment; sourceTree = "<group>"; };
 		31E17537255C3C9D00DF5219 /* APIEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = APIEnvironment; sourceTree = "<group>"; };
-		31E17539255C4C3000DF5219 /* AWSMobileClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSMobileClient.framework; path = "../../../Downloads/aws-ios-sdk-2.19.0/frameworks/AWSMobileClient.framework"; sourceTree = "<group>"; };
-		31E1753D255C4C8B00DF5219 /* AWSCognitoIdentityProviderASF.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProviderASF.framework; path = "../../../Downloads/aws-ios-sdk-2.19.0/frameworks/AWSCognitoIdentityProviderASF.framework"; sourceTree = "<group>"; };
-		31E1753E255C4C8B00DF5219 /* AWSCognitoIdentityProvider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProvider.framework; path = "../../../Downloads/aws-ios-sdk-2.19.0/frameworks/AWSCognitoIdentityProvider.framework"; sourceTree = "<group>"; };
-		31E1753F255C4C8B00DF5219 /* AWSCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCore.framework; path = "../../../Downloads/aws-ios-sdk-2.19.0/frameworks/AWSCore.framework"; sourceTree = "<group>"; };
-		31E17540255C4C8B00DF5219 /* AWSAuthCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSAuthCore.framework; path = "../../../Downloads/aws-ios-sdk-2.19.0/frameworks/AWSAuthCore.framework"; sourceTree = "<group>"; };
-		31E1754B255C4D0A00DF5219 /* AWSCognitoIdentityProviderASF.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProviderASF.framework; path = AWS/AWSCognitoIdentityProviderASF.framework; sourceTree = "<group>"; };
-		31E1754C255C4D0A00DF5219 /* AWSCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCore.framework; path = AWS/AWSCore.framework; sourceTree = "<group>"; };
-		31E1754D255C4D0A00DF5219 /* AWSMobileClient.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSMobileClient.framework; path = AWS/AWSMobileClient.framework; sourceTree = "<group>"; };
-		31E1754E255C4D0A00DF5219 /* AWSCognitoIdentityProvider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSCognitoIdentityProvider.framework; path = AWS/AWSCognitoIdentityProvider.framework; sourceTree = "<group>"; };
-		31E1754F255C4D0A00DF5219 /* AWSAuthCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AWSAuthCore.framework; path = AWS/AWSAuthCore.framework; sourceTree = "<group>"; };
 		31F0724D2553E75F002A7A53 /* RestorationState */ = {isa = PBXFileReference; lastKnownFileType = folder; path = RestorationState; sourceTree = "<group>"; };
 		31F072512553EBFE002A7A53 /* NetworkEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = NetworkEnvironment; sourceTree = "<group>"; };
 		31F072562554091F002A7A53 /* HyperTrackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HyperTrackEnvironment; sourceTree = "<group>"; };
@@ -122,14 +104,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				317E664F25D2D2B600B99D40 /* Prelude in Frameworks */,
 				318E586E25476B9700EAA61A /* AppLive in Frameworks */,
-				319453D52548674E00D86A04 /* Prelude in Frameworks */,
 				31AC38832545CD4C00D29345 /* App in Frameworks */,
 				319453BA254835D400D86A04 /* AppScreen in Frameworks */,
 				319453CE2548602400D86A04 /* AppAdapter in Frameworks */,
 				3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */,
 				31072BAF254A0EA500ECBA34 /* Architecture in Frameworks */,
-				31E1752A255AF9AB00DF5219 /* HyperTrack in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,21 +255,6 @@
 		31F2E95D251BD2FF0081C9BE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				315EAEA1255C85A10038F304 /* AWSAuthCore.framework */,
-				315EAEA4255C85A10038F304 /* AWSCognitoIdentityProvider.framework */,
-				315EAEA3255C85A10038F304 /* AWSCognitoIdentityProviderASF.framework */,
-				315EAEA5255C85A10038F304 /* AWSCore.framework */,
-				315EAEA2255C85A10038F304 /* AWSMobileClient.framework */,
-				31E1754F255C4D0A00DF5219 /* AWSAuthCore.framework */,
-				31E1754E255C4D0A00DF5219 /* AWSCognitoIdentityProvider.framework */,
-				31E1754B255C4D0A00DF5219 /* AWSCognitoIdentityProviderASF.framework */,
-				31E1754C255C4D0A00DF5219 /* AWSCore.framework */,
-				31E1754D255C4D0A00DF5219 /* AWSMobileClient.framework */,
-				31E17540255C4C8B00DF5219 /* AWSAuthCore.framework */,
-				31E1753E255C4C8B00DF5219 /* AWSCognitoIdentityProvider.framework */,
-				31E1753D255C4C8B00DF5219 /* AWSCognitoIdentityProviderASF.framework */,
-				31E1753F255C4C8B00DF5219 /* AWSCore.framework */,
-				31E17539255C4C3000DF5219 /* AWSMobileClient.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -316,9 +282,8 @@
 				318E586D25476B9700EAA61A /* AppLive */,
 				319453B9254835D400D86A04 /* AppScreen */,
 				319453CD2548602400D86A04 /* AppAdapter */,
-				319453D42548674E00D86A04 /* Prelude */,
 				31072BAE254A0EA500ECBA34 /* Architecture */,
-				31E17529255AF9AB00DF5219 /* HyperTrack */,
+				317E664E25D2D2B600B99D40 /* Prelude */,
 			);
 			productName = Visits;
 			productReference = 3161D1212512A2B500AAFCCD /* Visits.app */;
@@ -705,7 +670,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
 			requirement = {
 				kind = exactVersion;
-				version = 0.11.0;
+				version = 0.13.0;
 			};
 		};
 		319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */ = {
@@ -713,7 +678,7 @@
 			repositoryURL = "https://github.com/hypertrack/prelude-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 0.0.11;
+				version = 0.0.12;
 			};
 		};
 		31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */ = {
@@ -736,6 +701,11 @@
 			package = 3161D1712512AE7900AAFCCD /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
 		};
+		317E664E25D2D2B600B99D40 /* Prelude */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */;
+			productName = Prelude;
+		};
 		318E586D25476B9700EAA61A /* AppLive */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppLive;
@@ -748,19 +718,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = AppAdapter;
 		};
-		319453D42548674E00D86A04 /* Prelude */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */;
-			productName = Prelude;
-		};
 		31AC38822545CD4C00D29345 /* App */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = App;
-		};
-		31E17529255AF9AB00DF5219 /* HyperTrack */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */;
-			productName = HyperTrack;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

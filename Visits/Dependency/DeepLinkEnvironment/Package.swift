@@ -11,7 +11,7 @@ let package = Package(
   ],
   dependencies: [
     .package(name: "Branch", url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("0.35.1")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "DriverID"),
     .package(path: "Log"),
     .package(path: "ManualVisitsStatus"),

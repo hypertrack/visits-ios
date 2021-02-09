@@ -108,20 +108,18 @@ let notSent = AssignedVisit(
     AssignedVisit.Street(rawValue: "87 McAllister St"),
     AssignedVisit.FullAddress(rawValue: "87 McAllister St, San Francisco, CA  94102, United States")
   ),
-  metadata: NonEmptyDictionary(
-    rawValue: [
-      AssignedVisit.Name(rawValue: "Customer Notes"): AssignedVisit.Contents(rawValue: "Please deliver before 10 AM"),
-      AssignedVisit.Name(rawValue: "Message"): AssignedVisit.Contents(rawValue: "Use back door to enter.")
-    ]
-  )
+  metadata: [
+    "Customer Notes": "Please deliver before 10 AM",
+    "Message": "Use back door to enter."
+  ]
 )
 
-let checkedIn = AssignedVisit(
+let entered = AssignedVisit(
   id: AssignedVisit.ID(rawValue: "ID7"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
   source: .geofence,
   location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
-  geotagSent: .checkedIn,
+  geotagSent: .entered(Date()),
   noteFieldFocused: false,
   address: .both(
     AssignedVisit.Street(rawValue: "333 Fulton St"),
@@ -134,7 +132,7 @@ let checkedOut1 = AssignedVisit(
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 35, second: 0, of: Date())!,
   source: .geofence,
   location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
-  geotagSent: .checkedOut(Date()),
+  geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
     AssignedVisit.Street(rawValue: "1301 Market St"),
@@ -147,7 +145,7 @@ let checkedOut2 = AssignedVisit(
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!,
   source: .geofence,
   location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
-  geotagSent: .checkedOut(Date()),
+  geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
     AssignedVisit.Street(rawValue: "275 Hayes St"),
@@ -160,7 +158,7 @@ let checkedOut3 = AssignedVisit(
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
   source: .geofence,
   location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
-  geotagSent: .checkedOut(Date()),
+  geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
     AssignedVisit.Street(rawValue: "601 Eddy St"),
@@ -168,7 +166,7 @@ let checkedOut3 = AssignedVisit(
   )
 )
 
-let visits: Set<AssignedVisit> = [notSent, checkedIn, checkedOut1, checkedOut2, checkedOut3]
+let visits: Set<AssignedVisit> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
 
 let publishableKey = PublishableKey(rawValue: "Key")
 let deviceID = DeviceID(rawValue: "ID")

@@ -7,9 +7,9 @@ let package = Package(
   platforms: [.iOS(.v13)],
   products: [.library(name: "Architecture", targets: ["Architecture"])],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "Log"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11"))
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12"))
   ],
   targets: [
     .target(

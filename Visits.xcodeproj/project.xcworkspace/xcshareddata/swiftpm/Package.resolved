@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/prelude-swift",
         "state": {
           "branch": null,
-          "revision": "ebf6ebb6e659c65cc428f1ed1d5efe30e56a4a63",
-          "version": "0.0.11"
+          "revision": "cdbe9934f18e30624e8bb2ba1154c1d45b3cf315",
+          "version": "0.0.12"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
         "state": {
           "branch": null,
-          "revision": "37c6312ba43ec697063abe5956908db6b71aa68a",
-          "version": "0.11.0"
+          "revision": "e51fb00d1f4bfacda7d8e4deef0a8c1757192839",
+          "version": "0.13.0"
         }
       },
       {

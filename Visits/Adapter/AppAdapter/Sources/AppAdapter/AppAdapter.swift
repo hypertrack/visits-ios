@@ -258,7 +258,7 @@ func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHead
       let h = VisitHeader(id: a.id.rawValue.rawValue, title: t)
       switch a.geotagSent {
       case .notSent, .pickedUp: pending.append((a.createdAt, h))
-      case .checkedIn:          visited.append((a.createdAt, h))
+      case .entered, .visited:  visited.append((a.createdAt, h))
       case .checkedOut:         completed.append((a.createdAt, h))
       case .cancelled:          canceled.append((a.createdAt, h))
       }
@@ -297,11 +297,18 @@ func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
     noteFieldFocused = a.noteFieldFocused
     let status: VisitScreen.State.VisitType.AssignedVisitStatus
     switch a.geotagSent {
-    case .notSent: status = .notSent
-    case .pickedUp: status = .pickedUp
-    case .checkedIn: status = .checkedIn
-    case let .checkedOut(d): status = .checkedOut(DateFormatter.stringDate(d))
-    case .cancelled: status = .canceled
+    case .notSent:
+      status = .notSent
+    case .pickedUp:
+      status = .pickedUp
+    case let .entered(entry):
+      status = .entered(DateFormatter.stringDate(entry))
+    case let .visited(entry, exit):
+      status = .visited("\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))")
+    case let .checkedOut(visited, checkedOutDate):
+      status = .checkedOut(visited: visited.map(visitedString(_:)), completed: DateFormatter.stringDate(checkedOutDate))
+    case let .cancelled(visited, cancelledDate):
+      status = .canceled(visited: visited.map(visitedString(_:)), canceled: DateFormatter.stringDate(cancelledDate))
     }
     visitType = .assignedVisit(coordinate: a.location, address: assignedVisitFullAddress(from: a), metadata: assignedVisitMetadata(from: a), status: status)
   }
@@ -313,6 +320,13 @@ func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
     deviceID: dID,
     publishableKey: pk
   )
+}
+
+func visitedString(_ visited: AssignedVisit.Geotag.Visited) -> String {
+  switch visited {
+  case let .entered(entry): return DateFormatter.stringDate(entry)
+  case let .visited(entry, exit): return "\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))"
+  }
 }
 
 func visitTitle(from v: Visit) -> String {
@@ -344,14 +358,19 @@ func assignedVisitFullAddress(from a: AssignedVisit) -> String {
 }
 
 func assignedVisitMetadata(from a: AssignedVisit) -> [VisitScreen.State.Metadata] {
-  if let metadata = a.metadata?.rawValue {
-    var rMetadata: [VisitScreen.State.Metadata] = []
-    metadata.forEach { k, v in
-      rMetadata.append(.init(key: k.rawValue.rawValue, value: v.rawValue.rawValue))
+  a.metadata
+    .map(identity)
+    .sorted(by: \.key)
+    .map { (name: AssignedVisit.Name, contents: AssignedVisit.Contents) in
+    VisitScreen.State.Metadata(key: "\(name)", value: "\(contents)")
+  }
+}
+
+extension Sequence {
+  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    return sorted { a, b in
+      return a[keyPath: keyPath] < b[keyPath: keyPath]
     }
-    return rMetadata
-  } else {
-    return []
   }
 }
 
@@ -371,7 +390,7 @@ func mapVisits(from visits: Set<AssignedVisit>) -> [MapVisit] {
 func mapVisitStatus(from geotagSent: AssignedVisit.Geotag) -> MapVisit.Status {
   switch geotagSent {
   case .notSent, .pickedUp: return .pending
-  case .checkedIn:          return .visited
+  case .entered, .visited:  return .visited
   case .checkedOut:         return .completed
   case .cancelled:          return .canceled
   }

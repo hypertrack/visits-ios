@@ -10,12 +10,12 @@ let package = Package(
     .library(name: "StateRestorationEnvironmentLive", targets: ["StateRestorationEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "Credentials"),
     .package(path: "DriverID"),
     .package(path: "Log"),
     .package(path: "ManualVisitsStatus"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),
     .package(path: "PublishableKey"),
     .package(path: "PushStatus"),
     .package(path: "RestorationState"),

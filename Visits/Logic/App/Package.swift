@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(path: "APIEnvironment"),
     .package(path: "Architecture"),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.11.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.13.0")),
     .package(path: "Credentials"),
     .package(path: "DeepLink"),
     .package(path: "DeepLinkEnvironment"),
@@ -26,7 +26,7 @@ let package = Package(
     .package(path: "NetworkEnvironment"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
     .package(path: "PasteboardEnvironment"),
-    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.11")),
+    .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),
     .package(path: "PublishableKey"),
     .package(path: "PushEnvironment"),
     .package(path: "PushStatus"),
