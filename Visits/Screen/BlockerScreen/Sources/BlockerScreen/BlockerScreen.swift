@@ -94,34 +94,34 @@ func message(from s: Blocker.State) -> String {
   case .noMotionServices:
     return "The app requires a device with an Apple M-series coprocessor. This includes all iPhones after iPhone 5S and iPads released after 2013. Please install the app on one of the supported devices."
   case let .deleted(id):
-    return "Your device was blocked by your company. Please contact your manager with the screenshot of this screen if this was a mistake.\n\nDeviceID: \(id)"
+    return "Your company blocked your device. Please contact your manager with the screenshot of this screen if this was a mistake.\n\nDeviceID: \(id)"
   case let .invalidPublishableKey(id):
     return "Our server can't identify the company belonging to your deeplink/credentials. Please contact your manager with the screenshot of this screen.\n\nDeviceID: \(id)"
   case .stopped:
     return "You are currently clocked out. Clocking in starts location tracking and opens the visits for today.\n\nThe app does not track your location while you are clocked out."
   case .locationDenied:
     return """
-           We need your permission to access your location. Visits app uses your location to calculate milage.
+           We need your permission to access your location. Visits app uses your location to calculate mileage.
            
            Please navigate to Settings > Logistics > Location and set to Always.
            """
   case .locationDisabled:
     return """
-           We need Location Services to track your current location. Visits app uses your location to calculate milage.
+           We need Location Services to track your current location. Visits app uses your location to calculate mileage.
             
            Please enable Location Services in Settings > Privacy > Location Services.
            """
   case .locationNotDetermined:
-    return "We need your permission to access your location. Visits app uses your location to calculate milage."
+    return "We need your permission to access your location. Visits app uses your location to calculate mileage."
   case .locationRestricted:
     return """
-           Visits app needs Location Services to track your current location and calculate milage.
+           Visits app needs Location Services to track your current location and calculate mileage.
            
            Please remove restrictions in Settings > Screen Time > Content & Privacy Restriction > Location Services or contact your administrator.
            """
   case .locationReduced:
     return """
-           Visits app needs full location accuracy to caclulate milage.
+           Visits app needs full location accuracy to calculate mileage.
            
            Please grant full accuracy in Settings > Visits > Location.
            """
@@ -129,18 +129,18 @@ func message(from s: Blocker.State) -> String {
     return """
            We need your permission to access your motion.
            
-           We use Motion & Fitness to efficiently use your battery when tracking milage.
+           We use Motion & Fitness to efficiently use your battery when tracking.
            
            Please enable Motion & Fitness in Settings > Logistics > Motion & Fitness.
            """
   case .motionDisabled:
     return """
-           We use Motion & Fitness to efficiently use your battery when tracking milage.
+           We use Motion & Fitness to efficiently use your battery when tracking.
            
            Please enable Fitness Tracking in Settings > Privacy > Motion & Fitness > Fitness Tracking.
            """
   case .motionNotDetermined:
-    return "We use Motion & Fitness to efficiently use your battery when tracking milage."
+    return "We use Motion & Fitness to efficiently use your battery when tracking."
     
   case .pushNotShown:
     return "We use push notifications to notify about new visits."

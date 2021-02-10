@@ -237,7 +237,7 @@ struct VisitInformationView: View {
           }
           switch status {
           case .notSent:
-            CustomText(text: "Pressing the Check In button will start a new visit. Visits not completed after 24 hours will be removed automatically.")
+            CustomText(text: "Pressing the Check In button will start a new visit. Visits not completed within 24 hours will be removed automatically.")
               .defaultTextColor()
               .padding(.top, 44 + 16)
               .padding([.trailing, .leading], 8)
