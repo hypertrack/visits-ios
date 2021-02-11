@@ -36,6 +36,7 @@ public struct Blocker: View {
   
   let state: State
   let send: (Action) -> Void
+  @Environment(\.colorScheme) var colorScheme
   
   public init(
     state: State,
@@ -59,8 +60,14 @@ public struct Blocker: View {
         ) {
           send(action)
         }
-        .padding(.bottom, 40)
+        .padding(.bottom, buttonSubtitle(from: state) == nil ? 40 : 5)
         .padding([.trailing, .leading], 58)
+        if let subtitle = buttonSubtitle(from: state) {
+          Text(subtitle)
+            .fontWeight(.light)
+            .foregroundColor(colorScheme == .light ? .sherpaBlue : .cosmicLatte)
+            .padding(.bottom, 35)
+        }
       }
     }
     .modifier(AppBackground())
@@ -159,6 +166,13 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   case .motionDisabled:        return ("Open Settings", .motionDisabledButtonTapped)
   case .motionNotDetermined:   return ("Allow Access", .motionNotDeterminedButtonTapped)
   case .pushNotShown:          return ("Next", .pushNotShownButtonTapped)
+  }
+}
+
+func buttonSubtitle(from s: Blocker.State) -> String? {
+  switch s {
+  case .stopped:  return "This will start location tracking"
+  default:        return nil
   }
 }
 
