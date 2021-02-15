@@ -83,12 +83,6 @@ extension Geofence: Decodable {
     case markers
   }
   
-  enum MarkersCodingKeys: String, CodingKey {
-    case data
-  }
-  
-  
-  
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
@@ -166,10 +160,6 @@ extension GeofenceMarker: Decodable {
     case createdAt = "created_at"
     case arrival
     case exit
-  }
-  
-  enum CrossingCodingKeys: String, CodingKey {
-    case recordedAt = "recorded_at"
   }
   
   init(from decoder: Decoder) throws {

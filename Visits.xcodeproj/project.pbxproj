@@ -64,6 +64,7 @@
 		3116490825D5A5DD00DD941F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3116490B25D5A5DD00DD941F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3116490D25D5A5DD00DD941F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3116491525D5CC6500DD941F /* SummaryScreen */ = {isa = PBXFileReference; lastKnownFileType = text; name = SummaryScreen; path = Visits/SummaryScreen; sourceTree = SOURCE_ROOT; };
 		3117579C25702B51004CB568 /* Log */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Log; sourceTree = "<group>"; };
 		311E240C25594D6F002A122E /* VisitScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitScreen; sourceTree = "<group>"; };
 		31466FD02551EBB600247BDA /* DeviceID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeviceID; sourceTree = "<group>"; };
@@ -227,6 +228,7 @@
 				31FA078E25657969008B84F4 /* LoadingScreen */,
 				3148A8552587BDF100F61453 /* MapScreen */,
 				31072BBB254BF54300ECBA34 /* SignInScreen */,
+				3116491525D5CC6500DD941F /* SummaryScreen */,
 				311E240C25594D6F002A122E /* VisitScreen */,
 				31F0726525592399002A7A53 /* VisitsScreen */,
 			);

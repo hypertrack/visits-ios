@@ -81,8 +81,7 @@ extension AppState {
           Coordinate(latitude: 37.78309567490489, longitude: -122.41842806339264)!,
           Coordinate(latitude: 37.783019360415665, longitude: -122.4183851480484)!,
           Coordinate(latitude: 37.78315503056424, longitude: -122.41850852966309)!
-        ],
-        distance: 4070
+        ]
       ),
       .map,
       publishableKey,

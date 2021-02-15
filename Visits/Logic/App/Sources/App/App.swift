@@ -105,6 +105,7 @@ public enum AppAction: Equatable {
   // TabView
   case switchToVisits
   case switchToMap
+  case switchToSummary
   // History
   case historyUpdated(Result<History, APIError>)
   // Generic UI
@@ -756,10 +757,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // TabView
   Reducer { state, action, environment in
     switch (state.flow, action) {
-    case let (.visits(v, h, .map, pk, drID, deID, us, p, r, ps, d), .switchToVisits):
+    case let (.visits(v, h, s, pk, drID, deID, us, p, r, ps, d), .switchToVisits) where s != .visits:
       state.flow = .visits(v, h, .visits, pk, drID, deID, us, p, r, ps, d)
       return Effect(value: .updateVisits)
-    case let (.visits(v, h, .visits, pk, drID, deID, us, p, r, ps, d), .switchToMap):
+    case let (.visits(v, h, s, pk, drID, deID, us, p, r, ps, d), .switchToMap) where s != .map:
       state.flow = .visits(v, h, .map, pk, drID, deID, us, p, r, ps, d)
       
       let effect: Effect<AppAction, Never>
@@ -778,6 +779,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       }
       state.flow = .visits(v, h, .map, pk, drID, deID, us, p, refreshing, ps, d)
       return effect
+    case let (.visits(v, h, s, pk, drID, deID, us, p, r, ps, d), .switchToSummary) where s != .summary:
+      state.flow = .visits(v, h, .summary, pk, drID, deID, us, p, r, ps, d)
+      return .none
     default:
       return .none
     }

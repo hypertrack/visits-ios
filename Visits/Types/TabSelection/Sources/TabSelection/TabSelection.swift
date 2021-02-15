@@ -1,3 +1,3 @@
 public enum TabSelection: String, Equatable, Codable {
-  case visits, map
+  case visits, map, summary
 }

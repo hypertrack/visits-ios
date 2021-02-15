@@ -43,6 +43,7 @@ let package = Package(
       name: "APIEnvironmentLive",
       dependencies: [
         "APIEnvironment",
+        "Coordinate",
         "GeoJSON",
         "Log",
         "Tagged"

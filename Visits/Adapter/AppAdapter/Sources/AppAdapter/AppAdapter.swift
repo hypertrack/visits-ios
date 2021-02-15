@@ -168,6 +168,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.map): return .switchToMap
   case .tab(.visits): return .switchToVisits
   case let .map(id): return .selectVisit(id)
+  case .tab(.summary): return .switchToSummary
   }
 }
 

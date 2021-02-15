@@ -7,6 +7,7 @@ import LoadingScreen
 import MapKit
 import MapScreen
 import SignInScreen
+import SummaryScreen
 import SwiftUI
 import TabSelection
 import Views
@@ -124,13 +125,13 @@ struct VisitsBlock: View {
           visits: Binding.constant(state.assignedVisits)
         )
         .edgesIgnoringSafeArea(.top)
-        .padding([.bottom], state.history?.distance != nil ? state.history?.distance != 0 ? 78 : 0 : 0)
-        if let distance = state.history?.distance, distance != 0 {
+        .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
+        if let distance = state.history?.driveDistance, distance != 0 {
           VStack {
             Spacer()
             RoundedStack {
               HStack {
-                Text("Distance: \(localizedDistance(state.history?.distance ?? 0))")
+                Text("Distance: \(localizedDistance(distance))")
                   .font(.normalHighBold)
                   .padding()
                 Spacer()
@@ -145,6 +146,21 @@ struct VisitsBlock: View {
         Text("Map")
       }
       .tag(TabSelection.map)
+      SummaryScreen(
+        state: .init(
+          trackedDuration: state.history?.trackedDuration ?? 0,
+          driveDistance: state.history?.driveDistance ?? 0,
+          driveDuration: state.history?.driveDuration ?? 0,
+          walkSteps: state.history?.walkSteps ?? 0,
+          walkDuration: state.history?.walkDuration ?? 0,
+          stopDuration: state.history?.stopDuration ?? 0
+        )
+      )
+      .tabItem {
+        Image(systemName: "timer")
+        Text("Summary")
+      }
+      .tag(TabSelection.summary)
     }
   }
 }
@@ -176,8 +192,7 @@ struct SwiftUIView_Previews: PreviewProvider {
             )
           ),
           .init(
-            coordinates: [],
-            distance: 50
+            coordinates: []
           ),
           [
           ],

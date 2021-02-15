@@ -1,4 +1,5 @@
 import APIEnvironment
+import Coordinate
 import Combine
 import ComposableArchitecture
 import DeviceID
@@ -49,27 +50,54 @@ func historyDate(from date: Date) -> String {
 
 extension History: Decodable {
   enum CodingKeys: String, CodingKey {
-    case distance
+    case insights
     case locations
+  }
+  
+  enum InsightsCodingKeys: String, CodingKey {
+    case totalTrackingTime = "total_tracking_time"
+    case driveDistance = "drive_distance"
+    case driveDuration = "drive_duration"
+    case stepCount = "step_count"
+    case walkDuration = "walk_duration"
+    case stopDuration = "stop_duration"
   }
   
   public init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
-    let distance = try values.decode(UInt.self, forKey: .distance)
+    let insights = try values.nestedContainer(keyedBy: InsightsCodingKeys.self, forKey: .insights)
+    
+    let totalTrackingTimeDecoded = try? insights.decode(UInt.self, forKey: .totalTrackingTime)
+    let driveDistanceDecoded = try? insights.decode(UInt.self, forKey: .driveDistance)
+    let driveDurationDecoded = try? insights.decode(UInt.self, forKey: .driveDuration)
+    let stepCountDecoded = try? insights.decode(UInt.self, forKey: .stepCount)
+    let walkDurationDecoded = try? insights.decode(UInt.self, forKey: .walkDuration)
+    let stopDurationDecoded = try? insights.decode(UInt.self, forKey: .stopDuration)
+    
     let locationsGeoJSON = try? values.decode(GeoJSON.self, forKey: .locations)
+    let coordinates: [Coordinate]
     if let locationsGeoJSON = locationsGeoJSON {
       switch locationsGeoJSON {
       case let .point(coordinate):
-        self.init(coordinates: [coordinate], distance: distance)
-      case let .lineString(.left(coordinates)):
-        self.init(coordinates: coordinates.rawValue, distance: distance)
+        coordinates = [coordinate]
+      case let .lineString(.left(c)):
+        coordinates = c.rawValue
       case let .lineString(.right(locations)):
-        self.init(coordinates: locations.rawValue.map(\.coordinate), distance: distance)
+        coordinates = locations.rawValue.map(\.coordinate)
       case .lineString(.none), .polygon:
-        self.init(coordinates: [], distance: distance)
+        coordinates = []
       }
     } else {
-      self.init(coordinates: [], distance: distance)
+      coordinates = []
     }
+    self.init(
+      coordinates: coordinates,
+      trackedDuration: totalTrackingTimeDecoded ?? 0,
+      driveDistance: driveDistanceDecoded ?? 0,
+      driveDuration: driveDurationDecoded ?? 0,
+      walkSteps: stepCountDecoded ?? 0,
+      walkDuration: walkDurationDecoded ?? 0,
+      stopDuration: stopDurationDecoded ?? 0
+    )
   }
 }
