@@ -11,7 +11,7 @@ let package = Package(
       targets: ["AppScreen"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.14.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.15.0")),
     .package(path: "BlockerScreen"),
     .package(path: "DeepLinkScreen"),
     .package(path: "DriverIDScreen"),

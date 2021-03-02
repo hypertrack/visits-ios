@@ -801,7 +801,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
 			requirement = {
 				kind = exactVersion;
-				version = 0.14.0;
+				version = 0.15.0;
 			};
 		};
 		319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */ = {

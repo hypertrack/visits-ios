@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "MapEnvironmentLive", targets: ["MapEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.14.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.15.0")),
     .package(path: "Coordinate"),
     .package(path: "Log"),
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),

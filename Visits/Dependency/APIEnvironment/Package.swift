@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "APIEnvironmentLive", targets: ["APIEnvironmentLive"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.14.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.15.0")),
     .package(path: "Coordinate"),
     .package(path: "Credentials"),
     .package(path: "DeviceID"),

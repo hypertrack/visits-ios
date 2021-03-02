@@ -9,7 +9,7 @@ let package = Package(
   dependencies: [
     .package(path: "App"),
     .package(path: "AppScreen"),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.14.0")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.15.0")),
     .package(path: "Coordinate"),
     .package(path: "DeepLinkScreen"),
     .package(path: "MapScreen"),
