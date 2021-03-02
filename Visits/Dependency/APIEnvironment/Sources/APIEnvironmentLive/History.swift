@@ -50,29 +50,27 @@ func historyDate(from date: Date) -> String {
 
 extension History: Decodable {
   enum CodingKeys: String, CodingKey {
-    case insights
     case locations
-  }
-  
-  enum InsightsCodingKeys: String, CodingKey {
-    case totalTrackingTime = "total_tracking_time"
-    case driveDistance = "drive_distance"
-    case driveDuration = "drive_duration"
-    case stepCount = "step_count"
-    case walkDuration = "walk_duration"
+    case activeDuration = "active_duration"
+    case inactiveDuration = "inactive_duration"
     case stopDuration = "stop_duration"
+    case walkDuration = "walk_duration"
+    case steps
+    case driveDuration = "drive_duration"
+    case distance
   }
   
   public init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
-    let insights = try values.nestedContainer(keyedBy: InsightsCodingKeys.self, forKey: .insights)
     
-    let totalTrackingTimeDecoded = try? insights.decode(UInt.self, forKey: .totalTrackingTime)
-    let driveDistanceDecoded = try? insights.decode(UInt.self, forKey: .driveDistance)
-    let driveDurationDecoded = try? insights.decode(UInt.self, forKey: .driveDuration)
-    let stepCountDecoded = try? insights.decode(UInt.self, forKey: .stepCount)
-    let walkDurationDecoded = try? insights.decode(UInt.self, forKey: .walkDuration)
-    let stopDurationDecoded = try? insights.decode(UInt.self, forKey: .stopDuration)
+    let activeDuration = (try? values.decode(UInt.self, forKey: .activeDuration)) ?? 0
+    let inactiveDuration = (try? values.decode(UInt.self, forKey: .inactiveDuration)) ?? 0
+    let trackingDuration = activeDuration + inactiveDuration
+    let driveDistance = (try? values.decode(UInt.self, forKey: .distance)) ?? 0
+    let driveDuration = (try? values.decode(UInt.self, forKey: .driveDuration)) ?? 0
+    let steps = (try? values.decode(UInt.self, forKey: .steps)) ?? 0
+    let walkDuration = (try? values.decode(UInt.self, forKey: .walkDuration)) ?? 0
+    let stopDuration = (try? values.decode(UInt.self, forKey: .stopDuration)) ?? 0
     
     let locationsGeoJSON = try? values.decode(GeoJSON.self, forKey: .locations)
     let coordinates: [Coordinate]
@@ -92,12 +90,12 @@ extension History: Decodable {
     }
     self.init(
       coordinates: coordinates,
-      trackedDuration: totalTrackingTimeDecoded ?? 0,
-      driveDistance: driveDistanceDecoded ?? 0,
-      driveDuration: driveDurationDecoded ?? 0,
-      walkSteps: stepCountDecoded ?? 0,
-      walkDuration: walkDurationDecoded ?? 0,
-      stopDuration: stopDurationDecoded ?? 0
+      trackedDuration: trackingDuration,
+      driveDistance: driveDistance,
+      driveDuration: driveDuration,
+      walkSteps: steps,
+      walkDuration: walkDuration,
+      stopDuration: stopDuration
     )
   }
 }
