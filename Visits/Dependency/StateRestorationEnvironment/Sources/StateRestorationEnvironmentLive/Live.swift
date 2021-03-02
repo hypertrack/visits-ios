@@ -113,13 +113,9 @@ func restoredStateFrom(
   case let (.driverID, _, .some(publishableKey), driverID, mvs, _, _, _):
     return .driverID(driverID, publishableKey, mvs)
   
-  // Visits screens before push notifications were introduced
-  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, .none):
-    return .visits(visits, tabSelection ?? .visits, publishableKey, driverID, .dialogSplash(.notShown))
-  
-  // Visits screens after push notifications were introduced
-  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, .some(pushStatus)):
-    return .visits(visits, tabSelection ?? .visits, publishableKey, driverID, pushStatus)
+  // Visits screen
+  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, pushStatus):
+    return .visits(visits, tabSelection ?? .visits, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown))
   
   // State restoration failed, back to the starting screen
   default: return nil
