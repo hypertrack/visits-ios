@@ -10,7 +10,7 @@ let package = Package(
     .library(name: "DeepLinkEnvironmentLive", targets: ["DeepLinkEnvironmentLive"])
   ],
   dependencies: [
-    .package(name: "Branch", url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("0.37.0")),
+    .package(name: "Branch", url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.38.0")),
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .exact("0.15.0")),
     .package(path: "DriverID"),
     .package(path: "Log"),
