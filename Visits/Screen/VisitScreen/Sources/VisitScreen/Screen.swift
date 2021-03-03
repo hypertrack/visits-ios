@@ -201,14 +201,14 @@ struct VisitStatusView: View {
       VisitStatus(text: "Visited: \(time)", state: .visited)
     case let .assigned(.checkedOut(.some(visited), completed)):
       VisitStatus(text: "Visited: \(visited)", state: .visited)
-      VisitStatus(text: "Completed: \(completed)", state: .completed)
+      VisitStatus(text: "Marked Complete at: \(completed)", state: .completed)
     case let .assigned(.checkedOut(.none, completed)):
-      VisitStatus(text: "Completed at: \(completed)", state: .completed)
+      VisitStatus(text: "Marked Complete at: \(completed)", state: .completed)
     case let .assigned(.canceled(.some(visited), canceled)):
       VisitStatus(text: "Visited: \(visited)", state: .visited)
-      VisitStatus(text: "Canceled at: \(canceled)", state: .custom(color: .red))
+      VisitStatus(text: "Marked Canceled at: \(canceled)", state: .custom(color: .red))
     case let .assigned(.canceled(.none, canceled)):
-      VisitStatus(text: "Canceled at: \(canceled)", state: .custom(color: .red))
+      VisitStatus(text: "Marked Canceled at: \(canceled)", state: .custom(color: .red))
     }
   }
 }
@@ -345,7 +345,7 @@ struct VisitButtonView: View {
       }
     case .assignedVisit(_, _, _, .notSent):
       RoundedStack {
-        PrimaryButton(variant: .normal(title: "Picked Up"), pickedUpButtonTapped)
+        PrimaryButton(variant: .normal(title: "On my way"), pickedUpButtonTapped)
           .padding([.leading], 16)
           .padding([.trailing], 2.5)
       }
