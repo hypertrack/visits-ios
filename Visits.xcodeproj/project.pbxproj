@@ -21,6 +21,7 @@
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
 		316E08EC2587F6B600CE8FA4 /* UIAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */; };
 		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
+		318146A325EE83B900F02FD0 /* SummaryScreen in Resources */ = {isa = PBXBuildFile; fileRef = 318146A225EE83B900F02FD0 /* SummaryScreen */; };
 		318E586E25476B9700EAA61A /* AppLive in Frameworks */ = {isa = PBXBuildFile; productRef = 318E586D25476B9700EAA61A /* AppLive */; };
 		319453BA254835D400D86A04 /* AppScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 319453B9254835D400D86A04 /* AppScreen */; };
 		319453CE2548602400D86A04 /* AppAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = 319453CD2548602400D86A04 /* AppAdapter */; };
@@ -64,7 +65,6 @@
 		3116490825D5A5DD00DD941F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3116490B25D5A5DD00DD941F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3116490D25D5A5DD00DD941F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3116491525D5CC6500DD941F /* SummaryScreen */ = {isa = PBXFileReference; lastKnownFileType = text; name = SummaryScreen; path = Visits/SummaryScreen; sourceTree = SOURCE_ROOT; };
 		3117579C25702B51004CB568 /* Log */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Log; sourceTree = "<group>"; };
 		311E240C25594D6F002A122E /* VisitScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitScreen; sourceTree = "<group>"; };
 		31466FD02551EBB600247BDA /* DeviceID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeviceID; sourceTree = "<group>"; };
@@ -86,6 +86,8 @@
 		3161D16C2512A65100AAFCCD /* Visits.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Visits.entitlements; sourceTree = "<group>"; };
 		316AA8642547FFBA00FC3D55 /* AppScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppScreen; sourceTree = "<group>"; };
 		316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAppearance.swift; sourceTree = "<group>"; };
+		318146A125EE834600F02FD0 /* ProfileScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ProfileScreen; sourceTree = "<group>"; };
+		318146A225EE83B900F02FD0 /* SummaryScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SummaryScreen; sourceTree = "<group>"; };
 		3189AFB2256D98FE00A081C0 /* History */ = {isa = PBXFileReference; lastKnownFileType = folder; path = History; sourceTree = "<group>"; };
 		318E585C2546B7EA00EAA61A /* PublishableKey */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PublishableKey; sourceTree = "<group>"; };
 		318E585E2546BA7200EAA61A /* DriverID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverID; sourceTree = "<group>"; };
@@ -227,8 +229,9 @@
 				31072BCA254C60E300ECBA34 /* DriverIDScreen */,
 				31FA078E25657969008B84F4 /* LoadingScreen */,
 				3148A8552587BDF100F61453 /* MapScreen */,
+				318146A125EE834600F02FD0 /* ProfileScreen */,
 				31072BBB254BF54300ECBA34 /* SignInScreen */,
-				3116491525D5CC6500DD941F /* SummaryScreen */,
+				318146A225EE83B900F02FD0 /* SummaryScreen */,
 				311E240C25594D6F002A122E /* VisitScreen */,
 				31F0726525592399002A7A53 /* VisitsScreen */,
 			);
@@ -428,6 +431,7 @@
 				3161D1312512A2B700AAFCCD /* LaunchScreen.storyboard in Resources */,
 				3161D12E2512A2B700AAFCCD /* Preview Assets.xcassets in Resources */,
 				3161D12B2512A2B700AAFCCD /* Assets.xcassets in Resources */,
+				318146A325EE83B900F02FD0 /* SummaryScreen in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

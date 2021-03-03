@@ -106,6 +106,7 @@ public enum AppAction: Equatable {
   case switchToVisits
   case switchToMap
   case switchToSummary
+  case switchToProfile
   // History
   case historyUpdated(Result<History, APIError>)
   // Generic UI
@@ -781,6 +782,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       return effect
     case let (.visits(v, h, s, pk, drID, deID, us, p, r, ps, d), .switchToSummary) where s != .summary:
       state.flow = .visits(v, h, .summary, pk, drID, deID, us, p, r, ps, d)
+      return .none
+    case let (.visits(v, h, s, pk, drID, deID, us, p, r, ps, d), .switchToProfile) where s != .profile:
+      state.flow = .visits(v, h, .profile, pk, drID, deID, us, p, r, ps, d)
       return .none
     default:
       return .none

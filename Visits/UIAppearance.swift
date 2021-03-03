@@ -3,6 +3,7 @@ import UIKit
 func setupUIAppearance() {
   UITableView.appearance().separatorInset = .zero
   UITableView.appearance().backgroundColor = .clear
+  UITableViewCell.appearance().backgroundColor = .clear
   UITableView.appearance().separatorColor = UIColor(
     red: 199.0 / 255.0,
     green: 198.0 / 255.0,

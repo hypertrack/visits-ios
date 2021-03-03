@@ -1,11 +1,14 @@
 import BlockerScreen
 import ComposableArchitecture
 import DeepLinkScreen
+import DeviceID
+import DriverID
 import DriverIDScreen
 import History
 import LoadingScreen
 import MapKit
 import MapScreen
+import ProfileScreen
 import SignInScreen
 import SummaryScreen
 import SwiftUI
@@ -35,7 +38,7 @@ public struct AppScreen: View {
     case signIn(SignInScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case visits(VisitOrVisits, History?, [MapVisit], TabSelection)
+    case visits(VisitOrVisits, History?, [MapVisit], DriverID, DeviceID, TabSelection)
   }
   
   public enum Action {
@@ -71,9 +74,9 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .visits(s, h, mv, sel):
+      case let .visits(s, h, mv, drID, deID, sel):
         VisitsBlock(
-          state: (s, h, mv, sel),
+          state: (s, h, mv, drID, deID, sel),
           sendMap: { viewStore.send(.map($0)) },
           sendVisit: { viewStore.send(.visit($0)) },
           sendVisits: { viewStore.send(.visits($0)) },
@@ -85,7 +88,14 @@ public struct AppScreen: View {
 }
 
 struct VisitsBlock: View {
-  let state: (visits: VisitOrVisits, history: History?, assignedVisits: [MapVisit], tabSelection: TabSelection)
+  let state: (
+    visits: VisitOrVisits,
+    history: History?,
+    assignedVisits: [MapVisit],
+    driverID: DriverID,
+    deviceID: DeviceID,
+    tabSelection: TabSelection
+  )
   let sendMap: (String) -> Void
   let sendVisit: (VisitScreen.Action) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
@@ -146,6 +156,7 @@ struct VisitsBlock: View {
         Text("Map")
       }
       .tag(TabSelection.map)
+      
       SummaryScreen(
         state: .init(
           trackedDuration: state.history?.trackedDuration ?? 0,
@@ -161,6 +172,21 @@ struct VisitsBlock: View {
         Text("Summary")
       }
       .tag(TabSelection.summary)
+      
+      ProfileScreen(
+        state: .init(
+          id: state.driverID.rawValue.rawValue,
+          name: "",
+          deviceID: state.deviceID.rawValue.rawValue,
+          metadata: [:],
+          appVersion: "2.3.0"
+        )
+      )
+      .tabItem {
+        Image(systemName: "person")
+        Text("Profile")
+      }
+      .tag(TabSelection.profile)
     }
   }
 }
@@ -196,6 +222,8 @@ struct SwiftUIView_Previews: PreviewProvider {
           ),
           [
           ],
+          "DriverID",
+          "DeviceID",
           .map),
         reducer: .empty,
         environment: ()
