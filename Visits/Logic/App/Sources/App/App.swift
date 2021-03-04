@@ -354,7 +354,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           case .showManualVisits:
             visits = .mixed([])
           }
-          state.flow = .visits(visits, nil, .visits, pk, drID, deID, us, p, nil, .dialogSplash(.notShown), nil)
+          state.flow = .visits(visits, nil, .defaultTab, pk, drID, deID, us, p, nil, .dialogSplash(.notShown), nil)
           return .merge(
             environment.hyperTrack
               .subscribeToStatusUpdates()

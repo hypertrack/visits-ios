@@ -94,7 +94,7 @@ func restoredStateFrom(
   
   // Old app that got to deliveries screen. Assuming no manual visits by default
   case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _):
-    return .visits(.assigned([]), .visits, publishableKey, driverID, .dialogSplash(.notShown))
+    return .visits(.assigned([]), .defaultTab, publishableKey, driverID, .dialogSplash(.notShown))
   
   // Old app that only got to the DriverID screen
   case let (.none, _, .some(publishableKey), .none, _, _, _, _):
@@ -115,7 +115,7 @@ func restoredStateFrom(
   
   // Visits screen
   case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, pushStatus):
-    return .visits(visits, tabSelection ?? .visits, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown))
+    return .visits(visits, tabSelection ?? .defaultTab, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown))
   
   // State restoration failed, back to the starting screen
   default: return nil

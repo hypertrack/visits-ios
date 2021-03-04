@@ -35,9 +35,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       switch mvs {
       case .none,
            .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .visits, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
+        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
       case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .visits, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
+        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
       }
       return .merge(
         environment
@@ -61,9 +61,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       switch mvs {
       case .none,
            .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .visits, pk, drID, deID, s, p, nil, ps, .none)
+        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, .none)
       case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .visits, pk, drID, deID, s, p, nil, ps, .none)
+        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, ps, .none)
       }
       return .merge(
         environment
