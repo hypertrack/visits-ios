@@ -82,18 +82,19 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .visits(_, _, _, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
   case let .visits(v, h, s, pk, drID, deID, us, p, r, ps, _, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
-    case (_, _, .disabled, _, _):                return .blocker(.locationDisabled)
-    case (_, _, .denied, _, _):                  return .blocker(.locationDenied)
-    case (_, _, .restricted, _, _):              return .blocker(.locationRestricted)
-    case (_, _, .notDetermined, _, _):           return .blocker(.locationNotDetermined)
-    case (_, .reduced, _, _, _):                 return .blocker(.locationReduced)
-    case (_, _, _, .disabled, _):                return .blocker(.motionDisabled)
-    case (_, _, _, .denied, _):                  return .blocker(.motionDenied)
-    case (_, _, _, .notDetermined, _):           return .blocker(.motionNotDetermined)
-    case (_, _, _, _, .dialogSplash(.notShown)): return .blocker(.pushNotShown)
-    case (.deleted, _, _, _, _):                 return .blocker(.deleted(deID.rawValue.rawValue))
-    case (.invalidPublishableKey, _, _, _, _):   return .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
-    case (.stopped, _, _, _, _):                 return .blocker(.stopped)
+    case (_, _, .disabled, _, _):                            return .blocker(.locationDisabled)
+    case (_, _, .denied, _, _):                              return .blocker(.locationDenied)
+    case (_, _, .restricted, _, _):                          return .blocker(.locationRestricted)
+    case (_, _, .notDetermined, _, _):                       return .blocker(.locationNotDetermined)
+    case (_, .reduced, _, _, _):                             return .blocker(.locationReduced)
+    case (_, _, _, .disabled, _):                            return .blocker(.motionDisabled)
+    case (_, _, _, .denied, _):                              return .blocker(.motionDenied)
+    case (_, _, _, .notDetermined, _):                       return .blocker(.motionNotDetermined)
+    case (_, _, _, _, .dialogSplash(.notShown)),
+         (_, _, _, _, .dialogSplash(.waitingForUserAction)): return .blocker(.pushNotShown)
+    case (.deleted, _, _, _, _):                             return .blocker(.deleted(deID.rawValue.rawValue))
+    case (.invalidPublishableKey, _, _, _, _):               return .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
+    case (.stopped, _, _, _, _):                             return .blocker(.stopped)
     case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
       let refreshingVisits: Bool

@@ -148,19 +148,22 @@ enum Screen: String {
 enum PushStatusRestorationKeys: String {
   case dialogSplashShown
   case dialogSplashNotShown
+  case dialogSplashWaitingForUserAction
 }
 
 func pushStatus(from key: PushStatusRestorationKeys) -> PushStatus {
   switch key {
-  case .dialogSplashShown:    return .dialogSplash(.shown)
-  case .dialogSplashNotShown: return .dialogSplash(.notShown)
+  case .dialogSplashShown:                return .dialogSplash(.shown)
+  case .dialogSplashNotShown:             return .dialogSplash(.notShown)
+  case .dialogSplashWaitingForUserAction: return .dialogSplash(.waitingForUserAction)
   }
 }
 
 func pushStatus(from status: PushStatus) -> PushStatusRestorationKeys {
   switch status {
-  case .dialogSplash(.shown):    return .dialogSplashShown
-  case .dialogSplash(.notShown): return .dialogSplashNotShown
+  case .dialogSplash(.shown):                return .dialogSplashShown
+  case .dialogSplash(.notShown):             return .dialogSplashNotShown
+  case .dialogSplash(.waitingForUserAction): return .dialogSplashWaitingForUserAction
   }
 }
 

@@ -2,10 +2,10 @@ import ComposableArchitecture
 
 
 public struct PushEnvironment {
-  public var requestAuthorization: () -> Effect<Never, Never>
+  public var requestAuthorization: () -> Effect<Void, Never>
   
   public init(
-    requestAuthorization: @escaping () -> Effect<Never, Never>
+    requestAuthorization: @escaping () -> Effect<Void, Never>
   ) {
     self.requestAuthorization = requestAuthorization
   }

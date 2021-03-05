@@ -127,6 +127,7 @@ public enum AppAction: Equatable {
   // Push
   case receivedPushNotification
   case requestPushAuthorization
+  case userHandledPushAuthorization
   // Network
   case network(Network)
   // State
@@ -672,10 +673,14 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           .eraseToEffect()
           .map(AppAction.statusUpdated)
       case .requestPushAuthorization:
-        state.flow = .visits(v, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e, d)
+        state.flow = .visits(v, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e, d)
         return environment.push
           .requestAuthorization()
-          .fireAndForget()
+          .map(constant(AppAction.userHandledPushAuthorization))
+          .eraseToEffect()
+      case .userHandledPushAuthorization:
+        state.flow = .visits(v, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e, d)
+        return .none
       case let .statusUpdated(st, p):
         switch st {
         case .locked:
