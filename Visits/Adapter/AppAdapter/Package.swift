@@ -14,6 +14,7 @@ let package = Package(
     .package(path: "DeepLinkScreen"),
     .package(path: "MapScreen"),
     .package(name: "Prelude", url: "https://github.com/hypertrack/prelude-swift", .exact("0.0.12")),
+    .package(path: "PushStatus"),
     .package(path: "Visit")
   ],
   targets: [
@@ -27,6 +28,7 @@ let package = Package(
         "DeepLinkScreen",
         "MapScreen",
         "Prelude",
+        "PushStatus",
         "Visit"
       ]
     )

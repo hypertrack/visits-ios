@@ -46,7 +46,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                   return Effect(value: AppAction.restoredState(.left(.signIn(email)), network))
                 case let .some(.driverID(driverID, publishableKey, mvs)):
                   return Effect(value: AppAction.restoredState(.left(.driverID(driverID, publishableKey, mvs)), network))
-                case let .some(.visits(visits, tabSelection, publishableKey, driverID, pushStatus)):
+                case let .some(.visits(visits, tabSelection, publishableKey, driverID, pushStatus, experience)):
                   return environment
                     .hyperTrack
                     .makeSDK(publishableKey)
@@ -56,7 +56,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                         return AppAction.restoredState(.right(.motionActivityServicesUnavalible), network)
                       case let .unlocked(deviceID, unlockedStatus):
                         
-                        return AppAction.restoredState(.left(.visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions)), network)
+                        return AppAction.restoredState(.left(.visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions, experience)), network)
                       }
                     }
                 }
@@ -83,9 +83,9 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
         state.flow = .signIn(.editingCredentials(nil, nil))
       case let .signIn(.some(email)):
         state.flow = .signIn(.editingCredentials(.this(email), nil))
-      case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions):
+      case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
         
-        state.flow = .visits(filterOutOldVisits(visits, now: environment.date()), nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, nil)
+        state.flow = .visits(filterOutOldVisits(visits, now: environment.date()), nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, experience, nil)
         return .merge(
           stateRestored,
           environment

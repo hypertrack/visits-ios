@@ -23,6 +23,7 @@ extension AppState {
       permissions,
       nil,
       .dialogSplash(.shown),
+      .regular,
       nil
     )
   )
@@ -40,6 +41,7 @@ extension AppState {
       permissions,
       nil,
       .dialogSplash(.shown),
+      .regular,
       nil
     )
   )
@@ -91,6 +93,7 @@ extension AppState {
       permissions,
       nil,
       .dialogSplash(.shown),
+      .regular,
       nil
     )
   )

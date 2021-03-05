@@ -35,9 +35,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       switch mvs {
       case .none,
            .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
+        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
       case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .none)
+        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
       }
       return .merge(
         environment
@@ -52,7 +52,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
           .fireAndForget()
       )
     }
-  case let (.visits(_, _, _, _, _, _, _, _, _, ps, .waitingForSDKWith(pk, drID, mvs)), .madeSDK(s, p)):
+  case let (.visits(_, _, _, _, _, _, _, _, _, ps, e, .waitingForSDKWith(pk, drID, mvs)), .madeSDK(s, p)):
     switch s {
     case .locked:
       state.flow = .noMotionServices
@@ -61,9 +61,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       switch mvs {
       case .none,
            .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, .none)
+        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
       case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, ps, .none)
+        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
       }
       return .merge(
         environment
@@ -146,8 +146,8 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       state.flow = .driverID(nil, pk, mvs, nil)
       return .cancel(id: TimerID())
     }
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, .none), .deepLinkOpened(a)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .waitingForDeepLink)
+  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .deepLinkOpened(a)):
+    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForDeepLink)
     return .merge(
       timer,
       environment
@@ -155,16 +155,16 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         .continueUserActivity(a)
         .fireAndForget()
     )
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, .none), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .waitingForTimerWith(pk, drID, mvs))
+  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .receivedDeepLink(pk, drID, mvs)):
+    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID, mvs))
     return timer
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, .waitingForDeepLink), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .waitingForTimerWith(pk, drID, mvs))
+  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .receivedDeepLink(pk, drID, mvs)):
+    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID, mvs))
     return .none
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, .waitingForDeepLink), .deepLinkTimerFired):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .none)
+  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .deepLinkTimerFired):
+    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
     return .cancel(id: TimerID())
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, .waitingForTimerWith(pk, drID, mvs)), .deepLinkTimerFired):
+  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForTimerWith(pk, drID, mvs)), .deepLinkTimerFired):
     
     let vMVS: ManualVisitsStatus
     switch v {
@@ -176,7 +176,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
     }
     let rMVS = mvs ?? vMVS
     
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .none)
+    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
     
     switch (v, vPK, vDRID, pk, drID, mvs) {
     case let (_, vPK, _, pk, .none, .none) where vPK == pk:
@@ -184,7 +184,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
     case let (_, vPK, vDRID, pk, .some(drID), .none) where vPK == pk && vDRID == drID:
       return .cancel(id: TimerID())
     case let (_, vPK, vDRID, pk, .some(drID), .none) where vPK == pk && vDRID != drID:
-      state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, .none)
+      state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, e, .none)
       return .merge(
         .cancel(id: TimerID()),
         environment
@@ -197,7 +197,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
          let (.assigned, vPK, vDRID, pk, drID, .some(.hideManualVisits)) where vPK == pk,
          let (.selectedAssigned, vPK, vDRID, pk,drID, .some(.hideManualVisits)) where vPK == pk:
       if let drID = drID, drID != vDRID {
-        state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, .none)
+        state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, e, .none)
         return .merge(
           .cancel(id: TimerID()),
           environment
@@ -216,7 +216,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         newDRID = vDRID
       }
       
-      state.flow = .visits(.assigned(Set(v.compactMap(eitherRight))), h, s, pk, newDRID, deID, us, p, .none, ps, .none)
+      state.flow = .visits(.assigned(Set(v.compactMap(eitherRight))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
   
       
       if let drID = drID, drID != vDRID {
@@ -240,9 +240,9 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       
       let aas =  Set(vs.compactMap(eitherRight))
       if case let .right(a) = v {
-        state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, newDRID, deID, us, p, .none, ps, .none)
+        state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
       } else {
-        state.flow = .visits(.assigned(aas), h, s, pk, newDRID, deID, us, p, .none, ps, .none)
+        state.flow = .visits(.assigned(aas), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
       }
       
       if let drID = drID, drID != vDRID {
@@ -264,7 +264,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         newDRID = vDRID
       }
       
-      state.flow = .visits(.mixed(Set(v.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, .none)
+      state.flow = .visits(.mixed(Set(v.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
       
       if let drID = drID, drID != vDRID {
         return .merge(
@@ -285,7 +285,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         newDRID = vDRID
       }
       
-      state.flow = .visits(.selectedMixed(.right(a), Set(aas.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, .none)
+      state.flow = .visits(.selectedMixed(.right(a), Set(aas.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
       
       if let drID = drID, drID != vDRID {
         return .merge(
@@ -314,7 +314,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         newV = .assigned([])
       }
       
-      state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, .waitingForSDKWith(pk, newDRID, rMVS))
+      state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForSDKWith(pk, newDRID, rMVS))
       
       return .merge(
         .cancel(id: TimerID()),

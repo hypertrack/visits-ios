@@ -7,6 +7,7 @@ import DriverIDScreen
 import LoadingScreen
 import MapScreen
 import Prelude
+import PushStatus
 import SignInScreen
 import Visit
 import VisitScreen
@@ -78,8 +79,8 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .driverID(.some(drID), _, _, _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .visits(_, _, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
-  case let .visits(v, h, s, pk, drID, deID, us, p, r, ps, _):
+  case let .visits(_, _, _, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
+  case let .visits(v, h, s, pk, drID, deID, us, p, r, ps, _, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
     case (_, _, .disabled, _, _):                return .blocker(.locationDisabled)
     case (_, _, .denied, _, _):                  return .blocker(.locationDenied)

@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Credentials
 import DriverID
+import Experience
 import Log
 import ManualVisitsStatus
 import NonEmpty
@@ -40,7 +41,9 @@ public extension StateRestorationEnvironment {
               >>- TabSelection.init(rawValue:),
             pushStatus: (UserDefaults.standard.string(forKey: RestorationKey.pushStatus.rawValue))
               >>- PushStatusRestorationKeys.init(rawValue:)
-              >-> pushStatus(from:)
+              >-> pushStatus(from:),
+            experience: (UserDefaults.standard.string(forKey: RestorationKey.experience.rawValue))
+              >>- Experience.restore
           )
         )
       }
@@ -66,13 +69,14 @@ public extension StateRestorationEnvironment {
             ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
             ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
             ud.set(mvs <¡> \.rawValue, forKey: RestorationKey.manualVisitsStatus.rawValue)
-          case let .visits(v, s, pk, dID, ps):
+          case let .visits(v, s, pk, dID, ps, e):
             ud.set(Screen.visits.rawValue, forKey: RestorationKey.screen.rawValue)
             ud.set(try? JSONEncoder().encode(v), forKey: RestorationKey.visits.rawValue)
             ud.set(s.rawValue, forKey: RestorationKey.tabSelection.rawValue)
             ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
             ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
             ud.set(pushStatus(from: ps).rawValue, forKey: RestorationKey.pushStatus.rawValue)
+            ud.set(e.store(), forKey: RestorationKey.experience.rawValue)
           }
         }
       }
@@ -88,34 +92,35 @@ func restoredStateFrom(
   mvs: ManualVisitsStatus?,
   visits: Visits?,
   tabSelection: TabSelection?,
-  pushStatus: PushStatus?
+  pushStatus: PushStatus?,
+  experience: Experience?
 ) -> StorageState? {
-  switch (screen, email, publishableKey, driverID, mvs, visits, tabSelection, pushStatus) {
+  switch (screen, email, publishableKey, driverID, mvs, visits, tabSelection, pushStatus, experience) {
   
   // Old app that got to deliveries screen. Assuming no manual visits by default
-  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _):
-    return .visits(.assigned([]), .defaultTab, publishableKey, driverID, .dialogSplash(.notShown))
+  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _, _):
+    return .visits(.assigned([]), .defaultTab, publishableKey, driverID, .dialogSplash(.notShown), .regular)
   
   // Old app that only got to the DriverID screen
-  case let (.none, _, .some(publishableKey), .none, _, _, _, _):
+  case let (.none, _, .some(publishableKey), .none, _, _, _, _, _):
     return .driverID(nil, publishableKey, nil)
   
   // Freshly installed app that didn't go though the deep link search,
   // or an old app that didn't open the deep link
-  case (.none, _, .none, .none, _, _, _, _):
+  case (.none, _, .none, .none, _, _, _, _, _):
     return nil
   
   // Sign in screen
-  case let (.signIn, email, _, _, _, _, _, _):
+  case let (.signIn, email, _, _, _, _, _, _, _):
     return .signIn(email)
   
   // Driver ID screen
-  case let (.driverID, _, .some(publishableKey), driverID, mvs, _, _, _):
+  case let (.driverID, _, .some(publishableKey), driverID, mvs, _, _, _, _):
     return .driverID(driverID, publishableKey, mvs)
   
   // Visits screen
-  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, pushStatus):
-    return .visits(visits, tabSelection ?? .defaultTab, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown))
+  case let (.visits, _, .some(publishableKey), .some(driverID), _, .some(visits), tabSelection, pushStatus, experience):
+    return .visits(visits, tabSelection ?? .defaultTab, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown), experience ?? .regular)
   
   // State restoration failed, back to the starting screen
   default: return nil
@@ -125,6 +130,7 @@ func restoredStateFrom(
 enum RestorationKey: String, CaseIterable {
   case publishableKey = "UeiDZRFEOd"
   case driverID = "Hp6XdOsXsw"
+  case experience = "lQDSheJivt"
   case visits = "nB24HHL2T5"
   case screen = "ZJNLfS0Nhw"
   case email = "sXwAlVbnPT"
@@ -155,5 +161,25 @@ func pushStatus(from status: PushStatus) -> PushStatusRestorationKeys {
   switch status {
   case .dialogSplash(.shown):    return .dialogSplashShown
   case .dialogSplash(.notShown): return .dialogSplashNotShown
+  }
+}
+
+extension Experience {
+  private static let firstRunKey = "EMcvpiyTCY"
+  private static let regularKey  = "wDvZjD44fJ"
+  
+  func store() -> String {
+    switch self {
+    case .firstRun: return Experience.firstRunKey
+    case .regular:  return Experience.regularKey
+    }
+  }
+  
+  static func restore(_ experience: String) -> Self? {
+    switch experience {
+    case firstRunKey: return .firstRun
+    case regularKey:  return .regular
+    default: return nil
+    }
   }
 }
