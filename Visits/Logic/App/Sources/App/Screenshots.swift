@@ -97,14 +97,59 @@ extension AppState {
       nil
     )
   )
+  
+  public static let summaryScreenshot = Self(
+    network: .online,
+    flow: .visits(
+      .assigned([]),
+      History(
+        coordinates: [],
+        trackedDuration: 20100,
+        driveDistance: 16898,
+        driveDuration: 11100,
+        walkSteps: 2345,
+        walkDuration: 2100,
+        stopDuration: 6900
+      ),
+      .summary,
+      publishableKey,
+      driverID,
+      deviceID,
+      .running,
+      permissions,
+      nil,
+      .dialogSplash(.shown),
+      .regular,
+      nil
+    )
+  )
+  
+  public static let profileScreenshot = Self(
+    network: .online,
+    flow: .visits(
+      .assigned([]),
+      nil,
+      .profile,
+      publishableKey,
+      driverID,
+      deviceID,
+      .running,
+      permissions,
+      nil,
+      .dialogSplash(.shown),
+      .regular,
+      nil
+    )
+  )
 }
+
 
 let notSent = AssignedVisit(
   id: AssignedVisit.ID(rawValue: "ID4"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 37, second: 0, of: Date())!,
   source: .geofence,
   location: Coordinate(latitude: 37.780592, longitude: -122.413322)!,
-  geotagSent: .notSent,
+  geotagSent: .pickedUp,
   noteFieldFocused: false,
   address: .both(
     AssignedVisit.Street(rawValue: "87 McAllister St"),
@@ -171,8 +216,8 @@ let checkedOut3 = AssignedVisit(
 let visits: Set<AssignedVisit> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
 
 let publishableKey = PublishableKey(rawValue: "Key")
-let deviceID = DeviceID(rawValue: "ID")
-let driverID = DriverID(rawValue: "ID")
+let deviceID = DeviceID(rawValue: "UNIQUE-ID")
+let driverID = DriverID(rawValue: "user@company.com")
 let permissions = Permissions(
   locationAccuracy: .full,
   locationPermissions: .authorized,
