@@ -197,9 +197,9 @@ func fromAssignedSource(_ source: A.Source) -> String {
 }
 
 enum C: String {
-  case cancel = "CANCEL"
-  case checkIn = "CHECK_IN"
-  case checkOut = "CHECK_OUT"
+  case cancel = "VISIT_MARKED_CANCELED"
+  case checkIn = "VISIT_ADDED"
+  case checkOut = "VISIT_MARKED_COMPLETE"
   case clockIn = "CLOCK_IN"
   case clockOut = "CLOCK_OUT"
   case visitNote = "visit_note"
