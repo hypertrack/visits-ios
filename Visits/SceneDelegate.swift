@@ -1,6 +1,6 @@
 import AppAdapter
 import AppScreen
-import Architecture
+import AppArchitecture
 import Prelude
 import SwiftUI
 

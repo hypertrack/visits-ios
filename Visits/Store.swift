@@ -1,6 +1,6 @@
-import App
+import AppLogic
 import AppLive
-import Architecture
+import AppArchitecture
 import ComposableArchitecture
 
 

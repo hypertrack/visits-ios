@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		31072BA62549F8F900ECBA34 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31072BA52549F8F900ECBA34 /* Store.swift */; };
-		31072BAF254A0EA500ECBA34 /* Architecture in Frameworks */ = {isa = PBXBuildFile; productRef = 31072BAE254A0EA500ECBA34 /* Architecture */; };
 		3116490525D5A5DC00DD941F /* VisitsTestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3116490425D5A5DC00DD941F /* VisitsTestApp.swift */; };
 		3116490925D5A5DD00DD941F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3116490825D5A5DD00DD941F /* Assets.xcassets */; };
 		3116490C25D5A5DD00DD941F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3116490B25D5A5DD00DD941F /* Preview Assets.xcassets */; };
+		31245E1E25F8111600AF8548 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 31245E1D25F8111600AF8548 /* App */; };
 		3161D1252512A2B500AAFCCD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3161D1242512A2B500AAFCCD /* AppDelegate.swift */; };
 		3161D1272512A2B500AAFCCD /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3161D1262512A2B500AAFCCD /* SceneDelegate.swift */; };
 		3161D12B2512A2B700AAFCCD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3161D12A2512A2B700AAFCCD /* Assets.xcassets */; };
@@ -21,11 +21,6 @@
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
 		316E08EC2587F6B600CE8FA4 /* UIAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */; };
 		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
-		318146A325EE83B900F02FD0 /* SummaryScreen in Resources */ = {isa = PBXBuildFile; fileRef = 318146A225EE83B900F02FD0 /* SummaryScreen */; };
-		318E586E25476B9700EAA61A /* AppLive in Frameworks */ = {isa = PBXBuildFile; productRef = 318E586D25476B9700EAA61A /* AppLive */; };
-		319453BA254835D400D86A04 /* AppScreen in Frameworks */ = {isa = PBXBuildFile; productRef = 319453B9254835D400D86A04 /* AppScreen */; };
-		319453CE2548602400D86A04 /* AppAdapter in Frameworks */ = {isa = PBXBuildFile; productRef = 319453CD2548602400D86A04 /* AppAdapter */; };
-		31AC38832545CD4C00D29345 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 31AC38822545CD4C00D29345 /* App */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,27 +47,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		31072B932548BB9000ECBA34 /* DeepLinkEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DeepLinkEnvironment; path = Visits/Dependency/DeepLinkEnvironment; sourceTree = SOURCE_ROOT; };
 		31072BA52549F8F900ECBA34 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
-		31072BAB254A0DF800ECBA34 /* Architecture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Architecture; path = Visits/Dependency/Architecture; sourceTree = SOURCE_ROOT; };
-		31072BB7254AAE7D00ECBA34 /* DeepLink */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeepLink; sourceTree = "<group>"; };
-		31072BBB254BF54300ECBA34 /* SignInScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SignInScreen; sourceTree = "<group>"; };
-		31072BCA254C60E300ECBA34 /* DriverIDScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverIDScreen; sourceTree = "<group>"; };
-		31072BCD254C765B00ECBA34 /* BlockerScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BlockerScreen; sourceTree = "<group>"; };
-		31072BD3254DEEAE00ECBA34 /* ManualVisitsStatus */ = {isa = PBXFileReference; lastKnownFileType = text; name = ManualVisitsStatus; path = Visits/Screen/ManualVisitsStatus; sourceTree = SOURCE_ROOT; };
 		3116490225D5A5DC00DD941F /* VisitsTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisitsTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3116490425D5A5DC00DD941F /* VisitsTestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitsTestApp.swift; sourceTree = "<group>"; };
 		3116490825D5A5DD00DD941F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3116490B25D5A5DD00DD941F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3116490D25D5A5DD00DD941F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3117579C25702B51004CB568 /* Log */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Log; sourceTree = "<group>"; };
-		311E240C25594D6F002A122E /* VisitScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitScreen; sourceTree = "<group>"; };
-		31466FD02551EBB600247BDA /* DeviceID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeviceID; sourceTree = "<group>"; };
-		31466FD32551F8A000247BDA /* Credentials */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Credentials; sourceTree = "<group>"; };
-		31466FD82552EF4900247BDA /* StateRestorationEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = StateRestorationEnvironment; sourceTree = "<group>"; };
-		3148A8552587BDF100F61453 /* MapScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapScreen; sourceTree = "<group>"; };
-		314A14D5254FEF2B0061892F /* Visit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Visit; sourceTree = "<group>"; };
-		314A14D9255069070061892F /* Coordinate */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Coordinate; sourceTree = "<group>"; };
+		31245E1A25F6788800AF8548 /* Modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Modules; sourceTree = "<group>"; };
 		3161D1212512A2B500AAFCCD /* Visits.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Visits.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3161D1242512A2B500AAFCCD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3161D1262512A2B500AAFCCD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -84,31 +65,7 @@
 		3161D13B2512A2B700AAFCCD /* VisitsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitsTests.swift; sourceTree = "<group>"; };
 		3161D13D2512A2B700AAFCCD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3161D16C2512A65100AAFCCD /* Visits.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Visits.entitlements; sourceTree = "<group>"; };
-		316AA8642547FFBA00FC3D55 /* AppScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppScreen; sourceTree = "<group>"; };
 		316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAppearance.swift; sourceTree = "<group>"; };
-		318146A125EE834600F02FD0 /* ProfileScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ProfileScreen; sourceTree = "<group>"; };
-		318146A225EE83B900F02FD0 /* SummaryScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SummaryScreen; sourceTree = "<group>"; };
-		3188359F25F13E320068DE16 /* Experience */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Experience; sourceTree = "<group>"; };
-		3189AFB2256D98FE00A081C0 /* History */ = {isa = PBXFileReference; lastKnownFileType = folder; path = History; sourceTree = "<group>"; };
-		318E585C2546B7EA00EAA61A /* PublishableKey */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PublishableKey; sourceTree = "<group>"; };
-		318E585E2546BA7200EAA61A /* DriverID */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DriverID; sourceTree = "<group>"; };
-		319453CB2548417700D86A04 /* AppAdapter */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AppAdapter; path = Visits/Adapter/AppAdapter; sourceTree = SOURCE_ROOT; };
-		31AC38802545CCE500D29345 /* App */ = {isa = PBXFileReference; lastKnownFileType = folder; path = App; sourceTree = "<group>"; };
-		31B262E52575835A00280DDF /* TabSelection */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TabSelection; sourceTree = "<group>"; };
-		31B7A37A257E84F200EE5C65 /* GeoJSON */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GeoJSON; sourceTree = "<group>"; };
-		31B7CB3D25B9FC8D00CBDF95 /* PushStatus */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PushStatus; path = ../../../../../../../Volumes/970EVO/Source/PushStatus; sourceTree = "<group>"; };
-		31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PasteboardEnvironment; sourceTree = "<group>"; };
-		31E1752F255C028600DF5219 /* MapEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MapEnvironment; sourceTree = "<group>"; };
-		31E17532255C098200DF5219 /* HapticFeedbackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HapticFeedbackEnvironment; sourceTree = "<group>"; };
-		31E17537255C3C9D00DF5219 /* APIEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = APIEnvironment; sourceTree = "<group>"; };
-		31F0724D2553E75F002A7A53 /* RestorationState */ = {isa = PBXFileReference; lastKnownFileType = folder; path = RestorationState; sourceTree = "<group>"; };
-		31F072512553EBFE002A7A53 /* NetworkEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = NetworkEnvironment; sourceTree = "<group>"; };
-		31F072562554091F002A7A53 /* HyperTrackEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HyperTrackEnvironment; sourceTree = "<group>"; };
-		31F0725C2555E5E2002A7A53 /* SDK */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SDK; sourceTree = "<group>"; };
-		31F0726525592399002A7A53 /* VisitsScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = VisitsScreen; sourceTree = "<group>"; };
-		31F2E95A251BD2520081C9BE /* DeepLinkScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DeepLinkScreen; sourceTree = "<group>"; };
-		31F4CC0C25BF2CBF00F6BBE8 /* PushEnvironment */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PushEnvironment; sourceTree = "<group>"; };
-		31FA078E25657969008B84F4 /* LoadingScreen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = LoadingScreen; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,13 +80,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				31245E1E25F8111600AF8548 /* App in Frameworks */,
 				317E664F25D2D2B600B99D40 /* Prelude in Frameworks */,
-				318E586E25476B9700EAA61A /* AppLive in Frameworks */,
-				31AC38832545CD4C00D29345 /* App in Frameworks */,
-				319453BA254835D400D86A04 /* AppScreen in Frameworks */,
-				319453CE2548602400D86A04 /* AppAdapter in Frameworks */,
 				3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */,
-				31072BAF254A0EA500ECBA34 /* Architecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,11 +139,7 @@
 		3161D1232512A2B500AAFCCD /* Visits */ = {
 			isa = PBXGroup;
 			children = (
-				319453C225483FB500D86A04 /* Types */,
-				316AA86625480B0C00FC3D55 /* Screen */,
-				316AA86925480B2800FC3D55 /* Logic */,
-				316AA86A25480B3B00FC3D55 /* Dependency */,
-				319453C025483F8600D86A04 /* Adapter */,
+				31245E1A25F6788800AF8548 /* Modules */,
 				3161D16C2512A65100AAFCCD /* Visits.entitlements */,
 				3161D1242512A2B500AAFCCD /* AppDelegate.swift */,
 				316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */,
@@ -219,80 +168,6 @@
 				3161D13D2512A2B700AAFCCD /* Info.plist */,
 			);
 			path = VisitsTests;
-			sourceTree = "<group>";
-		};
-		316AA86625480B0C00FC3D55 /* Screen */ = {
-			isa = PBXGroup;
-			children = (
-				316AA8642547FFBA00FC3D55 /* AppScreen */,
-				31072BCD254C765B00ECBA34 /* BlockerScreen */,
-				31F2E95A251BD2520081C9BE /* DeepLinkScreen */,
-				31072BCA254C60E300ECBA34 /* DriverIDScreen */,
-				31FA078E25657969008B84F4 /* LoadingScreen */,
-				3148A8552587BDF100F61453 /* MapScreen */,
-				318146A125EE834600F02FD0 /* ProfileScreen */,
-				31072BBB254BF54300ECBA34 /* SignInScreen */,
-				318146A225EE83B900F02FD0 /* SummaryScreen */,
-				311E240C25594D6F002A122E /* VisitScreen */,
-				31F0726525592399002A7A53 /* VisitsScreen */,
-			);
-			path = Screen;
-			sourceTree = "<group>";
-		};
-		316AA86925480B2800FC3D55 /* Logic */ = {
-			isa = PBXGroup;
-			children = (
-				31AC38802545CCE500D29345 /* App */,
-				31072BB7254AAE7D00ECBA34 /* DeepLink */,
-			);
-			path = Logic;
-			sourceTree = "<group>";
-		};
-		316AA86A25480B3B00FC3D55 /* Dependency */ = {
-			isa = PBXGroup;
-			children = (
-				31E17537255C3C9D00DF5219 /* APIEnvironment */,
-				31072BAB254A0DF800ECBA34 /* Architecture */,
-				31072B932548BB9000ECBA34 /* DeepLinkEnvironment */,
-				31E17532255C098200DF5219 /* HapticFeedbackEnvironment */,
-				31F072562554091F002A7A53 /* HyperTrackEnvironment */,
-				3117579C25702B51004CB568 /* Log */,
-				31E1752F255C028600DF5219 /* MapEnvironment */,
-				31F072512553EBFE002A7A53 /* NetworkEnvironment */,
-				31E1752C255BFF3A00DF5219 /* PasteboardEnvironment */,
-				31F4CC0C25BF2CBF00F6BBE8 /* PushEnvironment */,
-				31466FD82552EF4900247BDA /* StateRestorationEnvironment */,
-			);
-			path = Dependency;
-			sourceTree = "<group>";
-		};
-		319453C025483F8600D86A04 /* Adapter */ = {
-			isa = PBXGroup;
-			children = (
-				319453CB2548417700D86A04 /* AppAdapter */,
-			);
-			path = Adapter;
-			sourceTree = "<group>";
-		};
-		319453C225483FB500D86A04 /* Types */ = {
-			isa = PBXGroup;
-			children = (
-				31B7A37A257E84F200EE5C65 /* GeoJSON */,
-				314A14D9255069070061892F /* Coordinate */,
-				31466FD32551F8A000247BDA /* Credentials */,
-				31466FD02551EBB600247BDA /* DeviceID */,
-				318E585E2546BA7200EAA61A /* DriverID */,
-				3188359F25F13E320068DE16 /* Experience */,
-				3189AFB2256D98FE00A081C0 /* History */,
-				31072BD3254DEEAE00ECBA34 /* ManualVisitsStatus */,
-				318E585C2546B7EA00EAA61A /* PublishableKey */,
-				31B7CB3D25B9FC8D00CBDF95 /* PushStatus */,
-				31F0724D2553E75F002A7A53 /* RestorationState */,
-				31F0725C2555E5E2002A7A53 /* SDK */,
-				31B262E52575835A00280DDF /* TabSelection */,
-				314A14D5254FEF2B0061892F /* Visit */,
-			);
-			path = Types;
 			sourceTree = "<group>";
 		};
 		31F2E95D251BD2FF0081C9BE /* Frameworks */ = {
@@ -340,12 +215,8 @@
 			name = Visits;
 			packageProductDependencies = (
 				3161D1722512AE7900AAFCCD /* ComposableArchitecture */,
-				31AC38822545CD4C00D29345 /* App */,
-				318E586D25476B9700EAA61A /* AppLive */,
-				319453B9254835D400D86A04 /* AppScreen */,
-				319453CD2548602400D86A04 /* AppAdapter */,
-				31072BAE254A0EA500ECBA34 /* Architecture */,
 				317E664E25D2D2B600B99D40 /* Prelude */,
+				31245E1D25F8111600AF8548 /* App */,
 			);
 			productName = Visits;
 			productReference = 3161D1212512A2B500AAFCCD /* Visits.app */;
@@ -403,7 +274,6 @@
 				3161D1712512AE7900AAFCCD /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */,
 				31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */,
-				313C767C255EE14E009BE86C /* XCRemoteSwiftPackageReference "views-swiftui" */,
 			);
 			productRefGroup = 3161D1222512A2B500AAFCCD /* Products */;
 			projectDirPath = "";
@@ -433,7 +303,6 @@
 				3161D1312512A2B700AAFCCD /* LaunchScreen.storyboard in Resources */,
 				3161D12E2512A2B700AAFCCD /* Preview Assets.xcassets in Resources */,
 				3161D12B2512A2B700AAFCCD /* Assets.xcassets in Resources */,
-				318146A325EE83B900F02FD0 /* SummaryScreen in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -794,14 +663,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		313C767C255EE14E009BE86C /* XCRemoteSwiftPackageReference "views-swiftui" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/hypertrack/views-swiftui";
-			requirement = {
-				kind = exactVersion;
-				version = 0.0.6;
-			};
-		};
 		3161D1712512AE7900AAFCCD /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
@@ -829,9 +690,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		31072BAE254A0EA500ECBA34 /* Architecture */ = {
+		31245E1D25F8111600AF8548 /* App */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Architecture;
+			productName = App;
 		};
 		3161D1722512AE7900AAFCCD /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -842,22 +703,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */;
 			productName = Prelude;
-		};
-		318E586D25476B9700EAA61A /* AppLive */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppLive;
-		};
-		319453B9254835D400D86A04 /* AppScreen */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppScreen;
-		};
-		319453CD2548602400D86A04 /* AppAdapter */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppAdapter;
-		};
-		31AC38822545CD4C00D29345 /* App */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = App;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
