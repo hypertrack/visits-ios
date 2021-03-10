@@ -72,15 +72,6 @@
           "revision": "592e1eb4255c571ebffc29955011e352217501b4",
           "version": "0.5.0"
         }
-      },
-      {
-        "package": "Views",
-        "repositoryURL": "https://github.com/hypertrack/views-swiftui",
-        "state": {
-          "branch": null,
-          "revision": "798355b100c902d2cb6c2d455dbf59811caa7538",
-          "version": "0.0.6"
-        }
       }
     ]
   },
