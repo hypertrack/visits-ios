@@ -28,7 +28,7 @@ func getHistoryFromAPI(auth token: Token, deviceID: DeviceID, date: Date) -> Any
   URLSession.shared.dataTaskPublisher(
     for: historyRequest(auth: token, deviceID: deviceID, date: date)
   )
-  .map { data, _ in data }
+  .map(\.data)
   .decode(type: History.self, decoder: JSONDecoder())
   .mapError { _ in .unknown }
   .eraseToAnyPublisher()
@@ -38,6 +38,8 @@ func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLReq
   let url = URL(string: "\(clientURL)/devices/\(deviceID)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
   request.httpMethod = "GET"
   return request
 }

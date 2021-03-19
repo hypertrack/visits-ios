@@ -61,6 +61,7 @@ public struct TextFieldBlock: View {
           .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
       }
       CustomTextField(
+        tag: name,
         text: $text,
         focused: focused,
         textContentType: textContentType,
@@ -89,19 +90,70 @@ public struct TextFieldBlock: View {
 
 // MARK: - CustomTextField
 
-private struct CustomTextField: UIViewRepresentable {
+public class FocusableTextField: UITextField {
+  var customFocused: Bool = false
+  var blocksFocus: Bool = false
+  var whenDeletesBackward: () -> Void = {}
+  
+  override public func deleteBackward() {
+    if text == "" {
+      whenDeletesBackward()
+    }
+    super.deleteBackward()
+  }
+}
+
+public struct CustomTextField: UIViewRepresentable {
+  public init(
+    tag: String,
+    text: Binding<String>,
+    focused: Bool,
+    blocksFocus: Bool = false,
+    textContentType: UITextContentType?,
+    keyboardType: UIKeyboardType,
+    returnKeyType: UIReturnKeyType,
+    enablesReturnKeyAutomatically: Bool,
+    isSecureTextEntry: Bool,
+    textAlignment: NSTextAlignment = .left,
+    wantsToBecomeFocused: @escaping () -> Void,
+    enterButtonPressed: @escaping () -> Void,
+    backspacePressed: @escaping () -> Void = {}
+  ) {
+    self.tag = tag
+    self._text = text
+    self.focused = focused
+    self.blocksFocus = blocksFocus
+    self.textContentType = textContentType
+    self.keyboardType = keyboardType
+    self.returnKeyType = returnKeyType
+    self.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically
+    self.isSecureTextEntry = isSecureTextEntry
+    self.textAlignment = textAlignment
+    self.wantsToBecomeFocused = wantsToBecomeFocused
+    self.enterButtonPressed = enterButtonPressed
+    self.backspacePressed = backspacePressed
+  }
+  
+  let tag: String
   @Binding var text: String
   let focused: Bool
+  let blocksFocus: Bool
   let textContentType: UITextContentType?
   let keyboardType: UIKeyboardType
   let returnKeyType: UIReturnKeyType
   let enablesReturnKeyAutomatically: Bool
   let isSecureTextEntry: Bool
+  let textAlignment: NSTextAlignment
   let wantsToBecomeFocused: () -> Void
   let enterButtonPressed: () -> Void
+  let backspacePressed: () -> Void
   
-  func makeUIView(context: Context) -> UITextField {
-    let textField = UITextField(frame: .zero)
+  public func makeUIView(context: Context) -> FocusableTextField {
+    print("Making \(tag)")
+    
+    let textField = FocusableTextField(frame: .zero)
+    textField.customFocused = focused
+    textField.blocksFocus = blocksFocus
     textField.keyboardType = keyboardType
     textField.returnKeyType = returnKeyType
     textField.delegate = context.coordinator
@@ -109,36 +161,46 @@ private struct CustomTextField: UIViewRepresentable {
     textField.autocorrectionType = .no
     textField.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically
     textField.textContentType = textContentType
+    textField.textAlignment = textAlignment
+    textField.whenDeletesBackward = backspacePressed
     return textField
   }
   
-  func updateUIView(_ uiView: UITextField, context: Context) {
-    uiView.text = text
+  public func updateUIView(_ textField: FocusableTextField, context: Context) {
+    print("Updating \(tag) with focus: \(focused)")
+    textField.customFocused = focused
+    textField.text = text
     if focused {
-      if !uiView.isFirstResponder { uiView.becomeFirstResponder() }
+      textField.becomeFirstResponder()
     } else {
-      uiView.resignFirstResponder()
+      textField.resignFirstResponder()
     }
   }
   
-  func makeCoordinator() -> Coordinator { Coordinator(self) }
+  public static func dismantleUIView(_ uiView: FocusableTextField, coordinator: Coordinator) {
+    print("Dismantling a view")
+  }
   
-  class Coordinator: NSObject, UITextFieldDelegate {
+  public func makeCoordinator() -> Coordinator { Coordinator(self) }
+  
+  public class Coordinator: NSObject, UITextFieldDelegate {
     var parent: CustomTextField
     
     init(_ textField: CustomTextField) { parent = textField }
     
-    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-      if !parent.focused { parent.wantsToBecomeFocused() }
-      return true
+    public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+      let textField = textField as! FocusableTextField
+      print("\(parent.tag) wants to become focused. Current focus: \(textField.customFocused)")
+      if !textField.customFocused { parent.wantsToBecomeFocused() }
+      return textField.blocksFocus ? textField.customFocused : true
     }
     
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
       parent.enterButtonPressed()
       return true
     }
     
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
       if let text = textField.text,
          let textRange = Range(range, in: text) {
         parent.text = text.replacingCharacters(in: textRange, with: string)

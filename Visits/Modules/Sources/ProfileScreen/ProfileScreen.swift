@@ -54,7 +54,7 @@ public struct ProfileScreen: View {
           }
         }
         
-        CustomSection(header: "AppLogic") {
+        CustomSection(header: "App") {
           TextRow("Version", text: state.appVersion)
         }
       }

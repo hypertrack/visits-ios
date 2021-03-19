@@ -20,7 +20,7 @@ func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], API
 
 func getTripsPage(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> AnyPublisher<TripsPage, APIError> {
   URLSession.shared.dataTaskPublisher(for: tripsRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
-    .map { data, _ in data }
+    .map(\.data)
     .decode(type: TripsPage.self, decoder: JSONDecoder())
     .mapError { _ in .unknown }
     .eraseToAnyPublisher()
@@ -33,6 +33,8 @@ func tripsRequest(auth token: Token, deviceID: DeviceID, paginationToken: Pagina
   }
   var request = URLRequest(url: URL(string: urlString)!)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
   request.httpMethod = "GET"
   return request
 }

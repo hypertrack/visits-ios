@@ -11,6 +11,7 @@ import Visit
 
 public enum StorageState: Equatable {
   case signIn(Email?)
+  case signUp(Email?)
   case driverID(DriverID?, PublishableKey, ManualVisitsStatus?)
   case visits(Visits, TabSelection, PublishableKey, DriverID, PushStatus, Experience)
 }
@@ -18,6 +19,7 @@ public enum StorageState: Equatable {
 public enum RestoredState: Equatable {
   case deepLink
   case signIn(Email?)
+  case signUp(Email?)
   case driverID(DriverID?, PublishableKey, ManualVisitsStatus?)
   case visits(Visits, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, PushStatus, Permissions, Experience)
 }

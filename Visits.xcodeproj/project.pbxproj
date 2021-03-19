@@ -273,7 +273,6 @@
 			packageReferences = (
 				3161D1712512AE7900AAFCCD /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */,
-				31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */,
 			);
 			productRefGroup = 3161D1222512A2B500AAFCCD /* Products */;
 			projectDirPath = "";
@@ -677,14 +676,6 @@
 			requirement = {
 				kind = exactVersion;
 				version = 0.0.12;
-			};
-		};
-		31E17528255AF9AB00DF5219 /* XCRemoteSwiftPackageReference "sdk-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/hypertrack/sdk-ios";
-			requirement = {
-				kind = exactVersion;
-				version = 4.7.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

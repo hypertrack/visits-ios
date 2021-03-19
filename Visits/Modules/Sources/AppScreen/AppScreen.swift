@@ -10,6 +10,9 @@ import MapKit
 import MapScreen
 import ProfileScreen
 import SignInScreen
+import SignUpFormScreen
+import SignUpQuestionsScreen
+import SignUpVerificationScreen
 import SummaryScreen
 import SwiftUI
 import TabSelection
@@ -36,12 +39,18 @@ public struct AppScreen: View {
     case loading
     case deepLink(DeepLinkScreen.State)
     case signIn(SignInScreen.State)
+    case signUpForm(SignUpFormScreen.State)
+    case signUpQuestions(SignUpQuestionsScreen.State)
+    case signUpVerification(SignUpVerificationScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
     case visits(VisitOrVisits, History?, [MapVisit], DriverID, DeviceID, TabSelection)
   }
   
   public enum Action {
+    case signUpForm(SignUpFormScreen.Action)
+    case signUpQuestions(SignUpQuestionsScreen.Action)
+    case signUpVerification(SignUpVerificationScreen.Action)
     case signIn(SignInScreen.Action)
     case driverID(DriverIDScreen.Action)
     case blocker(Blocker.Action)
@@ -58,10 +67,20 @@ public struct AppScreen: View {
   public var body: some View {
     WithViewStore(store) { viewStore in
       switch viewStore.state {
-      case .loading:
+      case .loading, .deepLink:
         LoadingScreen()
-      case let .deepLink(s):
-        DeepLinkScreen(state: s)
+      case let .signUpForm(s):
+        SignUpFormScreen(state: s) {
+          viewStore.send(.signUpForm($0))
+        }
+      case let .signUpQuestions(s):
+        SignUpQuestionsScreen(state: s) {
+          viewStore.send(.signUpQuestions($0))
+        }
+      case let .signUpVerification(s):
+        SignUpVerificationScreen(state: s) {
+          viewStore.send(.signUpVerification($0))
+        }
       case let .signIn(s):
         SignInScreen(state: s) {
           viewStore.send(.signIn($0))
@@ -119,6 +138,35 @@ struct VisitsBlock: View {
         }
         .tag(TabSelection.visits)
       case let .visits(vs):
+        ZStack() {
+          MapScreen(
+            polyline: Binding.constant(state.history?.coordinates ?? []),
+            sendSelectedMapVisit: sendMap,
+            visits: Binding.constant(state.assignedVisits)
+          )
+          .edgesIgnoringSafeArea(.top)
+          .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
+          if let distance = state.history?.driveDistance, distance != 0 {
+            VStack {
+              Spacer()
+              RoundedStack {
+                HStack {
+                  Text("Distance: \(localizedDistance(distance))")
+                    .font(.normalHighBold)
+                    .padding()
+                  Spacer()
+                }
+              }
+              .padding(.bottom, -10)
+            }
+          }
+        }
+        .tabItem {
+          Image(systemName: "map")
+          Text("Map")
+        }
+        .tag(TabSelection.map)
+        
         VisitsScreen(state: vs) {
           sendVisits($0)
         }
@@ -128,34 +176,6 @@ struct VisitsBlock: View {
         }
         .tag(TabSelection.visits)
       }
-      ZStack() {
-        MapScreen(
-          polyline: Binding.constant(state.history?.coordinates ?? []),
-          sendSelectedMapVisit: sendMap,
-          visits: Binding.constant(state.assignedVisits)
-        )
-        .edgesIgnoringSafeArea(.top)
-        .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
-        if let distance = state.history?.driveDistance, distance != 0 {
-          VStack {
-            Spacer()
-            RoundedStack {
-              HStack {
-                Text("Distance: \(localizedDistance(distance))")
-                  .font(.normalHighBold)
-                  .padding()
-                Spacer()
-              }
-            }
-            .padding(.bottom, -10)
-          }
-        }
-      }
-      .tabItem {
-        Image(systemName: "map")
-        Text("Map")
-      }
-      .tag(TabSelection.map)
       
       SummaryScreen(
         state: .init(

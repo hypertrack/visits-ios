@@ -97,6 +97,7 @@ private struct ButtonActivityIndicator: UIViewRepresentable {
 public struct PrimaryButton: View {
   private let variant: Variant
   private let showActivityIndicator: Bool
+  private let truncationMode: Text.TruncationMode?
   private let onTapAction: () -> Void
   
   public enum Variant {
@@ -124,10 +125,12 @@ public struct PrimaryButton: View {
   public init(
     variant: Variant,
     showActivityIndicator: Bool = false,
+    truncationMode: Text.TruncationMode? = .middle,
     _ onTapAction: @escaping () -> Void
   ) {
     self.variant = variant
     self.showActivityIndicator = showActivityIndicator
+    self.truncationMode = truncationMode
     self.onTapAction = onTapAction
   }
   
@@ -135,13 +138,22 @@ public struct PrimaryButton: View {
     Button(action: onTapAction) {
       HStack {
         Spacer()
-        Text(variant.title)
-          .truncationMode(.middle)
-          .allowsTightening(true)
-          .lineLimit(1)
-          .padding([.leading, .trailing], showActivityIndicator ? 0 : 12)
+        if let truncationMode = truncationMode {
+          Text(variant.title)
+            .truncationMode(truncationMode)
+            .allowsTightening(true)
+            .lineLimit(1)
+            .padding([.leading, .trailing], showActivityIndicator ? 0 : CGFloat(12))
+        } else {
+          Text(variant.title)
+            .fixedSize()
+            .allowsTightening(true)
+            .lineLimit(1)
+            .padding([.leading, .trailing], showActivityIndicator ? 0 : CGFloat(12))
+        }
         if showActivityIndicator {
           ButtonActivityIndicator(animating: true)
+            .frame(width: 30, height: 30)
         }
         Spacer()
       }
@@ -154,7 +166,7 @@ public struct PrimaryButton: View {
 struct PrimaryButton_Previews: PreviewProvider {
   static var previews: some View {
     Group {
-      PrimaryButton(variant: .normal(title: "Normal Light"), { })
+      PrimaryButton(variant: .normal(title: "Normal Light"), showActivityIndicator: true, { })
         .previewScheme(.light)
       PrimaryButton(variant: .normal(title: "Normal Dark"), { })
         .previewScheme(.dark)
@@ -201,6 +213,9 @@ public struct SecondaryButton: View {
       HStack {
         Spacer()
         Text(title)
+          .fixedSize()
+          .allowsTightening(true)
+          .lineLimit(1)
         Spacer()
       }
     }

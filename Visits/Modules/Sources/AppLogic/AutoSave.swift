@@ -39,6 +39,12 @@ func saveFlow(_ appFlow: AppFlow) -> StorageState? {
        .appLaunching,
        .noMotionServices:
     return nil
+  case let .signUp(.formFilling(_, e, _, _, _, _)):
+    return .signUp(e)
+  case let .signUp(.formFilled(_, e, _, _, _, _)),
+       let .signUp(.questions(_, e, _, _)),
+       let .signUp(.verification(_, e, _)):
+    return .signUp(e)
   case let .signIn(.editingCredentials(.some(.this(e)), _)):
     return .signIn(e)
   case let .signIn(.editingCredentials(.some(.both(e, _)), _)):

@@ -19,7 +19,7 @@ func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofen
 
 func getGeofencesPage(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> AnyPublisher<GeofencePage, APIError> {
   URLSession.shared.dataTaskPublisher(for: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
-    .map { data, _ in data }
+    .map(\.data)
     .decode(type: GeofencePage.self, decoder: JSONDecoder())
     .mapError { _ in .unknown }
     .eraseToAnyPublisher()
@@ -43,6 +43,8 @@ func geofencesRequest(auth token: Token, deviceID: DeviceID, paginationToken: Pa
   
   var request = URLRequest(url: components.url!)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
   request.httpMethod = "GET"
   return request
 }

@@ -61,6 +61,9 @@ public extension StateRestorationEnvironment {
           }
         case let .some(s):
           switch s {
+          case let .signUp(e):
+            ud.set(Screen.signUp.rawValue, forKey: RestorationKey.screen.rawValue)
+            ud.set(e <¡> \.rawValue.rawValue, forKey: RestorationKey.email.rawValue)
           case let .signIn(e):
             ud.set(Screen.signIn.rawValue, forKey: RestorationKey.screen.rawValue)
             ud.set(e <¡> \.rawValue.rawValue, forKey: RestorationKey.email.rawValue)
@@ -110,6 +113,9 @@ func restoredStateFrom(
   case (.none, _, .none, .none, _, _, _, _, _):
     return nil
   
+  case let (.signUp, email, _, _, _, _, _, _, _):
+    return .signUp(email)
+    
   // Sign in screen
   case let (.signIn, email, _, _, _, _, _, _, _):
     return .signIn(email)
@@ -140,6 +146,7 @@ enum RestorationKey: String, CaseIterable {
 }
 
 enum Screen: String {
+  case signUp
   case signIn
   case driverID
   case visits

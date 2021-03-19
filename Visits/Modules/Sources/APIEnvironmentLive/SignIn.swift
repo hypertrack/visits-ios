@@ -32,5 +32,7 @@ func signInRequest(email: Email, password: Password) -> URLRequest {
     options: JSONSerialization.WritingOptions(rawValue: 0)
   )
   request.httpMethod = "POST"
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
   return request
 }

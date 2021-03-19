@@ -42,6 +42,8 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                 switch storageState {
                 case .none:
                   return Effect(value: AppAction.restoredState(.left(.deepLink), network))
+                case let .some(.signUp(email)):
+                  return Effect(value: AppAction.restoredState(.left(.signUp(email)), network))
                 case let .some(.signIn(email)):
                   return Effect(value: AppAction.restoredState(.left(.signIn(email)), network))
                 case let .some(.driverID(driverID, publishableKey, mvs)):
@@ -76,9 +78,11 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
     case let .left(restoredState):
       switch restoredState {
       case .deepLink:
-        state.flow = .signIn(.editingCredentials(.none, .right(.waitingForDeepLink)))
+        state.flow = .signUp(.formFilling(nil, nil, nil, nil, nil, .waitingForDeepLink))
       case let .driverID(driverID, publishableKey, mvs):
         state.flow = .driverID(driverID, publishableKey, mvs, nil)
+      case let .signUp(email):
+        state.flow = .signUp(.formFilling(nil, email, nil, nil, nil, nil))
       case .signIn(.none):
         state.flow = .signIn(.editingCredentials(nil, nil))
       case let .signIn(.some(email)):
@@ -95,6 +99,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
             .eraseToEffect()
             .map(AppAction.statusUpdated)
         )
+      
       }
     case .right(.motionActivityServicesUnavalible):
       state.flow = .noMotionServices

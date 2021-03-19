@@ -2,6 +2,7 @@ import AppLogic
 import AppScreen
 import BlockerScreen
 import ComposableArchitecture
+import Credentials
 import DeepLinkScreen
 import DriverIDScreen
 import LoadingScreen
@@ -9,6 +10,9 @@ import MapScreen
 import Prelude
 import PushStatus
 import SignInScreen
+import SignUpFormScreen
+import SignUpQuestionsScreen
+import SignUpVerificationScreen
 import Visit
 import VisitScreen
 import VisitsScreen
@@ -63,6 +67,41 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   switch appState.flow {
   case .created, .appLaunching: return .loading
   case .noMotionServices: return .blocker(.noMotionServices)
+  case let .signUp(.formFilled(_, _, _, _, _, .some(p))): return processingDeepLink(p)
+  case let .signUp(.formFilled(n, e, p, focus, err, .none)):
+    return .signUpForm(
+      .init(
+        name: n.rawValue.rawValue,
+        email: e.rawValue.rawValue,
+        password: p.rawValue.rawValue,
+        fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
+        formIsValid: true,
+        questionsAnswered: false,
+        errorMessage: err?.rawValue.rawValue ?? ""
+      )
+    )
+  case let .signUp(.formFilling(_, _, _, _, _, .some(p))): return processingDeepLink(p)
+  case let .signUp(.formFilling(n, e, p, focus, err, .none)):
+    return .signUpForm(
+      .init(
+        name: n?.rawValue.rawValue ?? "",
+        email: e?.rawValue.rawValue ?? "",
+        password: p?.rawValue.rawValue ?? "",
+        fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
+        formIsValid: false,
+        questionsAnswered: false,
+        errorMessage: err?.rawValue.rawValue ?? ""
+      )
+    )
+  case let .signUp(.questions(_, _, _, .signingUp(bm, mf, rs))):
+    return .signUpQuestions(.init(questionsStatus: .signingUp(bm, mf, rs)))
+  case let .signUp(.questions(_, _, _, .answering(_, _, .some(p)))): return processingDeepLink(p)
+  case let .signUp(.questions(_, _, _, .answering(ebmmf, efe, .none))):
+    return .signUpQuestions(.init(questionsStatus: .answering(ebmmf, efe)))
+  case let .signUp(.verification(.entered(_, .notSent(_, _, .some(p))), _, _)),
+       let .signUp(.verification(.entering(_, _, _, .some(p)), _, _)): return processingDeepLink(p)
+  case let .signUp(.verification(ver, _, _)): return .signUpVerification(verificationState(ver))
+    
   case let .signIn(.editingCredentials(_, .right(p))): return processingDeepLink(p)
   case let .signIn(s):
     return .signIn(
@@ -124,6 +163,40 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
 
 func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   switch appScreenAction {
+  case .signUpForm(.nameTapped): return .focusBusinessName
+  case let .signUpForm(.nameChanged(n)) where n.isEmpty: return .businessNameChanged(nil)
+  case let .signUpForm(.nameChanged(n)): return .businessNameChanged(.init(stringLiteral: n))
+  case .signUpForm(.nameEnterKeyboardButtonTapped): return .focusEmail
+  case .signUpForm(.emailTapped): return .focusEmail
+  case let .signUpForm(.emailChanged(e)) where e.isEmpty: return .emailChanged(nil)
+  case let .signUpForm(.emailChanged(e)): return .emailChanged(.init(stringLiteral: e))
+  case .signUpForm(.emailEnterKeyboardButtonTapped): return .focusPassword
+  case .signUpForm(.passwordTapped): return .focusPassword
+  case let .signUpForm(.passwordChanged(p)) where p.isEmpty: return .passwordChanged(nil)
+  case let .signUpForm(.passwordChanged(p)): return .passwordChanged(.init(stringLiteral: p))
+  case .signUpForm(.passwordEnterKeyboardButtonTapped): return .completeSignUpForm
+  case .signUpForm(.nextButtonTapped): return .completeSignUpForm
+  case .signUpForm(.signInTapped): return .goToSignIn
+  case .signUpForm(.tappedOutsideFocus): return .dismissFocus
+  case let .signUpQuestions(.businessManagesChanged(bm)): return .businessManagesChanged(bm)
+  case let .signUpQuestions(.managesForChanged(mf)): return .managesForChanged(mf)
+  case .signUpQuestions(.businessManagesTapped): return .businessManagesSelected
+  case .signUpQuestions(.managesForTapped): return .managesForSelected
+  case .signUpQuestions(.deselectQuestions): return .dismissFocus
+  case .signUpQuestions(.backButtonTapped): return .goToSignUp
+  case .signUpQuestions(.acceptButtonTapped): return .signUp
+  case .signUpQuestions(.cancelSignUpTapped): return .cancelSignUp
+  case let .signUpVerification(.firstFieldChanged(s)): return .firstVerificationFieldChanged(s)
+  case let .signUpVerification(.secondFieldChanged(s)): return .secondVerificationFieldChanged(s)
+  case let .signUpVerification(.thirdFieldChanged(s)): return .thirdVerificationFieldChanged(s)
+  case let  .signUpVerification(.fourthFieldChanged(s)): return .fourthVerificationFieldChanged(s)
+  case let .signUpVerification(.fifthFieldChanged(s)): return .fifthVerificationFieldChanged(s)
+  case let .signUpVerification(.sixthFieldChanged(s)): return .sixthVerificationFieldChanged(s)
+  case .signUpVerification(.fieldsTapped): return .focusVerification
+  case .signUpVerification(.tappedOutsideFocus): return .dismissFocus
+  case .signUpVerification(.resendButtonTapped): return .resendVerificationCode
+  case .signUpVerification(.signInTapped): return .goToSignIn
+  case .signUpVerification(.backspacePressed): return .deleteVerificationDigit
   case .signIn(.cancelSignInTapped): return .cancelSignIn
   case let .signIn(.emailChanged(e)) where e.isEmpty: return .emailChanged(nil)
   case let .signIn(.emailChanged(e)): return .emailChanged(.init(stringLiteral: e))
@@ -135,6 +208,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .signIn(.passwordTapped): return .focusPassword
   case .signIn(.signInTapped): return .signIn
   case .signIn(.tappedOutsideFocus): return .dismissFocus
+  case .signIn(.signUpTapped): return .goToSignUp
   case .driverID(.buttonTapped): return .setDriverID
   case let .driverID(.driverIDChanged(d)) where d.isEmpty: return .driverIDChanged(nil)
   case let .driverID(.driverIDChanged(d)): return .driverIDChanged(.init(stringLiteral: d))
@@ -169,9 +243,9 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .visit(.tappedOutsideFocusedTextField): return .dismissFocus
   case .tab(.map): return .switchToMap
   case .tab(.visits): return .switchToVisits
-  case let .map(id): return .selectVisit(id)
   case .tab(.summary): return .switchToSummary
   case .tab(.profile): return .switchToProfile
+  case let .map(id): return .selectVisit(id)
   }
 }
 
@@ -399,3 +473,147 @@ func mapVisitStatus(from geotagSent: AssignedVisit.Geotag) -> MapVisit.Status {
   case .cancelled:          return .canceled
   }
 }
+
+extension SignUpFormScreen.State.Focus {
+  init(formFocus: SignUpState.FormFocus) {
+    switch formFocus {
+    case .name: self = .name
+    case .email: self = .email
+    case .password: self = .password
+    }
+  }
+}
+
+func verificationState(_ verification: SignUpState.Verification) -> SignUpVerificationScreen.State {
+  func firstField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.first.rawValue)
+    case let .entering(.some(.one(d)), _, _, _),
+         let .entering(.some(.two(d, _)), _, _, _),
+         let .entering(.some(.three(d, _, _)), _, _, _),
+         let .entering(.some(.four(d, _, _, _)), _, _, _),
+         let .entering(.some(.five(d, _, _, _, _)), _, _, _):
+      return String(d.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func secondField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.second.rawValue)
+    case let .entering(.some(.two(_, d)), _, _, _),
+         let .entering(.some(.three(_, d, _)), _, _, _),
+         let .entering(.some(.four(_, d, _, _)), _, _, _),
+         let .entering(.some(.five(_, d, _, _, _)), _, _, _):
+      return String(d.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func thirdField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.third.rawValue)
+    case let .entering(.some(.three(_, _, d)), _, _, _),
+         let .entering(.some(.four(_, _, d, _)), _, _, _),
+         let .entering(.some(.five(_, _, d, _, _)), _, _, _):
+      return String(d.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func fourthField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.fourth.rawValue)
+    case let .entering(.some(.four(_, _, _, d)), _, _, _),
+         let .entering(.some(.five(_, _, _, d, _)), _, _, _):
+      return String(d.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func fifthField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.fifth.rawValue)
+    case let .entering(.some(.five(_, _, _, _, d)), _, _, _):
+      return String(d.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func sixthField() -> String {
+    switch verification {
+    case let .entered(code, _):
+      return String(code.sixth.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  func fieldInFocus() -> SignUpVerificationScreen.State.Focus {
+    switch verification {
+    case .entering(.none, .focused, _, _):
+      return .first
+    case .entering(.one, .focused, _, _):
+      return .second
+    case .entering(.two, .focused, _, _):
+      return .third
+    case .entering(.three, .focused, _, _):
+      return .fourth
+    case .entering(.four, .focused, _, _):
+      return .fifth
+    case .entering(.five, .focused, _, _),
+         .entered(_, .notSent(.focused, _, _)):
+      return .sixth
+    case .entered(_, .inFlight),
+         .entered(_, .notSent(.unfocused, _, _)),
+         .entering(_, .unfocused, _, _):
+      return .none
+    }
+  }
+  
+  func verifying() -> Bool {
+    switch verification {
+    case .entered(_, .inFlight):
+      return true
+    case .entered(_, .notSent),
+         .entering(_, _, _, _):
+      return false
+    }
+  }
+  
+  func error() -> String {
+    switch verification {
+    case let .entered(_, .notSent(_, .some(e), _)),
+         let .entering(_, _, .some(e), _):
+      return e.rawValue.rawValue
+    case .entered(_, .inFlight),
+         .entered(_, .notSent(_, .none, _)),
+         .entering(_, _, .none, _):
+      return ""
+    }
+  }
+  
+  return .init(
+    firstField: firstField(),
+    secondField: secondField(),
+    thirdField: thirdField(),
+    fourthField: fourthField(),
+    fifthField: fifthField(),
+    sixthField: sixthField(),
+    fieldInFocus: fieldInFocus(),
+    verifying: verifying(),
+    error: error()
+  )
+}
+
+

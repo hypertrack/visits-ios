@@ -3,37 +3,45 @@ import SwiftUI
 public struct Title: View {
   @Environment(\.colorScheme) var colorScheme
   private let title: String
-  private let subtitle: String
+  private let withCheck: Bool
   
-  public init(title: String, subtitle: String = "") {
+  public init(title: String, withCheck: Bool = false) {
     self.title = title
-    self.subtitle = subtitle
+    self.withCheck = withCheck
   }
   
   public var body: some View {
     GeometryReader { geometry in
       VStack(alignment: .center, spacing: 0.0) {
-        Text(title)
-          .font(.hugeSemibold)
-          .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
-          .padding(.top, 44)
-        Text(subtitle)
-          .font(.smallMedium)
-          .foregroundColor(colorScheme == .dark ? .ghost : .greySuit)
+        HStack {
+          if withCheck {
+            ZStack {
+              Image(systemName: "checkmark.circle.fill")
+                .font(.hugeSemibold)
+                .foregroundColor(.blue)
+                .background(Circle().foregroundColor(.white).padding(2))
+            }
+            .padding(.top, 44)
+          }
+          Text(title)
+            .font(.hugeSemibold)
+            .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
+            .padding(.top, 44)
+        }
       }
-      .frame(width: geometry.size.width, height: 94)
+      .frame(width: geometry.size.width, height: 80)
       .modifier(AppBackground())
     }
-    .frame(height: 94)
+    .frame(height: 80)
   }
 }
 
 struct TitleView_Previews: PreviewProvider {
   static var previews: some View {
     Group {
-      Title(title: "Sign up a new account", subtitle: "14 day free trial. No Credit card required")
+      Title(title: "Sign up a new account", withCheck: true)
         .environment(\.colorScheme, .dark)
-      Title(title: "Sign up a new account", subtitle: "14 day free trial. No Credit card required")
+      Title(title: "Sign up a new account")
         .environment(\.colorScheme, .light)
     }
     .previewLayout(.sizeThatFits)

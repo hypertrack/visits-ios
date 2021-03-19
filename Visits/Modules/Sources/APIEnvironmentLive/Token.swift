@@ -12,7 +12,7 @@ enum TokenTag {}
 
 func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPublisher<Token, APIError> {
   URLSession.shared.dataTaskPublisher(for: authorizationRequest(auth: publishableKey, deviceID: deviceID))
-    .map { data, _ in data }
+    .map(\.data)
     .decode(type: Authentication.self, decoder: JSONDecoder())
     .map(\.accessToken)
     .mapError { _ in .unknown }
@@ -28,6 +28,8 @@ func authorizationRequest(auth publishableKey: PublishableKey, deviceID: DeviceI
     options: JSONSerialization.WritingOptions(rawValue: 0)
   )
   request.httpMethod = "POST"
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
   return request
 }
 
