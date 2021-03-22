@@ -81,7 +81,7 @@ let package = Package(
   dependencies: [
     .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.38.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.16.0")),
-    .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.7.0")),
+    .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0-rc.1")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",
                                                                                                               .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
     .package(name: "Prelude",    url: "https://github.com/hypertrack/prelude-swift",                          .exact("0.0.12")),
@@ -89,5 +89,3 @@ let package = Package(
   ],
   targets: targets + testTargets
 )
-
-
