@@ -10,6 +10,7 @@ import LogEnvironment
 import NonEmpty
 import PublishableKey
 import SDK
+import Visit
 
 extension String: Error {}
 
@@ -20,32 +21,19 @@ public extension HyperTrackEnvironment {
         logEffect("addGeotag: \(geotag)")
         let metadata: [String: String]
         switch geotag {
-        case let .cancel(a):
+        case let .cancel(id, source, visitNote):
           metadata =
             [
-              fromAssignedSource(a.source): a.id.rawValue.rawValue,
+              fromAssignedSource(source): id.rawValue.rawValue,
               C.type.rawValue: C.cancel.rawValue,
-              C.visitNote.rawValue: a.visitNote?.rawValue.rawValue ?? ""
+              C.visitNote.rawValue: visitNote?.rawValue.rawValue ?? ""
             ]
-        case let .checkIn(m):
+        case let .checkOut(id, source, visitNote):
           metadata =
             [
-              C.visitID.rawValue: m.rawValue.rawValue,
-              C.type.rawValue: C.checkIn.rawValue
-            ]
-        case let .checkOut(.left(m)):
-          metadata =
-            [
-              C.visitID.rawValue: m.id.rawValue.rawValue,
+              fromAssignedSource(source): id.rawValue.rawValue,
               C.type.rawValue: C.checkOut.rawValue,
-              C.visitNote.rawValue: m.visitNote?.rawValue.rawValue ?? ""
-            ]
-        case let .checkOut(.right(a)):
-          metadata =
-            [
-              fromAssignedSource(a.source): a.id.rawValue.rawValue,
-              C.type.rawValue: C.checkOut.rawValue,
-              C.visitNote.rawValue: a.visitNote?.rawValue.rawValue ?? ""
+              C.visitNote.rawValue: visitNote?.rawValue.rawValue ?? ""
             ]
         case .clockIn:
           metadata = [C.type.rawValue: C.clockIn.rawValue]
@@ -189,7 +177,7 @@ public extension HyperTrackEnvironment {
   )
 }
 
-func fromAssignedSource(_ source: A.Source) -> String {
+func fromAssignedSource(_ source: Visit.Source) -> String {
   switch source {
   case .geofence: return C.geofenceID.rawValue
   case .trip: return C.tripID.rawValue

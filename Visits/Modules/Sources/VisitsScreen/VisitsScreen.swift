@@ -29,7 +29,6 @@ public struct VisitsScreen: View {
     public let canceled: [VisitHeader]
     public let isNetworkAvailable: Bool
     public let refreshing: Bool
-    public let showManualVisits: Bool
     public let deviceID: String
     public let publishableKey: String
     
@@ -48,7 +47,6 @@ public struct VisitsScreen: View {
       canceled: [VisitHeader],
       isNetworkAvailable: Bool,
       refreshing: Bool,
-      showManualVisits: Bool,
       deviceID: String,
       publishableKey: String
     ) {
@@ -58,14 +56,12 @@ public struct VisitsScreen: View {
       self.canceled = canceled
       self.isNetworkAvailable = isNetworkAvailable
       self.refreshing = refreshing
-      self.showManualVisits = showManualVisits
       self.deviceID = deviceID
       self.publishableKey = publishableKey
     }
   }
   
   public enum Action: Equatable {
-    case addVisitButtonTapped
     case clockOutButtonTapped
     case refreshButtonTapped
     case visitTapped(String)
@@ -143,21 +139,6 @@ public struct VisitsScreen: View {
             .listStyle(GroupedListStyle())
             .environment(\.horizontalSizeClass, .regular)
           }
-          .padding([.bottom], state.showManualVisits ? CGFloat(78) : 0)
-          if state.showManualVisits {
-            VStack {
-              Spacer()
-              RoundedStack {
-                PrimaryButton(
-                  variant: .normal(title: "Add Visit")
-                ) {
-                  send(.addVisitButtonTapped)
-                }
-                .padding([.trailing, .leading], 58)
-              }
-              .padding(.bottom, -10)
-            }
-          }
         }
       }
     )
@@ -189,7 +170,6 @@ struct VisitsScreen_Previews: PreviewProvider {
         canceled: [.init(id: "4", title: "4 Embracadero Ctr")],
         isNetworkAvailable: false,
         refreshing: false,
-        showManualVisits: true,
         deviceID: "blank",
         publishableKey: "blank"
       ),

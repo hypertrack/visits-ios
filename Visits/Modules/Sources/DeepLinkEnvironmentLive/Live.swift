@@ -4,7 +4,6 @@ import ComposableArchitecture
 import DeepLinkEnvironment
 import DriverID
 import LogEnvironment
-import ManualVisitsStatus
 import NonEmpty
 import PublishableKey
 
@@ -35,7 +34,7 @@ public extension DeepLinkEnvironment {
 }
 
 func handleBranchCallback(
-  _ f: @escaping ((PublishableKey, DriverID?, ManualVisitsStatus?)) -> Void
+  _ f: @escaping ((PublishableKey, DriverID?)) -> Void
 ) -> ([AnyHashable : Any]?, Error?) -> Void {
   { params, error in
     logEffect("subscribeToDeepLinks.handleBranchCallback Params: \(String(describing: params)) Error: \(String(describing: error))")
@@ -51,18 +50,7 @@ func handleBranchCallback(
         driverID = nil
       }
       
-      let ManualVisitsStatus: ManualVisitsStatus?
-      if let statusBool = params["show_manual_visits"] as? Bool {
-        if statusBool {
-          ManualVisitsStatus = .showManualVisits
-        } else {
-          ManualVisitsStatus = .hideManualVisits
-        }
-      } else {
-        ManualVisitsStatus = nil
-      }
-      
-      f((publishableKey, driverID, ManualVisitsStatus))
+      f((publishableKey, driverID))
     }
   }
 }

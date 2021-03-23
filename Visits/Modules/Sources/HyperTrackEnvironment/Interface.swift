@@ -7,48 +7,12 @@ import SDK
 import UIKit
 import Visit
 
-public typealias M = ManualVisit
-public typealias A = AssignedVisit
-
-public struct AssignedCheckIn: Equatable {
-  public let id: A.ID
-  public let source: A.Source
-  
-  public init(id: A.ID, source: A.Source) {
-    self.id = id
-    self.source = source
-  }
-}
-
-public struct ManualCheckOut: Equatable {
-  public let id: M.ID
-  public let visitNote: M.VisitNote?
-  
-  public init(id: M.ID, visitNote: M.VisitNote?) {
-    self.id = id
-    self.visitNote = visitNote
-  }
-}
-
-public struct AssignedComplete: Equatable {
-  public let id: A.ID
-  public let source: A.Source
-  public let visitNote: A.VisitNote?
-  
-  public init(id: A.ID, source: A.Source, visitNote: A.VisitNote?) {
-    self.id = id
-    self.source = source
-    self.visitNote = visitNote
-  }
-}
-
 public enum Geotag: Equatable {
-  case cancel(AssignedComplete)
-  case checkIn(M.ID)
-  case checkOut(Either<ManualCheckOut, AssignedComplete>)
+  case cancel(Visit.ID, Visit.Source, Visit.VisitNote?)
+  case checkOut(Visit.ID, Visit.Source, Visit.VisitNote?)
   case clockIn
   case clockOut
-  case pickUp(A.ID, A.Source)
+  case pickUp(Visit.ID, Visit.Source)
 }
 
 public struct HyperTrackEnvironment {

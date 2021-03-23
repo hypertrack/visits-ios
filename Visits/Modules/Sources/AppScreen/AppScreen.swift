@@ -232,7 +232,6 @@ struct AppScreen_Previews: PreviewProvider {
               canceled: [],
               isNetworkAvailable: true,
               refreshing: false,
-              showManualVisits: false,
               deviceID: "DeviceID",
               publishableKey: "PublishableKey"
             )

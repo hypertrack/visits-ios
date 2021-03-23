@@ -2,16 +2,10 @@ import AppArchitecture
 import ComposableArchitecture
 import PublishableKey
 import DriverID
-import ManualVisitsStatus
 import NonEmpty
 import Prelude
 import Tagged
 import Visit
-
-extension Visits {
-  static let `default` = Visits.assigned([])
-}
-
 
 
 let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer { state, action, environment in
@@ -59,25 +53,19 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
   switch (state.flow, action) {
   case (.appLaunching, .restoredState(.left(.deepLink), _)):
     return timer
-  case let (.driverID(_, _, _, .waitingForSDKWith(pk, drID, mvs)), .madeSDK(s, p)),
-       let (.signIn(.editingCredentials(_, .right(.waitingForSDKWith(pk, drID, mvs)))), .madeSDK(s, p)),
-       let (.signUp(.formFilled(_, _, _, _, _, .waitingForSDKWith(pk, drID, mvs))), .madeSDK(s, p)),
-       let (.signUp(.formFilling(_, _, _, _, _, .waitingForSDKWith(pk, drID, mvs))), .madeSDK(s, p)),
-       let (.signUp(.questions(_, _, _, .answering(_, _, .waitingForSDKWith(pk, drID, mvs)))), .madeSDK(s, p)),
-       let (.signUp(.verification(.entered(_, .notSent(_, _, .waitingForSDKWith(pk, drID, mvs))), _, _)), .madeSDK(s, p)),
-       let (.signUp(.verification(.entering(_, _, _, .waitingForSDKWith(pk, drID, mvs)), _, _)), .madeSDK(s, p)):
+  case let (.driverID(_, _, .waitingForSDKWith(pk, drID)), .madeSDK(s, p)),
+       let (.signIn(.editingCredentials(_, .right(.waitingForSDKWith(pk, drID)))), .madeSDK(s, p)),
+       let (.signUp(.formFilled(_, _, _, _, _, .waitingForSDKWith(pk, drID))), .madeSDK(s, p)),
+       let (.signUp(.formFilling(_, _, _, _, _, .waitingForSDKWith(pk, drID))), .madeSDK(s, p)),
+       let (.signUp(.questions(_, _, _, .answering(_, _, .waitingForSDKWith(pk, drID)))), .madeSDK(s, p)),
+       let (.signUp(.verification(.entered(_, .notSent(_, _, .waitingForSDKWith(pk, drID))), _, _)), .madeSDK(s, p)),
+       let (.signUp(.verification(.entering(_, _, _, .waitingForSDKWith(pk, drID)), _, _)), .madeSDK(s, p)):
     switch s {
     case .locked:
       state.flow = .noMotionServices
       return .none
     case let .unlocked(deID, s):
-      switch mvs {
-      case .none,
-           .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
-      case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
-      }
+      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
       return .merge(
         environment
           .hyperTrack
@@ -91,19 +79,13 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
           .fireAndForget()
       )
     }
-  case let (.visits(_, _, _, _, _, _, _, _, _, ps, e, .waitingForSDKWith(pk, drID, mvs)), .madeSDK(s, p)):
+  case let (.visits(_, _, _, _, _, _, _, _, _, _, ps, e, .waitingForSDKWith(pk, drID)), .madeSDK(s, p)):
     switch s {
     case .locked:
       state.flow = .noMotionServices
       return .none
     case let .unlocked(deID, s):
-      switch mvs {
-      case .none,
-           .some(.hideManualVisits):
-        state.flow = .visits(.default, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
-      case .some(.showManualVisits):
-        state.flow = .visits(.mixed([]), nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
-      }
+      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
       return .merge(
         environment
           .hyperTrack
@@ -117,25 +99,24 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
           .fireAndForget()
       )
     }
-  case let (.driverID(drID, pk, mvs, .none), .deepLinkOpened(a)):
-    state.flow = .driverID(drID, pk, mvs, .waitingForDeepLink)
+  case let (.driverID(drID, pk, .none), .deepLinkOpened(a)):
+    state.flow = .driverID(drID, pk, .waitingForDeepLink)
     return setTimerAndProcessDeeplink(a)
-  case let (.driverID(drID, pk, mvs, .none), .receivedDeepLink(dPK, dDRIDD, dMVS)):
-    state.flow = .driverID(drID, pk, mvs, .waitingForTimerWith(dPK, dDRIDD, dMVS))
+  case let (.driverID(drID, pk, .none), .receivedDeepLink(dPK, dDRIDD)):
+    state.flow = .driverID(drID, pk, .waitingForTimerWith(dPK, dDRIDD))
     return timer
-  case let (.driverID(drID, pk, mvs, .waitingForDeepLink), .deepLinkTimerFired):
-    state.flow = .driverID(drID, pk, mvs, .none)
+  case let (.driverID(drID, pk, .waitingForDeepLink), .deepLinkTimerFired):
+    state.flow = .driverID(drID, pk, .none)
     return .cancel(id: TimerID())
-  case let (.driverID(drID, pk, mvs, .waitingForDeepLink), .receivedDeepLink(dPK, dDRIDD, dMVS)):
-    state.flow = .driverID(drID, pk, mvs, .waitingForTimerWith(dPK, dDRIDD, dMVS))
+  case let (.driverID(drID, pk, .waitingForDeepLink), .receivedDeepLink(dPK, dDRIDD)):
+    state.flow = .driverID(drID, pk, .waitingForTimerWith(dPK, dDRIDD))
     return .none
-  case let (.driverID(drID, pk, mvs, .waitingForTimerWith(dPK, dDRIDD, dMVS)), .deepLinkTimerFired):
-    let newMVS = dMVS ?? mvs
+  case let (.driverID(drID, pk, .waitingForTimerWith(dPK, dDRIDD)), .deepLinkTimerFired):
     if let dDRIDD = dDRIDD {
-      state.flow = .driverID(dDRIDD, dPK, newMVS, .waitingForSDKWith(dPK, dDRIDD, newMVS))
+      state.flow = .driverID(dDRIDD, dPK, .waitingForSDKWith(dPK, dDRIDD))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(drID, dPK, newMVS, .none)
+      state.flow = .driverID(drID, dPK, .none)
       return .cancel(id: TimerID())
     }
   case let (.signUp(.formFilled(n, e, p, f, er, .none)), .deepLinkOpened(a)):
@@ -153,20 +134,20 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
   case let (.signUp(.verification(.entering(c, f, er, .none), e, p)), .deepLinkOpened(a)):
     state.flow = .signUp(.verification(.entering(c, f, er, .waitingForDeepLink), e, p))
     return setTimerAndProcessDeeplink(a)
-  case let (.signUp(.formFilled(n, e, p, f, er, .none)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs)))
+  case let (.signUp(.formFilled(n, e, p, f, er, .none)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID)))
     return timer
-  case let (.signUp(.formFilling(n, e, p, f, er, .none)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs)))
+  case let (.signUp(.formFilling(n, e, p, f, er, .none)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID)))
     return timer
-  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .none))), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID, mvs))))
+  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .none))), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID))))
     return timer
-  case let (.signUp(.verification(.entered(c, .notSent(f, er, .none)), e, p)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID, mvs))), e, p))
+  case let (.signUp(.verification(.entered(c, .notSent(f, er, .none)), e, p)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID))), e, p))
     return timer
-  case let (.signUp(.verification(.entering(c, f, er, .none), e, p)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID, mvs)), e, p))
+  case let (.signUp(.verification(.entering(c, f, er, .none), e, p)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID)), e, p))
     return timer
   case let (.signUp(.formFilled(n, e, p, f, er, .waitingForDeepLink)), .deepLinkTimerFired):
     state.flow = .signUp(.formFilled(n, e, p, f, er, .none))
@@ -184,60 +165,60 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
     state.flow = .signUp(.verification(.entering(c, f, er, .none), e, p))
     return .cancel(id: TimerID())
     
-  case let (.signUp(.formFilled(n, e, p, f, er, .waitingForDeepLink)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs)))
+  case let (.signUp(.formFilled(n, e, p, f, er, .waitingForDeepLink)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID)))
     return .none
-  case let (.signUp(.formFilling(n, e, p, f, er, .waitingForDeepLink)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs)))
+  case let (.signUp(.formFilling(n, e, p, f, er, .waitingForDeepLink)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID)))
     return .none
-  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForDeepLink))), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID, mvs))))
+  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForDeepLink))), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID))))
     return .none
-  case let (.signUp(.verification(.entered(c, .notSent(f, er, .waitingForDeepLink)), e, p)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID, mvs))), e, p))
+  case let (.signUp(.verification(.entered(c, .notSent(f, er, .waitingForDeepLink)), e, p)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID))), e, p))
     return .none
-  case let (.signUp(.verification(.entering(c, f, er, .waitingForDeepLink), e, p)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID, mvs)), e, p))
+  case let (.signUp(.verification(.entering(c, f, er, .waitingForDeepLink), e, p)), .receivedDeepLink(pk, drID)):
+    state.flow = .signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID)), e, p))
     return .none
     
-  case let (.signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs))), .deepLinkTimerFired):
+  case let (.signUp(.formFilled(n, e, p, f, er, .waitingForTimerWith(pk, drID))), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForSDKWith(pk, drID, mvs)))
+      state.flow = .signUp(.formFilled(n, e, p, f, er, .waitingForSDKWith(pk, drID)))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
-  case let (.signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID, mvs))), .deepLinkTimerFired):
+  case let (.signUp(.formFilling(n, e, p, f, er, .waitingForTimerWith(pk, drID))), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForSDKWith(pk, drID, mvs)))
+      state.flow = .signUp(.formFilling(n, e, p, f, er, .waitingForSDKWith(pk, drID)))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
-  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID, mvs)))), .deepLinkTimerFired):
+  case let (.signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForTimerWith(pk, drID)))), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForSDKWith(pk, drID, mvs))))
+      state.flow = .signUp(.questions(n, e, p, .answering(ebm, efe, .waitingForSDKWith(pk, drID))))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
-  case let (.signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID, mvs))), e, p)), .deepLinkTimerFired):
+  case let (.signUp(.verification(.entered(c, .notSent(f, er, .waitingForTimerWith(pk, drID))), e, p)), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForSDKWith(pk, drID, mvs))), e, p))
+      state.flow = .signUp(.verification(.entered(c, .notSent(f, er, .waitingForSDKWith(pk, drID))), e, p))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
-  case let (.signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID, mvs)), e, p)), .deepLinkTimerFired):
+  case let (.signUp(.verification(.entering(c, f, er, .waitingForTimerWith(pk, drID)), e, p)), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signUp(.verification(.entering(c, f, er, .waitingForSDKWith(pk, drID, mvs)), e, p))
+      state.flow = .signUp(.verification(.entering(c, f, er, .waitingForSDKWith(pk, drID)), e, p))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
   
@@ -245,69 +226,51 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
        let (.signIn(.editingCredentials(tep, .left)), .deepLinkOpened(a)):
     state.flow = .signIn(.editingCredentials(tep, .right(.waitingForDeepLink)))
     return setTimerAndProcessDeeplink(a)
-  case let (.signIn(.editingCredentials(tep, .none)), .receivedDeepLink(pk, drID, mvs)),
-       let (.signIn(.editingCredentials(tep, .left)), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID, mvs))))
+  case let (.signIn(.editingCredentials(tep, .none)), .receivedDeepLink(pk, drID)),
+       let (.signIn(.editingCredentials(tep, .left)), .receivedDeepLink(pk, drID)):
+    state.flow = .signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID))))
     return timer
   case let (.signIn(.editingCredentials(tep, .right(.waitingForDeepLink))), .deepLinkTimerFired):
     state.flow = .signIn(.editingCredentials(tep, .none))
     return .cancel(id: TimerID())
-  case let (.signIn(.editingCredentials(tep, .right(.waitingForDeepLink))), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID, mvs))))
+  case let (.signIn(.editingCredentials(tep, .right(.waitingForDeepLink))), .receivedDeepLink(pk, drID)):
+    state.flow = .signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID))))
     return .none
-  case let (.signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID, mvs)))), .deepLinkTimerFired):
+  case let (.signIn(.editingCredentials(tep, .right(.waitingForTimerWith(pk, drID)))), .deepLinkTimerFired):
     if let drID = drID {
-      state.flow = .signIn(.editingCredentials(tep, .right(.waitingForSDKWith(pk, drID, mvs))))
+      state.flow = .signIn(.editingCredentials(tep, .right(.waitingForSDKWith(pk, drID))))
       return stopTimerAndInitSDK(pk)
     } else {
-      state.flow = .driverID(nil, pk, mvs, nil)
+      state.flow = .driverID(nil, pk, nil)
       return .cancel(id: TimerID())
     }
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .deepLinkOpened(a)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForDeepLink)
+  case let (.visits(v, sv, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .deepLinkOpened(a)):
+    state.flow = .visits(v, sv, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForDeepLink)
     return setTimerAndProcessDeeplink(a)
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID, mvs))
+  case let (.visits(v, sv, h, s, vPK, vDRID, deID, us, p, _, ps, e, .none), .receivedDeepLink(pk, drID)):
+    state.flow = .visits(v, sv, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID))
     return timer
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .receivedDeepLink(pk, drID, mvs)):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID, mvs))
+  case let (.visits(v, sv, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .receivedDeepLink(pk, drID)):
+    state.flow = .visits(v, sv, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForTimerWith(pk, drID))
     return .none
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .deepLinkTimerFired):
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
+  case let (.visits(v, sv, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForDeepLink), .deepLinkTimerFired):
+    state.flow = .visits(v, sv, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
     return .cancel(id: TimerID())
-  case let (.visits(v, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForTimerWith(pk, drID, mvs)), .deepLinkTimerFired):
+  case let (.visits(v, sv, h, s, vPK, vDRID, deID, us, p, _, ps, e, .waitingForTimerWith(pk, drID)), .deepLinkTimerFired):
     
-    let vMVS: ManualVisitsStatus
-    switch v {
-    case .mixed,
-         .selectedMixed:
-      vMVS = .showManualVisits
-    default:
-      vMVS = .hideManualVisits
-    }
-    let rMVS = mvs ?? vMVS
+    state.flow = .visits([], nil, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
     
-    state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .none)
     
-    switch (v, vPK, vDRID, pk, drID, mvs) {
-    case let (_, vPK, _, pk, .none, .none) where vPK == pk:
+    
+    switch (v, vPK, vDRID, pk, drID) {
+    case let (_, vPK, _, pk, .none) where vPK == pk:
       return .cancel(id: TimerID())
-    case let (_, vPK, vDRID, pk, .some(drID), .none) where vPK == pk && vDRID == drID:
+    case let (_, vPK, vDRID, pk, .some(drID)) where vPK == pk && vDRID == drID:
       return .cancel(id: TimerID())
-    case let (_, vPK, vDRID, pk, .some(drID), .none) where vPK == pk && vDRID != drID:
-      state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, e, .none)
+    case let (_, vPK, vDRID, pk, .some(drID)) where vPK == pk && vDRID != drID:
+      state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .none, ps, e, .none)
       return cancelTimerAndSetDriverID(drID)
-    case let (.mixed, vPK, vDRID, pk, drID, .some(.showManualVisits)) where vPK == pk,
-         let (.selectedMixed, vPK, vDRID, pk, drID, .some(.showManualVisits)) where vPK == pk,
-         let (.assigned, vPK, vDRID, pk, drID, .some(.hideManualVisits)) where vPK == pk,
-         let (.selectedAssigned, vPK, vDRID, pk,drID, .some(.hideManualVisits)) where vPK == pk:
-      if let drID = drID, drID != vDRID {
-        state.flow = .visits(v, h, s, pk, drID, deID, us, p, .none, ps, e, .none)
-        return cancelTimerAndSetDriverID(drID)
-      } else {
-        return .cancel(id: TimerID())
-      }
-    case let (.mixed(v), vPK, vDRID, pk, drID, .some(.hideManualVisits)) where vPK == pk:
+    case let (_, vPK, vDRID, pk, drID) where vPK != pk:
       let newDRID: DriverID
       if let drID = drID, drID != vDRID {
         newDRID = drID
@@ -315,80 +278,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
         newDRID = vDRID
       }
       
-      state.flow = .visits(.assigned(Set(v.compactMap(eitherRight))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
-  
-      
-      if let drID = drID, drID != vDRID {
-        return cancelTimerAndSetDriverID(drID)
-      } else {
-        return .cancel(id: TimerID())
-      }
-    case let (.selectedMixed(v, vs), vPK, vDRID, pk, drID, .some(.hideManualVisits)) where vPK == pk:
-      let newDRID: DriverID
-      if let drID = drID, drID != vDRID {
-        newDRID = drID
-      } else {
-        newDRID = vDRID
-      }
-      
-      let aas =  Set(vs.compactMap(eitherRight))
-      if case let .right(a) = v {
-        state.flow = .visits(.selectedAssigned(a, aas), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
-      } else {
-        state.flow = .visits(.assigned(aas), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
-      }
-      
-      if let drID = drID, drID != vDRID {
-        return cancelTimerAndSetDriverID(drID)      } else {
-        return .cancel(id: TimerID())
-      }
-    case let (.assigned(v), vPK, vDRID, pk, drID, .some(.showManualVisits)) where vPK == pk:
-      let newDRID: DriverID
-      if let drID = drID, drID != vDRID {
-        newDRID = drID
-      } else {
-        newDRID = vDRID
-      }
-      
-      state.flow = .visits(.mixed(Set(v.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
-      
-      if let drID = drID, drID != vDRID {
-        return cancelTimerAndSetDriverID(drID)
-      } else {
-        return .cancel(id: TimerID())
-      }
-    case let (.selectedAssigned(a, aas), vPK, vDRID, pk, drID, .some(.showManualVisits)) where vPK == pk:
-      let newDRID: DriverID
-      if let drID = drID, drID != vDRID {
-        newDRID = drID
-      } else {
-        newDRID = vDRID
-      }
-      
-      state.flow = .visits(.selectedMixed(.right(a), Set(aas.map(Either.right))), h, s, pk, newDRID, deID, us, p, .none, ps, e, .none)
-      
-      if let drID = drID, drID != vDRID {
-        return cancelTimerAndSetDriverID(drID)
-      } else {
-        return .cancel(id: TimerID())
-      }
-    case let (_, vPK, vDRID, pk, drID, mvs) where vPK != pk:
-      let newDRID: DriverID
-      if let drID = drID, drID != vDRID {
-        newDRID = drID
-      } else {
-        newDRID = vDRID
-      }
-      
-      let newV: Visits
-      switch rMVS {
-      case .showManualVisits:
-        newV = .mixed([])
-      case .hideManualVisits:
-        newV = .assigned([])
-      }
-      
-      state.flow = .visits(v, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForSDKWith(pk, newDRID, rMVS))
+      state.flow = .visits([], nil, h, s, vPK, vDRID, deID, us, p, .none, ps, e, .waitingForSDKWith(pk, newDRID))
       
       return stopTimerAndInitSDK(pk)
     default: return .cancel(id: TimerID())
@@ -408,16 +298,5 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
   case (_, .deepLinkTimerFired):
     return .cancel(id: TimerID())
   default: return .none
-  }
-}
-
-func toAssignedMaintainingSelection(_ v: NonEmptyArray<Visit>) -> Either<NonEmptyArray<AssignedVisit>, [AssignedVisit]> {
-  let head = v.first
-  let restAssigned = Array(v.dropFirst()).compactMap(eitherRight)
-  switch head {
-  case .left:
-    return .right(restAssigned)
-  case let .right(a):
-    return .left(NonEmptyArray(rawValue: [a] + restAssigned)!)
   }
 }

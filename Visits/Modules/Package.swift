@@ -15,10 +15,9 @@ let targets: [Target] = [
   .target(name: "Experience"),
   .target(name: "GeoJSON",                         dependencies: ["Coordinate", nonEmpty, "Prelude"]),
   .target(name: "History",                         dependencies: ["Coordinate"]),
-  .target(name: "ManualVisitsStatus"),
   .target(name: "PublishableKey",                  dependencies: [nonEmpty, "Tagged"]),
   .target(name: "PushStatus"),
-  .target(name: "RestorationState",                dependencies: ["Credentials", "DeviceID", "DriverID", "Experience", "ManualVisitsStatus", "PublishableKey", "PushStatus", "SDK", "TabSelection", "Visit"]),
+  .target(name: "RestorationState",                dependencies: ["Credentials", "DeviceID", "DriverID", "Experience", "PublishableKey", "PushStatus", "SDK", "TabSelection", "Visit"]),
   .target(name: "SDK",                             dependencies: ["DeviceID"]),
   .target(name: "Types",                           dependencies: [nonEmpty, "Prelude", "Tagged"]),
   .target(name: "TabSelection"),
@@ -42,7 +41,7 @@ let targets: [Target] = [
   // Environment
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Coordinate", "Credentials", "DeviceID", "History", nonEmpty, "Prelude", "PublishableKey", "Tagged", "Types", "Visit"]),
   .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "Coordinate", "GeoJSON", "LogEnvironment", "Tagged"]),
-  .target(name: "DeepLinkEnvironment",             dependencies: [architecture, "DriverID", "ManualVisitsStatus", nonEmpty, "PublishableKey"]),
+  .target(name: "DeepLinkEnvironment",             dependencies: [architecture, "DriverID", nonEmpty, "PublishableKey"]),
   .target(name: "DeepLinkEnvironmentLive",         dependencies: ["Branch", "DeepLinkEnvironment", "LogEnvironment"]),
   .target(name: "HapticFeedbackEnvironment",       dependencies: [architecture]),
   .target(name: "HapticFeedbackEnvironmentLive",   dependencies: ["HapticFeedbackEnvironment", "LogEnvironment"]),
@@ -58,15 +57,15 @@ let targets: [Target] = [
   .target(name: "PushEnvironment",                 dependencies: [architecture]),
   .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "RestorationState"]),
-  .target(name: "StateRestorationEnvironmentLive", dependencies: ["Credentials", "DriverID", "LogEnvironment", "ManualVisitsStatus", "Prelude", "PublishableKey", "PushStatus", "StateRestorationEnvironment", "TabSelection", "Visit"]),
+  .target(name: "StateRestorationEnvironmentLive", dependencies: ["Credentials", "DriverID", "LogEnvironment", "Prelude", "PublishableKey", "PushStatus", "StateRestorationEnvironment", "TabSelection", "Visit"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "Credentials", "DeepLinkEnvironment", "DeviceID", "DriverID", "Experience", "HapticFeedbackEnvironment", "History", "HyperTrackEnvironment", "ManualVisitsStatus", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PublishableKey", "PushEnvironment", "PushStatus", "RestorationState", "SDK", "StateRestorationEnvironment", "TabSelection", "Tagged", "Types", "Visit"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "Credentials", "DeepLinkEnvironment", "DeviceID", "DriverID", "Experience", "HapticFeedbackEnvironment", "History", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PublishableKey", "PushEnvironment", "PushStatus", "RestorationState", "SDK", "StateRestorationEnvironment", "TabSelection", "Tagged", "Types", "Visit"]),
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "DeepLinkEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "Coordinate", "Credentials", "DeepLinkScreen", "MapScreen", "Prelude", "PushStatus", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "Visit"]),
 ]
 
 let testTargets: [Target] = [
-  .testTarget(name: "APIEnvironmentLiveTests",     dependencies: ["APIEnvironmentLive"]),
+  .testTarget(name: "APIEnvironmentLiveTests",     dependencies: ["APIEnvironmentLive", "Prelude"]),
   .testTarget(name: "GeoJSONTests",                dependencies: ["GeoJSON"])
 ]
 

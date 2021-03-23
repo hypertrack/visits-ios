@@ -46,8 +46,8 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                   return Effect(value: AppAction.restoredState(.left(.signUp(email)), network))
                 case let .some(.signIn(email)):
                   return Effect(value: AppAction.restoredState(.left(.signIn(email)), network))
-                case let .some(.driverID(driverID, publishableKey, mvs)):
-                  return Effect(value: AppAction.restoredState(.left(.driverID(driverID, publishableKey, mvs)), network))
+                case let .some(.driverID(driverID, publishableKey)):
+                  return Effect(value: AppAction.restoredState(.left(.driverID(driverID, publishableKey)), network))
                 case let .some(.visits(visits, tabSelection, publishableKey, driverID, pushStatus, experience)):
                   return environment
                     .hyperTrack
@@ -79,8 +79,8 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
       switch restoredState {
       case .deepLink:
         state.flow = .signUp(.formFilling(nil, nil, nil, nil, nil, .waitingForDeepLink))
-      case let .driverID(driverID, publishableKey, mvs):
-        state.flow = .driverID(driverID, publishableKey, mvs, nil)
+      case let .driverID(driverID, publishableKey):
+        state.flow = .driverID(driverID, publishableKey, nil)
       case let .signUp(email):
         state.flow = .signUp(.formFilling(nil, email, nil, nil, nil, nil))
       case .signIn(.none):
@@ -88,8 +88,8 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
       case let .signIn(.some(email)):
         state.flow = .signIn(.editingCredentials(.this(email), nil))
       case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
-        
-        state.flow = .visits(filterOutOldVisits(visits, now: environment.date()), nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, experience, nil)
+        let fvs = filterOutOldVisits(environment.date())
+        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, experience, nil)
         return .merge(
           stateRestored,
           environment
@@ -109,41 +109,19 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
   }
 }
 
-func filterOutOldVisits(_ visits: Visits, now: Date) -> Visits {
-  let valid = visitValid(now: now)
-  let aValid = assignedVisitValid(now: now)
-  switch visits {
-  case let .mixed(ms):
-    return .mixed(ms.filter(valid))
-  case let .assigned(aas):
-    return .assigned(aas.filter(aValid))
-  case let .selectedMixed(v, ms):
-    if valid(v) {
-      return .selectedMixed(v, ms.filter(valid))
-    } else {
-      return .mixed(ms.filter(valid))
-    }
-  case let .selectedAssigned(a, aas):
-    if aValid(a) {
-      return .selectedAssigned(a, aas.filter(aValid))
-    } else {
-      return .assigned(aas.filter(aValid))
-    }
+func filterOutOldVisits(_ now: Date) -> (Set<Visit>) -> (Set<Visit>) {
+  {
+    $0.filter(visitValid(now: now))
+  }
+}
+
+func filterOutOldVisit(_ now: Date) -> (Visit?) -> Visit? {
+  {
+    $0.flatMap { visitValid(now: now)($0) ? $0 : nil }
   }
 }
 
 func visitValid(now: Date) -> (Visit) -> Bool {
-  { visit in
-    switch visit {
-    case let .left(m):
-      return valid(m.createdAt, now: now)
-    case let .right(a):
-      return valid(a.createdAt, now: now)
-    }
-  }
-}
-
-func assignedVisitValid(now: Date) -> (AssignedVisit) -> Bool {
   { valid($0.createdAt, now: now) }
 }
 
