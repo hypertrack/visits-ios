@@ -40,7 +40,7 @@ public struct DriverIDScreen: View {
         name: "Driver ID",
         errorText: "",
         focused: true,
-        textContentType: .emailAddress,
+        textContentType: .nickname,
         keyboardType: .asciiCapable,
         returnKeyType: .next,
         enterButtonPressed: { send(.nextEnterKeyboardButtonTapped) }
