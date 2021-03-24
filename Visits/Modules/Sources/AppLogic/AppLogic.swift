@@ -28,11 +28,12 @@ public struct AppState: Equatable {
 public enum AppFlow: Equatable {
   case created
   case appLaunching
+  case firstRun
   case noMotionServices
   case signUp(SignUpState)
   case signIn(SignIn)
-  case driverID(DriverID?, PublishableKey, ProcessingDeepLink?)
-  case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience, ProcessingDeepLink?)
+  case driverID(DriverID?, PublishableKey)
+  case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience)
 }
 
 public struct GeocodedResult: Equatable {
@@ -46,6 +47,10 @@ public enum AppAction: Equatable {
   // App
   case appHandleSDKLocked
   case appHandleSDKUnlocked(PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, PushStatus, Experience)
+  case appHandleDriverIDFlow(PublishableKey)
+  case appHandleFirstRunFlow
+  case appHandleSignUpWith(Email?)
+  case appHandleSignInWith(Email?)
   // OS
   case copyToPasteboard(NonEmptyString)
   case osFinishedLaunching
@@ -113,8 +118,7 @@ public enum AppAction: Equatable {
   case dismissFocus
   // Deeplink
   case deepLinkOpened(NSUserActivity)
-  case deepLinkTimerFired
-  case receivedDeepLink(PublishableKey, DriverID?)
+  case deepLinkFirstRunWaitingComplete
   // SDK
   case madeSDK(SDKStatus, Permissions)
   case openSettings
@@ -199,12 +203,12 @@ let getHistoryEffect = { (
   .map(AppAction.historyUpdated)
 }
 
-func over4<A, B, C, D, E, F, Z>(_ f: @escaping (D) -> Z) -> ((A, B, C, D, E, F)) -> (A, B, C, Z, E, F) {
-  { ($0.0, $0.1, $0.2, f($0.3), $0.4, $0.5) }
+func over4<A, B, C, D, E, Z>(_ f: @escaping (D) -> Z) -> ((A, B, C, D, E)) -> (A, B, C, Z, E) {
+  { ($0.0, $0.1, $0.2, f($0.3), $0.4) }
 }
 
-func over1<A, B, C, D, E, F, Z>(_ f: @escaping (A) -> Z) -> ((A, B, C, D, E, F)) -> (Z, B, C, D, E, F) {
-  { (f($0.0), $0.1, $0.2, $0.3, $0.4, $0.5) }
+func over1<A, B, C, D, E, Z>(_ f: @escaping (A) -> Z) -> ((A, B, C, D, E)) -> (Z, B, C, D, E) {
+  { (f($0.0), $0.1, $0.2, $0.3, $0.4) }
 }
 
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
@@ -217,17 +221,19 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .noMotionServices
       return .none
     case let .appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, pushStatus, experience):
-      state.flow = .visits([], nil, nil, .defaultTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience, nil)
+      state.flow = .visits([], nil, nil, .defaultTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
       return .none
-    default:
+    case let .appHandleDriverIDFlow(pk):
+      state.flow = .driverID(nil, pk)
       return .none
-    }
-  },
-  // Transitions
-  Reducer { state, action, environment in
-    switch (state.flow, action) {
-    case let (.signIn(.editingCredentials(emailAndPassword, .none)), .goToSignUp):
-      state.flow = .signUp(.formFilling(nil, emailAndPassword >>- theseLeft, nil, .name, nil, nil))
+    case .appHandleFirstRunFlow:
+      state.flow = .signUp(.formFilling(nil, nil, nil, nil, nil))
+      return .none
+    case let .appHandleSignInWith(e):
+      state.flow = .signIn(.editingCredentials(e, nil, nil, nil))
+      return .none
+    case let .appHandleSignUpWith(e):
+      state.flow = .signUp(.formFilling(nil, e, nil, nil, nil))
       return .none
     default:
       return .none
@@ -322,103 +328,101 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     
     switch (state.flow, action) {
     
-    case let (.signUp(.formFilled(_, _, _, f, _, .none)), .focusBusinessName):
+    case let (.signUp(.formFilled(_, _, _, f, _)), .focusBusinessName):
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilled) *~? over4(constant(.name))) ?? state.flow
       return .none
-    case let (.signUp(.formFilled(_, _, _, f, _, .none)), .focusEmail) where f != .email:
+    case let (.signUp(.formFilled(_, _, _, f, _)), .focusEmail) where f != .email:
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilled) *~? over4(constant(.email))) ?? state.flow
       return .none
-    case let (.signUp(.formFilled(_, _, _, f, _, .none)), .focusPassword) where f != .password:
+    case let (.signUp(.formFilled(_, _, _, f, _)), .focusPassword) where f != .password:
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilled) *~? over4(constant(.password))) ?? state.flow
       return .none
     case (.signUp(.formFilled), .dismissFocus):
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilled) *~? over4(constant(nil))) ?? state.flow
       return .none
-    case let (.signUp(.formFilled(n, e, p, f, er, _)), .businessNameChanged(newName)):
+    case let (.signUp(.formFilled(n, e, p, f, er)), .businessNameChanged(newName)):
       if let newName = newName {
         state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilled) *~? over1(constant(newName))) ?? state.flow
       } else {
-        state.flow = .signUp(.formFilling(nil, e, p, f, er, nil))
+        state.flow = .signUp(.formFilling(nil, e, p, f, er))
       }
       return .none
-    case let (.signUp(.formFilled(n, e, p, f, er, .none)), .emailChanged(newEmail)):
+    case let (.signUp(.formFilled(n, e, p, f, er)), .emailChanged(newEmail)):
       let newEmail = newEmail.flatMap { $0.cleanup() }
       if let newEmail = newEmail, newEmail.isValid() {
-        state.flow = .signUp(.formFilled(n, newEmail, p, f, er, .none))
+        state.flow = .signUp(.formFilled(n, newEmail, p, f, er))
       } else {
-        state.flow = .signUp(.formFilling(n, newEmail, p, f, er, .none))
+        state.flow = .signUp(.formFilling(n, newEmail, p, f, er))
       }
       return .none
-    case let (.signUp(.formFilled(n, e, p, f, er, .none)), .passwordChanged(newPassword)):
+    case let (.signUp(.formFilled(n, e, p, f, er)), .passwordChanged(newPassword)):
       if let newPassword = newPassword, newPassword.isValid() {
-        state.flow = .signUp(.formFilled(n, e, newPassword, f, er, .none))
+        state.flow = .signUp(.formFilled(n, e, newPassword, f, er))
       } else {
-        state.flow = .signUp(.formFilling(n, e, newPassword, f, er, .none))
+        state.flow = .signUp(.formFilling(n, e, newPassword, f, er))
       }
       return .none
-    case let (.signUp(.formFilling(n, e, p, f, er, .none)), .completeSignUpForm):
+    case let (.signUp(.formFilling(n, e, p, f, er)), .completeSignUpForm):
       switch (n, e, p) {
       case (.none, _, _):
-        state.flow = .signUp(.formFilling(n, e, p, f, "Business name required", .none))
+        state.flow = .signUp(.formFilling(n, e, p, f, "Business name required"))
       case (_, .none, _):
-        state.flow = .signUp(.formFilling(n, e, p, f, "Please enter a valid email ID", .none))
+        state.flow = .signUp(.formFilling(n, e, p, f, "Please enter a valid email ID"))
       case let (_, .some(e), _) where !e.isValid():
-        state.flow = .signUp(.formFilling(n, e, p, f, "Please enter a valid email ID", .none))
+        state.flow = .signUp(.formFilling(n, e, p, f, "Please enter a valid email ID"))
       case (_, _, .none):
-        state.flow = .signUp(.formFilling(n, e, p, f, "Password should be 8 characters or more", .none))
+        state.flow = .signUp(.formFilling(n, e, p, f, "Password should be 8 characters or more"))
       case let (_, _, .some(p)) where !p.isValid():
-        state.flow = .signUp(.formFilling(n, e, p, f, "Password should be 8 characters or more", .none))
+        state.flow = .signUp(.formFilling(n, e, p, f, "Password should be 8 characters or more"))
       case let (.some(n), .some(e), .some(p)):
-        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages))))
       }
       return .none
-    case let (.signUp(.formFilled(n, e, p, _, _, _)), .completeSignUpForm):
-      state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages), nil)))
+    case let (.signUp(.formFilled(n, e, p, _, _)), .completeSignUpForm):
+      state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages))))
       return .none
-    case let (.signUp(.formFilled(_, e, _, _, _, _)), .goToSignIn):
-      state.flow = .signIn(.editingCredentials(e <¡> These.this, nil))
+    case let (.signUp(.formFilled(_, e, _, _, _)), .goToSignIn):
+      state.flow = .signIn(.editingCredentials(e, nil, nil, nil))
       return .none
       
-    case let (.signUp(.formFilling(_, _, _, f, _, .none)), .focusBusinessName):
+    case let (.signUp(.formFilling(_, _, _, f, _)), .focusBusinessName):
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilling) *~? over4(constant(.name))) ?? state.flow
       return .none
-    case let (.signUp(.formFilling(_, _, _, f, _, .none)), .focusEmail) where f != .email:
+    case let (.signUp(.formFilling(_, _, _, f, _)), .focusEmail) where f != .email:
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilling) *~? over4(constant(.email))) ?? state.flow
       return .none
-    case let (.signUp(.formFilling(_, _, _, f, _, .none)), .focusPassword) where f != .password:
+    case let (.signUp(.formFilling(_, _, _, f, _)), .focusPassword) where f != .password:
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilling) *~? over4(constant(.password))) ?? state.flow
       return .none
     case (.signUp(.formFilling), .dismissFocus):
       state.flow = (state.flow |> (/AppFlow.signUp ** /SignUpState.formFilling) *~? over4(constant(nil))) ?? state.flow
       return .none
-    case let (.signUp(.formFilling(n, e, p, f, er, .none)), .businessNameChanged(newName)):
+    case let (.signUp(.formFilling(n, e, p, f, er)), .businessNameChanged(newName)):
       if let newName = newName, let p = p, let e = e, e.isValid(), p.isValid() {
-        state.flow = .signUp(.formFilled(newName, e, p, f, er, .none))
+        state.flow = .signUp(.formFilled(newName, e, p, f, er))
       } else {
-        state.flow = .signUp(.formFilling(newName, e, p, f, er, .none))
+        state.flow = .signUp(.formFilling(newName, e, p, f, er))
       }
       return .none
-    case let (.signUp(.formFilling(n, e, p, f, er, .none)), .emailChanged(newEmail)):
+    case let (.signUp(.formFilling(n, e, p, f, er)), .emailChanged(newEmail)):
       let newEmail = newEmail.flatMap { $0.cleanup() }
       if let newEmail = newEmail, let p = p, let n = n, newEmail.isValid(), p.isValid() {
-        state.flow = .signUp(.formFilled(n, newEmail, p, f, er, .none))
+        state.flow = .signUp(.formFilled(n, newEmail, p, f, er))
       } else {
-        state.flow = .signUp(.formFilling(n, newEmail, p, f, er, .none))
+        state.flow = .signUp(.formFilling(n, newEmail, p, f, er))
       }
       return .none
-    case let (.signUp(.formFilling(n, e, p, f, er, .none)), .passwordChanged(newPassword)):
+    case let (.signUp(.formFilling(n, e, p, f, er)), .passwordChanged(newPassword)):
       if let newPassword = newPassword, let e = e, let n = n, e.isValid(), newPassword.isValid() {
-        state.flow = .signUp(.formFilled(n, e, newPassword, f, er, .none))
+        state.flow = .signUp(.formFilled(n, e, newPassword, f, er))
       } else {
-        state.flow = .signUp(.formFilling(n, e, newPassword, f, er, .none))
+        state.flow = .signUp(.formFilling(n, e, newPassword, f, er))
       }
       return .none
-    case let (.signUp(.formFilling(_, e, _, _, _, _)), .goToSignIn):
-      state.flow = .signIn(.editingCredentials(e <¡> These.this, nil))
-      return .none
-    
+    case let (.signUp(.formFilling(_, e, _, _, _)), .goToSignIn):
+      return Effect(value: .appHandleSignInWith(e))
     case let (.signUp(.questions(n, e, p, _)), .goToSignUp):
-      state.flow = .signUp(.formFilled(n, e, p, .none, .none, .none))
+      state.flow = .signUp(.formFilled(n, e, p, .none, .none))
       return .none
     case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(_, er)))), .businessManagesSelected):
       state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(.businessManages, er))))
@@ -433,14 +437,14 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       if let newBM = newBM {
         state.flow = .signUp(.questions(n, e, p, .signingUp(newBM, mf, .notSent(f, er))))
       } else {
-        state.flow = .signUp(.questions(n, e, p, .answering(.right(mf), .left(.businessManages), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(.right(mf), .left(.businessManages))))
       }
       return .none
     case let (.signUp(.questions(n, e, p, .signingUp(bm, _, .notSent(f, er)))), .managesForChanged(newMF)):
       if let newMF = newMF {
         state.flow = .signUp(.questions(n, e, p, .signingUp(bm, newMF, .notSent(f, er))))
       } else {
-        state.flow = .signUp(.questions(n, e, p, .answering(.left(bm), .left(.managesFor), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(.left(bm), .left(.managesFor))))
       }
       return .none
     case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent))), .signUp):
@@ -452,7 +456,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         .map(AppAction.signedUp)
         .cancellable(id: SignUpID(), cancelInFlight: true)
     case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.success(.none))):
-      state.flow = .signUp(.verification(.entering(nil, .focused, nil, nil), e, p))
+      state.flow = .signUp(.verification(.entering(nil, .focused, nil), e, p))
       return .merge(
         Effect.timer(  // Impossible without a timer because of an iOS bug: https://twitter.com/steipete/status/787985965432369152
           id: VerificationPasteboardSubscriptionID(),
@@ -469,39 +473,39 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.failure)):
       state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(nil, "Unknown error"))))
       return .none
-    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _, _))), .businessManagesSelected):
-      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, .left(.businessManages), nil)))
+    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _))), .businessManagesSelected):
+      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, .left(.businessManages))))
       return .none
-    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _, _))), .managesForSelected):
-      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, .left(.managesFor), nil)))
+    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _))), .managesForSelected):
+      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, .left(.managesFor))))
       return .none
-    case let (.signUp(.questions(n, e, p, .answering(ebmmf, .left, _))), .dismissFocus),
-         let (.signUp(.questions(n, e, p, .answering(ebmmf, .none, _))), .dismissFocus):
-      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, nil, nil)))
+    case let (.signUp(.questions(n, e, p, .answering(ebmmf, .left))), .dismissFocus),
+         let (.signUp(.questions(n, e, p, .answering(ebmmf, .none))), .dismissFocus):
+      state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, nil)))
       return .none
-    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _, _))), .businessManagesChanged(newBM)):
+    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _))), .businessManagesChanged(newBM)):
       switch (ebmmf, newBM) {
       case let (.none, .some(newBM)),
            let (.left, .some(newBM)):
-        state.flow = .signUp(.questions(n, e, p, .answering(.left(newBM), .left(.businessManages), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(.left(newBM), .left(.businessManages))))
       case let (.right(mf), .some(newBM)):
         state.flow = .signUp(.questions(n, e, p, .signingUp(newBM, mf, .notSent(.businessManages, nil))))
       case (.left, .none):
-        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.businessManages))))
       case (.some(.right), .none),
            (.none, .none):
         break
       }
       return .none
-    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _, _))), .managesForChanged(newMF)):
+    case let (.signUp(.questions(n, e, p, .answering(ebmmf, _))), .managesForChanged(newMF)):
       switch (ebmmf, newMF) {
       case let (.none, .some(newMF)),
            let (.right, .some(newMF)):
-        state.flow = .signUp(.questions(n, e, p, .answering(.right(newMF), .left(.managesFor), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(.right(newMF), .left(.managesFor))))
       case let (.left(bm), .some(newMF)):
         state.flow = .signUp(.questions(n, e, p, .signingUp(bm, newMF, .notSent(.managesFor, nil))))
       case (.right, .none):
-        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.managesFor), nil)))
+        state.flow = .signUp(.questions(n, e, p, .answering(nil, .left(.managesFor))))
       case (.some(.left), .none),
            (.none, .none):
         break
@@ -515,50 +519,50 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .signUp(.verification(.entered(c, .inFlight), e, p))
       return verify(email: e, password: p, code: c)
     case let (.signUp(.verification(.entered(c, .inFlight), e, p)), .autoSignInFailed(error)):
-      state.flow = .signUp(.verification(.entering(nil, .unfocused, error, nil), e, p))
+      state.flow = .signUp(.verification(.entering(nil, .unfocused, error), e, p))
       return .none
-    case let (.signUp(.verification(.entered(c, .notSent(.unfocused, error, nil)), e, p)), .focusVerification):
-      state.flow = .signUp(.verification(.entered(c, .notSent(.focused, error, nil)), e, p))
+    case let (.signUp(.verification(.entered(c, .notSent(.unfocused, error)), e, p)), .focusVerification):
+      state.flow = .signUp(.verification(.entered(c, .notSent(.focused, error)), e, p))
       return .none
-    case let (.signUp(.verification(.entering(c, .unfocused, er, nil), e, p)), .focusVerification):
-      state.flow = .signUp(.verification(.entering(c, .focused, er, nil), e, p))
+    case let (.signUp(.verification(.entering(c, .unfocused, er), e, p)), .focusVerification):
+      state.flow = .signUp(.verification(.entering(c, .focused, er), e, p))
       return .none
-    case let (.signUp(.verification(.entered(c, .notSent(.focused, error, nil)), e, p)), .dismissFocus):
-      state.flow = .signUp(.verification(.entered(c, .notSent(.unfocused, error, nil)), e, p))
+    case let (.signUp(.verification(.entered(c, .notSent(.focused, error)), e, p)), .dismissFocus):
+      state.flow = .signUp(.verification(.entered(c, .notSent(.unfocused, error)), e, p))
       return .none
-    case let (.signUp(.verification(.entering(c, .focused, er, nil), e, p)), .dismissFocus):
-      state.flow = .signUp(.verification(.entering(c, .unfocused, er, nil), e, p))
+    case let (.signUp(.verification(.entering(c, .focused, er), e, p)), .dismissFocus):
+      state.flow = .signUp(.verification(.entering(c, .unfocused, er), e, p))
       return .none
-    case let (.signUp(.verification(.entering(nil, f, er, nil), e, p)), .firstVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(nil, f, er), e, p)), .firstVerificationFieldChanged(s)):
       if let verification = VerificationCode(string: s) {
         return Effect(value: AppAction.verificationExtractedFromPasteboard(verification))
       } else {
         if let digit = VerificationCode.Digit(string: s) {
-          state.flow = .signUp(.verification(.entering(.one(digit), f, er, nil), e, p))
+          state.flow = .signUp(.verification(.entering(.one(digit), f, er), e, p))
         }
         return .none
       }
-    case let (.signUp(.verification(.entering(.one(d), f, er, nil), e, p)), .secondVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(.one(d), f, er), e, p)), .secondVerificationFieldChanged(s)):
       if let digit = VerificationCode.Digit(string: s) {
-        state.flow = .signUp(.verification(.entering(.two(d, digit), f, er, nil), e, p))
+        state.flow = .signUp(.verification(.entering(.two(d, digit), f, er), e, p))
       }
       return .none
-    case let (.signUp(.verification(.entering(.two(d1, d2), f, er, nil), e, p)), .thirdVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(.two(d1, d2), f, er), e, p)), .thirdVerificationFieldChanged(s)):
       if let digit = VerificationCode.Digit(string: s) {
-        state.flow = .signUp(.verification(.entering(.three(d1, d2, digit), f, er, nil), e, p))
+        state.flow = .signUp(.verification(.entering(.three(d1, d2, digit), f, er), e, p))
       }
       return .none
-    case let (.signUp(.verification(.entering(.three(d1, d2, d3), f, er, nil), e, p)), .fourthVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(.three(d1, d2, d3), f, er), e, p)), .fourthVerificationFieldChanged(s)):
       if let digit = VerificationCode.Digit(string: s) {
-        state.flow = .signUp(.verification(.entering(.four(d1, d2, d3, digit), f, er, nil), e, p))
+        state.flow = .signUp(.verification(.entering(.four(d1, d2, d3, digit), f, er), e, p))
       }
       return .none
-    case let (.signUp(.verification(.entering(.four(d1, d2, d3, d4), f, er, nil), e, p)), .fifthVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(.four(d1, d2, d3, d4), f, er), e, p)), .fifthVerificationFieldChanged(s)):
       if let digit = VerificationCode.Digit(string: s) {
-        state.flow = .signUp(.verification(.entering(.five(d1, d2, d3, d4, digit), f, er, nil), e, p))
+        state.flow = .signUp(.verification(.entering(.five(d1, d2, d3, d4, digit), f, er), e, p))
       }
       return .none
-    case let (.signUp(.verification(.entering(.five(d1, d2, d3, d4, d5), f, er, nil), e, p)), .sixthVerificationFieldChanged(s)):
+    case let (.signUp(.verification(.entering(.five(d1, d2, d3, d4, d5), f, er), e, p)), .sixthVerificationFieldChanged(s)):
       if let digit = VerificationCode.Digit(string: s) {
         let verificationCode = VerificationCode(first: d1, second: d2, third: d3, fourth: d4, fifth: d5, sixth: digit)
         state.flow = .signUp(.verification(.entered(verificationCode, .inFlight), e, p))
@@ -567,18 +571,18 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       return .none
     case let (.signUp(.verification(stage, e, p)), .deleteVerificationDigit):
       switch stage {
-      case let .entered(c, .notSent(_, er, _)):
-        state.flow = .signUp(.verification(.entering(.five(c.first, c.second, c.third, c.fourth, c.fifth), .focused, er, nil), e, p))
-      case let .entering(.five(d1, d2, d3, d4, _), _, er, _):
-        state.flow = .signUp(.verification(.entering(.four(d1, d2, d3, d4), .focused, er, nil), e, p))
-      case let .entering(.four(d1, d2, d3, _), _, er, _):
-        state.flow = .signUp(.verification(.entering(.three(d1, d2, d3), .focused, er, nil), e, p))
-      case let .entering(.three(d1, d2, _), _, er, _):
-        state.flow = .signUp(.verification(.entering(.two(d1, d2), .focused, er, nil), e, p))
-      case let .entering(.two(d1, _), _, er, _):
-        state.flow = .signUp(.verification(.entering(.one(d1), .focused, er, nil), e, p))
-      case let .entering(.one, _, er, _):
-        state.flow = .signUp(.verification(.entering(nil, .focused, er, nil), e, p))
+      case let .entered(c, .notSent(_, er)):
+        state.flow = .signUp(.verification(.entering(.five(c.first, c.second, c.third, c.fourth, c.fifth), .focused, er), e, p))
+      case let .entering(.five(d1, d2, d3, d4, _), _, er):
+        state.flow = .signUp(.verification(.entering(.four(d1, d2, d3, d4), .focused, er), e, p))
+      case let .entering(.four(d1, d2, d3, _), _, er):
+        state.flow = .signUp(.verification(.entering(.three(d1, d2, d3), .focused, er), e, p))
+      case let .entering(.three(d1, d2, _), _, er):
+        state.flow = .signUp(.verification(.entering(.two(d1, d2), .focused, er), e, p))
+      case let .entering(.two(d1, _), _, er):
+        state.flow = .signUp(.verification(.entering(.one(d1), .focused, er), e, p))
+      case let .entering(.one, _, er):
+        state.flow = .signUp(.verification(.entering(nil, .focused, er), e, p))
       default:
         break
       }
@@ -631,114 +635,58 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     
     struct SignInID: Hashable {}
     
+//    case let (.signIn(.editingCredentials(email, _, _, _)), .goToSignUp):
+//      return Effect(value: .appHandleSignUpWith(email))
+    
     switch state.flow {
-    case let .signIn(.editingCredentials(emailAndPassword, focusAndDeeplink)):
-      if case .right = focusAndDeeplink {
+    case let .signIn(.editingCredentials(e, p, f, er)):
+//      let focusAndError: These<SignIn.Focus, SignIn.Error>?
+//      if case let .left(f) = focusAndDeeplink {
+//        focusAndError = f
+//      } else {
+//        focusAndError = nil
+//      }
+      switch action {
+      case let .emailChanged(e):
+        state.flow = .signIn(.editingCredentials(e, p, f, er))
         return .none
-      } else {
-        let focusAndError: These<SignIn.Focus, SignIn.Error>?
-        if case let .left(f) = focusAndDeeplink {
-          focusAndError = f
+      case .focusEmail:
+        state.flow = .signIn(.editingCredentials(e, p, .email, er))
+        return .none
+      case .focusPassword:
+        state.flow = .signIn(.editingCredentials(e, p, .password, er))
+        return .none
+      case let .passwordChanged(p):
+        state.flow = .signIn(.editingCredentials(e, p, f, er))
+        return .none
+      case .signIn:
+        if let e = e, let p = p {
+          state.flow = .signIn(.signingIn(e, p))
+          return environment.api
+            .signIn(e, p)
+            .receive(on: environment.mainQueue())
+            .eraseToEffect()
+            .map(AppAction.signedIn)
+            .cancellable(id: SignInID(), cancelInFlight: true)
         } else {
-          focusAndError = nil
-        }
-        switch action {
-        case .emailChanged(.none):
-          switch emailAndPassword {
-          case .none, .some(.that): break
-          case let .some(.both(_, password)):
-            state.flow = .signIn(.editingCredentials(.that(password), focusAndDeeplink))
-          case .some(.this):
-            state.flow = .signIn(.editingCredentials(.none, focusAndDeeplink))
-          }
-          return .none
-        case let .emailChanged(.some(e)):
-          switch emailAndPassword {
-          case .none:
-            state.flow = .signIn(.editingCredentials(.this(e), focusAndDeeplink))
-          case let .some(.both(_, password)):
-            state.flow = .signIn(.editingCredentials(.both(e, password), focusAndDeeplink))
-          case .some(.this):
-            state.flow = .signIn(.editingCredentials(.this(e), focusAndDeeplink))
-          case let .some(.that(password)):
-            state.flow = .signIn(.editingCredentials(.both(e, password), focusAndDeeplink))
-          }
-          return .none
-        case .focusEmail:
-          switch focusAndError {
-          case .none, .this:
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .left(.this(.email))))
-          case let .some(.both(_, error)),
-               let .some(.that(error)):
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .left(.both(.email, error))))
-          }
-          return .none
-        case .focusPassword:
-          switch focusAndError {
-          case .none, .this:
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .left(.this(.password))))
-          case let .some(.both(_, error)),
-               let .some(.that(error)):
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .left(.both(.password, error))))
-          }
-          return .none
-        case .passwordChanged(.none):
-          switch emailAndPassword {
-          case .none, .some(.this): break
-          case let .some(.both(email, _)):
-            state.flow = .signIn(.editingCredentials(.this(email), focusAndDeeplink))
-          case .some(.that):
-            state.flow = .signIn(.editingCredentials(.none, focusAndDeeplink))
-          }
-          return .none
-        case let .passwordChanged(.some(p)):
-          switch emailAndPassword {
-          case .none:
-            state.flow = .signIn(.editingCredentials(.that(p), focusAndDeeplink))
-          case let .some(.both(email, _)):
-            state.flow = .signIn(.editingCredentials(.both(email, p), focusAndDeeplink))
-          case .some(.that):
-            state.flow = .signIn(.editingCredentials(.that(p), focusAndDeeplink))
-          case let .some(.this(email)):
-            state.flow = .signIn(.editingCredentials(.both(email, p), focusAndDeeplink))
-          }
-          return .none
-        case .signIn:
-          if case let .both(e, p) = emailAndPassword {
-            state.flow = .signIn(.signingIn(e, p))
-            return environment.api
-              .signIn(e, p)
-              .receive(on: environment.mainQueue())
-              .eraseToEffect()
-              .map(AppAction.signedIn)
-              .cancellable(id: SignInID(), cancelInFlight: true)
-          } else {
-            return .none
-          }
-        case .dismissFocus:
-          switch focusAndError {
-          case .none, .some(.this):
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .none))
-            return .none
-          case let .some(.both(_, e)),
-               let .some(.that(e)):
-            state.flow = .signIn(.editingCredentials(emailAndPassword, .left(.that(e))))
-            return .none
-          }
-        default:
           return .none
         }
+      case .dismissFocus:
+        state.flow = .signIn(.editingCredentials(e, p, nil, er))
+        return .none
+      default:
+        return .none
       }
     case let .signIn(.signingIn(e, p)):
       switch action {
       case .cancelSignIn:
-        state.flow = .signIn(.editingCredentials(.both(e, p), nil))
+        state.flow = .signIn(.editingCredentials(e, p, nil, nil))
         return .cancel(id: SignInID())
       case let .signedIn(.success(pk)):
-        state.flow = .driverID(nil, pk, nil)
+        state.flow = .driverID(nil, pk)
         return .none
       case let .signedIn(.failure(error)):
-        state.flow = .signIn(.editingCredentials(.both(e, p), .left(.that("Unknown error"))))
+        state.flow = .signIn(.editingCredentials(e, p, nil, "Unknown error"))
         return .none
       default:
         return .none
@@ -750,10 +698,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // DriverID
   Reducer { state, action, environment in
     switch state.flow {
-    case let .driverID(drID, pk, .none):
+    case let .driverID(drID, pk):
       switch action {
       case let .driverIDChanged(newDrID):
-        state.flow = .driverID(newDrID, pk, .none)
+        state.flow = .driverID(newDrID, pk)
         return .none
       case .setDriverID:
         if let drID = drID {
@@ -769,7 +717,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         return .none
       case let .madeSDK(.unlocked(deID, us), p):
         if let drID = drID {
-          state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, us, p, .none, .dialogSplash(.notShown), .firstRun, nil)
+          state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, us, p, .none, .dialogSplash(.notShown), .firstRun)
           return .concatenate(
             environment.hyperTrack
               .subscribeToStatusUpdates()
@@ -795,7 +743,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // Visits
   Reducer { state, action, environment in
     switch state.flow {
-    case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d):
+    case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e):
       let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
       let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
       let fvs = filterOutOldVisits(environment.date())(v)
@@ -812,7 +760,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.visits == .notRefreshingVisits {
           effects += [getVisits]
         }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       case .updateVisits:
         let effect: Effect<AppAction, Never>
@@ -822,7 +770,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         } else {
           effect = .none
         }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, r |> \.visits *< .refreshingVisits, ps, e, d)
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, r |> \.visits *< .refreshingVisits, ps, e)
         return effect
       case let .copyToPasteboard(s):
         return .merge(
@@ -835,12 +783,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         )
       case let .selectVisit(str):
         let (v, sv) = selectVisit(v: v, sv: sv, id: str)
-        state.flow = .visits(v, sv, h, .visits, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, .visits, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .cancelVisit:
         if var sv = sv, sv.geotagSent.checkedOut == nil, sv.geotagSent.cancelled == nil {
           sv.geotagSent = .cancelled(sv.geotagSent.isVisited, environment.date())
-          state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+          state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
           return .merge(
             environment.hyperTrack
               .addGeotag(.cancel(sv.id, sv.source, sv.visitNote))
@@ -857,7 +805,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
         sv.geotagSent = .checkedOut(sv.geotagSent.isVisited, environment.date())
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         return .merge(
           environment.hyperTrack
             .addGeotag(.checkOut(sv.id, sv.source, sv.visitNote))
@@ -871,17 +819,17 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.visitNote = n >>- Visit.VisitNote.init(rawValue:)
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .deselectVisit:
-        state.flow = .visits(sv.map { Set.insert($0)(v) } ?? v, nil, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(sv.map { Set.insert($0)(v) } ?? v, nil, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .focusVisitNote:
         guard var sv = sv else { return .none }
         
         sv.noteFieldFocused = true
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .openAppleMaps:
         guard var sv = sv else { return .none }
@@ -905,7 +853,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.geotagSent = .pickedUp
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         
         return .merge(
           environment.hyperTrack
@@ -920,7 +868,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.noteFieldFocused = false
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .openSettings:
         return environment.hyperTrack
@@ -937,21 +885,21 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           .eraseToEffect()
           .map(AppAction.statusUpdated)
       case .requestPushAuthorization:
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e)
         return environment.push
           .requestAuthorization()
           .receive(on: environment.mainQueue())
           .map(constant(AppAction.userHandledPushAuthorization))
           .eraseToEffect()
       case .userHandledPushAuthorization:
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e)
         return .none
       case let .statusUpdated(st, p):
         switch st {
         case .locked:
           state.flow = .noMotionServices
         case let .unlocked(deID, us):
-          state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)
+          state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         }
         return .none
       case .startTracking:
@@ -969,7 +917,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.visits == .notRefreshingVisits {
           effects += [getVisits]
         }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       case .stopTracking:
         var effects: [Effect<AppAction, Never>] = [
@@ -986,10 +934,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.visits == .refreshingVisits {
           effects += [.cancel(id: RefreshingVisitsID())]
         }
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .none, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .none, ps, e)
         return .merge(effects)
       case let .reverseGeocoded(g):
-        state.flow = .visits(updateAddress(for: v, with: g), sv <¡> updateAddress(with: g), h, s, pk, drID, deID, us, p, r, ps, e, d)
+        state.flow = .visits(updateAddress(for: v, with: g), sv <¡> updateAddress(with: g), h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case let .visitsUpdated(vs):
         let allVs = sv.map { Set.insert($0)(v) } ?? v
@@ -1003,7 +951,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           (nv, nsv) = (freshVs, nil)
         }
         
-        state.flow = .visits(nv, nsv, h, s, pk, drID, deID, us, p, r |> \.visits *< .notRefreshingVisits, ps, e, d)
+        state.flow = .visits(nv, nsv, h, s, pk, drID, deID, us, p, r |> \.visits *< .notRefreshingVisits, ps, e)
         if let reverseGeocodingCoordinates = NonEmptySet(rawValue: visitCoordinatesWithoutAddress(freshVs)) {
           return environment.api
             .reverseGeocode(reverseGeocodingCoordinates.map(identity))
@@ -1015,7 +963,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case let .historyUpdated(h):
-        state.flow = .visits(v, sv, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e, d)
+        state.flow = .visits(v, sv, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e)
         return .none
       default:
         return .none
@@ -1027,11 +975,11 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // TabView
   Reducer { state, action, environment in
     switch (state.flow, action) {
-    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d), .switchToVisits) where s != .visits:
-      state.flow = .visits(v, sv, h, .visits, pk, drID, deID, us, p, r, ps, e, d)
+    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToVisits) where s != .visits:
+      state.flow = .visits(v, sv, h, .visits, pk, drID, deID, us, p, r, ps, e)
       return Effect(value: .updateVisits)
-    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d), .switchToMap) where s != .map:
-      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r, ps, e, d)
+    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToMap) where s != .map:
+      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r, ps, e)
       
       let effect: Effect<AppAction, Never>
       if r.history == .notRefreshingHistory {
@@ -1039,13 +987,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       } else {
         effect = .none
       }
-      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r |> \.history *< .refreshingHistory, ps, e, d)
+      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r |> \.history *< .refreshingHistory, ps, e)
       return effect
-    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d), .switchToSummary) where s != .summary:
-      state.flow = .visits(v, sv, h, .summary, pk, drID, deID, us, p, r, ps, e, d)
+    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToSummary) where s != .summary:
+      state.flow = .visits(v, sv, h, .summary, pk, drID, deID, us, p, r, ps, e)
       return .none
-    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d), .switchToProfile) where s != .profile:
-      state.flow = .visits(v, sv, h, .profile, pk, drID, deID, us, p, r, ps, e, d)
+    case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToProfile) where s != .profile:
+      state.flow = .visits(v, sv, h, .profile, pk, drID, deID, us, p, r, ps, e)
       return .none
     default:
       return .none
@@ -1065,7 +1013,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       switch (previousState.flow, nextState.flow) {
       case (.visits, .visits): return effects
-      case let (_, .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d)):
+      case let (_, .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)):
         let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
         let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
         
@@ -1077,7 +1025,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
           effects += [getVisits]
         }
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       default: return effects
       }
@@ -1091,7 +1039,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       let effects = self.run(&state, action, environment)
       
       switch state.flow {
-      case let .visits(v, sv, h, s, pk, drID, deID, .stopped, p, .none, .dialogSplash(.shown), .firstRun, .none)
+      case let .visits(v, sv, h, s, pk, drID, deID, .stopped, p, .none, .dialogSplash(.shown), .firstRun)
             where p.locationAccuracy == .full
             && p.locationPermissions == .authorized
             && p.motionPermissions == .authorized:
@@ -1106,7 +1054,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
           getVisits,
           getHistory
         ]
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, .running, p, .all, .dialogSplash(.shown), .regular, .none)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, .running, p, .all, .dialogSplash(.shown), .regular)
         return .merge(combinedEffects)
       default: return effects
       }

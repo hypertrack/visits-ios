@@ -37,23 +37,22 @@ func saveFlow(_ appFlow: AppFlow) -> StorageState? {
   switch appFlow {
   case .created,
        .appLaunching,
+       .firstRun,
        .noMotionServices:
     return nil
-  case let .signUp(.formFilling(_, e, _, _, _, _)):
+  case let .signUp(.formFilling(_, e, _, _, _)):
     return .signUp(e)
-  case let .signUp(.formFilled(_, e, _, _, _, _)),
+  case let .signUp(.formFilled(_, e, _, _, _)),
        let .signUp(.questions(_, e, _, _)),
        let .signUp(.verification(_, e, _)):
     return .signUp(e)
-  case let .signIn(.editingCredentials(.some(.this(e)), _)):
-    return .signIn(e)
-  case let .signIn(.editingCredentials(.some(.both(e, _)), _)):
+  case let .signIn(.editingCredentials(.some(e), _, _, _)):
     return .signIn(e)
   case .signIn:
     return nil
-  case let .driverID(drID, pk, _):
+  case let .driverID(drID, pk):
     return .driverID(drID, pk)
-  case let .visits(v, sv, _, s, pk, drID, _, _, _, _, ps, e, _):
+  case let .visits(v, sv, _, s, pk, drID, _, _, _, _, ps, e):
     return .visits(combine(v, sv), s, pk, drID, ps, e)
   }
 }

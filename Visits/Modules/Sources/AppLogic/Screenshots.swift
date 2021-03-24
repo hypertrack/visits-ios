@@ -18,8 +18,7 @@ extension AppState {
       permissions,
       .none,
       .dialogSplash(.shown),
-      .regular,
-      nil
+      .regular
     )
   )
   
@@ -37,8 +36,7 @@ extension AppState {
       permissions,
       .none,
       .dialogSplash(.shown),
-      .regular,
-      nil
+      .regular
     )
   )
   
@@ -90,8 +88,7 @@ extension AppState {
       permissions,
       .none,
       .dialogSplash(.shown),
-      .regular,
-      nil
+      .regular
     )
   )
   
@@ -117,8 +114,7 @@ extension AppState {
       permissions,
       .none,
       .dialogSplash(.shown),
-      .regular,
-      nil
+      .regular
     )
   )
   
@@ -136,8 +132,7 @@ extension AppState {
       permissions,
       .none,
       .dialogSplash(.shown),
-      .regular,
-      nil
+      .regular
     )
   )
 }

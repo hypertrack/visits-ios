@@ -77,18 +77,18 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
     case let .left(restoredState):
       switch restoredState {
       case .deepLink:
-        state.flow = .signUp(.formFilling(nil, nil, nil, nil, nil, .waitingForDeepLink))
+        state.flow = .firstRun
       case let .driverID(driverID, publishableKey):
-        state.flow = .driverID(driverID, publishableKey, nil)
+        state.flow = .driverID(driverID, publishableKey)
       case let .signUp(email):
-        state.flow = .signUp(.formFilling(nil, email, nil, nil, nil, nil))
+        state.flow = .signUp(.formFilling(nil, email, nil, nil, nil))
       case .signIn(.none):
-        state.flow = .signIn(.editingCredentials(nil, nil))
+        state.flow = .signIn(.editingCredentials(nil, nil, nil, nil))
       case let .signIn(.some(email)):
-        state.flow = .signIn(.editingCredentials(.this(email), nil))
+        state.flow = .signIn(.editingCredentials(email, nil, nil, nil))
       case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
         let fvs = filterOutOldVisits(environment.date())
-        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience, nil)
+        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
         return .merge(
           stateRestored,
           environment

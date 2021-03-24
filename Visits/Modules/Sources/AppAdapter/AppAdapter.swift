@@ -63,10 +63,9 @@ public extension Store where State == AppScreen.State, Action == AppScreen.Actio
 
 func fromAppState(_ appState: AppState) -> AppScreen.State {
   switch appState.flow {
-  case .created, .appLaunching: return .loading
+  case .created, .appLaunching, .firstRun: return .loading
   case .noMotionServices: return .blocker(.noMotionServices)
-  case let .signUp(.formFilled(_, _, _, _, _, .some(p))): return processingDeepLink(p)
-  case let .signUp(.formFilled(n, e, p, focus, err, .none)):
+  case let .signUp(.formFilled(n, e, p, focus, err)):
     return .signUpForm(
       .init(
         name: n.rawValue.rawValue,
@@ -78,8 +77,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         errorMessage: err?.rawValue.rawValue ?? ""
       )
     )
-  case let .signUp(.formFilling(_, _, _, _, _, .some(p))): return processingDeepLink(p)
-  case let .signUp(.formFilling(n, e, p, focus, err, .none)):
+  case let .signUp(.formFilling(n, e, p, focus, err)):
     return .signUpForm(
       .init(
         name: n?.rawValue.rawValue ?? "",
@@ -93,14 +91,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     )
   case let .signUp(.questions(_, _, _, .signingUp(bm, mf, rs))):
     return .signUpQuestions(.init(questionsStatus: .signingUp(bm, mf, rs)))
-  case let .signUp(.questions(_, _, _, .answering(_, _, .some(p)))): return processingDeepLink(p)
-  case let .signUp(.questions(_, _, _, .answering(ebmmf, efe, .none))):
+  case let .signUp(.questions(_, _, _, .answering(ebmmf, efe))):
     return .signUpQuestions(.init(questionsStatus: .answering(ebmmf, efe)))
-  case let .signUp(.verification(.entered(_, .notSent(_, _, .some(p))), _, _)),
-       let .signUp(.verification(.entering(_, _, _, .some(p)), _, _)): return processingDeepLink(p)
   case let .signUp(.verification(ver, _, _)): return .signUpVerification(verificationState(ver))
-    
-  case let .signIn(.editingCredentials(_, .right(p))): return processingDeepLink(p)
+  
   case let .signIn(s):
     return .signIn(
       .init(
@@ -112,12 +106,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         signingIn: signingIn(from: s)
       )
     )
-  case let .driverID(_, _, .some(p)): return processingDeepLink(p)
-  case let .driverID(.some(drID), _, _):
+  case let .driverID(.some(drID), _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .visits(_, _, _, _, _, _, _, _, _, _, _, _, .some(p)): return processingDeepLink(p)
-  case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, _, _):
+  case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
     case (_, _, .disabled, _, _):                            return .blocker(.locationDisabled)
     case (_, _, .denied, _, _):                              return .blocker(.locationDenied)
@@ -234,20 +226,10 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   }
 }
 
-func processingDeepLink(_ p: ProcessingDeepLink) -> AppScreen.State {
-  switch p {
-  case .waitingForDeepLink, .waitingForTimerWith:
-    return .deepLink(.init(time: 5, work: .connecting))
-  case .waitingForSDKWith:
-    return .deepLink(.init(time: 5, work: .sdk))
-  }
-}
-
 func email(from s: SignIn) -> String {
   switch s {
   case let .signingIn(e, _),
-       let .editingCredentials(.both(e, _), _),
-       let .editingCredentials(.this(e), _):
+       let .editingCredentials(.some(e), _, _, _):
     return e.rawValue.rawValue
   default: return ""
   }
@@ -256,8 +238,7 @@ func email(from s: SignIn) -> String {
 func password(from s: SignIn) -> String {
   switch s {
   case let .signingIn(_, p),
-       let .editingCredentials(.both(_, p), _),
-       let .editingCredentials(.that(p), _):
+       let .editingCredentials(_, .some(p), _, _):
     return p.rawValue.rawValue
   default: return ""
   }
@@ -265,18 +246,15 @@ func password(from s: SignIn) -> String {
 
 func buttonState(from s: SignIn) -> SignInScreen.State.ButtonState {
   switch s {
-  case .signingIn: return .destructive
-  case .editingCredentials(.both, .left),
-       .editingCredentials(.both, .none):
-    return .normal
-  default: return .disabled
+  case .signingIn:                              return .destructive
+  case .editingCredentials(.some, .some, _, _): return .normal
+  default:                                      return .disabled
   }
 }
 
 func errorMessage(from s: SignIn) -> String {
   switch s {
-  case let .editingCredentials(_, .left(.both(_, e))),
-       let .editingCredentials(_, .left(.that(e))):
+  case let .editingCredentials(_, _, _, .some(e)):
     return e.rawValue.rawValue
   default: return ""
   }
@@ -284,11 +262,9 @@ func errorMessage(from s: SignIn) -> String {
 
 func fieldInFocus(from s: SignIn) -> SignInScreen.State.Focus {
   switch s {
-  case .editingCredentials(_, .left(.this(.email))),
-       .editingCredentials(_, .left(.both(.email, _))):
+  case .editingCredentials(_, _, .email, _):
     return .email
-  case .editingCredentials(_, .left(.this(.password))),
-       .editingCredentials(_, .left(.both(.password, _))):
+  case .editingCredentials(_, _, .password, _):
     return .password
   default: return .none
   }
@@ -446,11 +422,11 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(code, _):
       return String(code.first.rawValue)
-    case let .entering(.some(.one(d)), _, _, _),
-         let .entering(.some(.two(d, _)), _, _, _),
-         let .entering(.some(.three(d, _, _)), _, _, _),
-         let .entering(.some(.four(d, _, _, _)), _, _, _),
-         let .entering(.some(.five(d, _, _, _, _)), _, _, _):
+    case let .entering(.some(.one(d)), _, _),
+         let .entering(.some(.two(d, _)), _, _),
+         let .entering(.some(.three(d, _, _)), _, _),
+         let .entering(.some(.four(d, _, _, _)), _, _),
+         let .entering(.some(.five(d, _, _, _, _)), _, _):
       return String(d.rawValue)
     default:
       return ""
@@ -461,10 +437,10 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(code, _):
       return String(code.second.rawValue)
-    case let .entering(.some(.two(_, d)), _, _, _),
-         let .entering(.some(.three(_, d, _)), _, _, _),
-         let .entering(.some(.four(_, d, _, _)), _, _, _),
-         let .entering(.some(.five(_, d, _, _, _)), _, _, _):
+    case let .entering(.some(.two(_, d)), _, _),
+         let .entering(.some(.three(_, d, _)), _, _),
+         let .entering(.some(.four(_, d, _, _)), _, _),
+         let .entering(.some(.five(_, d, _, _, _)), _, _):
       return String(d.rawValue)
     default:
       return ""
@@ -475,9 +451,9 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(code, _):
       return String(code.third.rawValue)
-    case let .entering(.some(.three(_, _, d)), _, _, _),
-         let .entering(.some(.four(_, _, d, _)), _, _, _),
-         let .entering(.some(.five(_, _, d, _, _)), _, _, _):
+    case let .entering(.some(.three(_, _, d)), _, _),
+         let .entering(.some(.four(_, _, d, _)), _, _),
+         let .entering(.some(.five(_, _, d, _, _)), _, _):
       return String(d.rawValue)
     default:
       return ""
@@ -488,8 +464,8 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(code, _):
       return String(code.fourth.rawValue)
-    case let .entering(.some(.four(_, _, _, d)), _, _, _),
-         let .entering(.some(.five(_, _, _, d, _)), _, _, _):
+    case let .entering(.some(.four(_, _, _, d)), _, _),
+         let .entering(.some(.five(_, _, _, d, _)), _, _):
       return String(d.rawValue)
     default:
       return ""
@@ -500,7 +476,7 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(code, _):
       return String(code.fifth.rawValue)
-    case let .entering(.some(.five(_, _, _, _, d)), _, _, _):
+    case let .entering(.some(.five(_, _, _, _, d)), _, _):
       return String(d.rawValue)
     default:
       return ""
@@ -518,22 +494,22 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
   
   func fieldInFocus() -> SignUpVerificationScreen.State.Focus {
     switch verification {
-    case .entering(.none, .focused, _, _):
+    case .entering(.none, .focused, _):
       return .first
-    case .entering(.one, .focused, _, _):
+    case .entering(.one, .focused, _):
       return .second
-    case .entering(.two, .focused, _, _):
+    case .entering(.two, .focused, _):
       return .third
-    case .entering(.three, .focused, _, _):
+    case .entering(.three, .focused, _):
       return .fourth
-    case .entering(.four, .focused, _, _):
+    case .entering(.four, .focused, _):
       return .fifth
-    case .entering(.five, .focused, _, _),
-         .entered(_, .notSent(.focused, _, _)):
+    case .entering(.five, .focused, _),
+         .entered(_, .notSent(.focused, _)):
       return .sixth
     case .entered(_, .inFlight),
-         .entered(_, .notSent(.unfocused, _, _)),
-         .entering(_, .unfocused, _, _):
+         .entered(_, .notSent(.unfocused, _)),
+         .entering(_, .unfocused, _):
       return .none
     }
   }
@@ -543,19 +519,19 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     case .entered(_, .inFlight):
       return true
     case .entered(_, .notSent),
-         .entering(_, _, _, _):
+         .entering(_, _, _):
       return false
     }
   }
   
   func error() -> String {
     switch verification {
-    case let .entered(_, .notSent(_, .some(e), _)),
-         let .entering(_, _, .some(e), _):
+    case let .entered(_, .notSent(_, .some(e))),
+         let .entering(_, _, .some(e)):
       return e.rawValue.rawValue
     case .entered(_, .inFlight),
-         .entered(_, .notSent(_, .none, _)),
-         .entering(_, _, .none, _):
+         .entered(_, .notSent(_, .none)),
+         .entering(_, _, .none):
       return ""
     }
   }
