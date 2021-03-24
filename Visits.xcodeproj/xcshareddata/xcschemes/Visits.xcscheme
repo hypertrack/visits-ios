@@ -29,13 +29,27 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
-            skipped = "NO">
+            skipped = "NO"
+            parallelizable = "YES"
+            testExecutionOrdering = "random">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3161D1362512A2B700AAFCCD"
-               BuildableName = "VisitsTests.xctest"
-               BlueprintName = "VisitsTests"
-               ReferencedContainer = "container:Visits.xcodeproj">
+               BlueprintIdentifier = "APIEnvironmentLiveTests"
+               BuildableName = "APIEnvironmentLiveTests"
+               BlueprintName = "APIEnvironmentLiveTests"
+               ReferencedContainer = "container:Visits/Modules">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES"
+            testExecutionOrdering = "random">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "GeoJSONTests"
+               BuildableName = "GeoJSONTests"
+               BlueprintName = "GeoJSONTests"
+               ReferencedContainer = "container:Visits/Modules">
             </BuildableReference>
          </TestableReference>
       </Testables>
