@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import RestorationState
+import Types
 
 
 public struct StateRestorationEnvironment {

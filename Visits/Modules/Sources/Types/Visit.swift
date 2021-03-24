@@ -1,4 +1,3 @@
-import Coordinate
 import Foundation
 import NonEmpty
 import Prelude

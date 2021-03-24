@@ -1,5 +1,3 @@
-import DeviceID
-
 public enum SDKUnlockedStatus: Equatable {
   case running
   case stopped

@@ -1,6 +1,5 @@
 import ComposableArchitecture
-import DriverID
-import PublishableKey
+import Types
 
 public struct DeepLinkEnvironment {
   public var subscribeToDeepLinks: () -> Effect<(PublishableKey, DriverID?), Never>

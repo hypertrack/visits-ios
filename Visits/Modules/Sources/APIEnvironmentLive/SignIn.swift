@@ -1,10 +1,9 @@
 import APIEnvironment
 import Combine
 import ComposableArchitecture
-import Credentials
 import NonEmpty
 import Prelude
-import PublishableKey
+import Types
 
 
 func signIn(_ email: Email, _ password: Password) -> Effect<Result<PublishableKey, APIError>, Never> {

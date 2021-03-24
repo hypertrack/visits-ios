@@ -1,14 +1,8 @@
 import ComposableArchitecture
-import Coordinate
-import Credentials
-import DeviceID
-import History
 import NonEmpty
 import Prelude
-import PublishableKey
 import Tagged
 import Types
-import Visit
 
 
 public typealias APIVisitID = Tagged<APIVisitIDTag, NonEmptyString>

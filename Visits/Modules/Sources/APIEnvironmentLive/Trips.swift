@@ -1,11 +1,9 @@
 import APIEnvironment
 import Combine
-import Coordinate
-import DeviceID
 import Foundation
 import NonEmpty
 import Tagged
-import Visit
+import Types
 
 
 func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError> {

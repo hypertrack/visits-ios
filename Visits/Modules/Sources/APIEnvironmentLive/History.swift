@@ -1,14 +1,10 @@
 import APIEnvironment
-import Coordinate
 import Combine
 import ComposableArchitecture
-import DeviceID
-import GeoJSON
-import History
 import LogEnvironment
 import NonEmpty
 import Prelude
-import PublishableKey
+import Types
 
 
 public func getHistory(

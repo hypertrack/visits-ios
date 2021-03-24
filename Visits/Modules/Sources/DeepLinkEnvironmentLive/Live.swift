@@ -2,10 +2,9 @@ import Branch
 import Combine
 import ComposableArchitecture
 import DeepLinkEnvironment
-import DriverID
 import LogEnvironment
 import NonEmpty
-import PublishableKey
+import Types
 
 
 public extension DeepLinkEnvironment {

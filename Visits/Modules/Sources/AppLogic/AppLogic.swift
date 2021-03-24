@@ -2,30 +2,18 @@ import APIEnvironment
 import AppArchitecture
 import Combine
 import ComposableArchitecture
-import Coordinate
-import Credentials
 import DeepLinkEnvironment
-import DeviceID
-import DriverID
-import Experience
 import HapticFeedbackEnvironment
-import History
 import HyperTrackEnvironment
 import MapEnvironment
 import NetworkEnvironment
 import NonEmpty
 import PasteboardEnvironment
 import Prelude
-import PublishableKey
 import PushEnvironment
-import PushStatus
-import RestorationState
-import SDK
 import StateRestorationEnvironment
-import TabSelection
 import Tagged
 import Types
-import Visit
 import UIKit
 
 // MARK: - State
@@ -50,12 +38,6 @@ public enum AppFlow: Equatable {
 public struct RefreshingVisits: Equatable {}
 public struct RefreshingHistory: Equatable {}
 
-public enum ProcessingDeepLink: Equatable {
-  case waitingForDeepLink
-  case waitingForTimerWith(PublishableKey, DriverID?)
-  case waitingForSDKWith(PublishableKey, DriverID)
-}
-
 public enum SignInState: Equatable {
   case signingIn(Email, Password)
   case editingCredentials(These<Email, Password>?, Either<These<SignInFocus, SignInError>, ProcessingDeepLink>?)
@@ -66,37 +48,6 @@ public enum SignInFocus: Equatable { case email, password }
 public typealias SignInError = Tagged<SignInErrorTag, NonEmptyString>
 public enum SignInErrorTag {}
 
-
-public enum SignUpState: Equatable {
-  case formFilled(BusinessName, Email, Password, FormFocus?, SignUpError?, ProcessingDeepLink?)
-  case formFilling(BusinessName?, Email?, Password?, FormFocus?, SignUpError?, ProcessingDeepLink?)
-  case questions(BusinessName, Email, Password, QuestionsStatus)
-  case verification(Verification, Email, Password)
-  
-  public enum QuestionsStatus: Equatable {
-    case signingUp(BusinessManages, ManagesFor, SignUpRequest)
-    case answering(Either<BusinessManages, ManagesFor>?, Either<SignUpQuestionsFocus, SignUpError>?, ProcessingDeepLink?)
-  }
-  
-  public enum Verification: Equatable {
-    case entered(VerificationCode, Request)
-    case entering(CodeEntry?, Focus, SignUpError?, ProcessingDeepLink?)
-    
-    
-    public enum CodeEntry: Equatable {
-      case one(VerificationCode.Digit)
-      case two(VerificationCode.Digit, VerificationCode.Digit)
-      case three(VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit)
-      case four(VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit)
-      case five(VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit, VerificationCode.Digit)
-    }
-    public enum Request: Equatable { case inFlight, notSent(Focus, SignUpError?, ProcessingDeepLink?) }
-    
-    public enum Focus: Equatable { case focused, unfocused }
-  }
-  
-  public enum FormFocus: Equatable { case name, email, password }
-}
 
 public struct GeocodedResult: Equatable {
   let coordinate: Coordinate

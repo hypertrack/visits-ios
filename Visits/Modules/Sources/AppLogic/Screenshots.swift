@@ -1,12 +1,6 @@
-import Coordinate
-import DeviceID
-import DriverID
 import Foundation
-import History
 import NonEmpty
-import PublishableKey
-import SDK
-import Visit
+import Types
 
 
 extension AppState {

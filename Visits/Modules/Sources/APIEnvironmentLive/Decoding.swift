@@ -1,9 +1,8 @@
-import Coordinate
 import CoreLocation
 import Foundation
-import GeoJSON
 import GLKit
 import NonEmpty
+import Types
 
 
 let snakeCaseDecoder: JSONDecoder = {

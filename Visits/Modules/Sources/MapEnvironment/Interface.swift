@@ -1,7 +1,6 @@
 import ComposableArchitecture
-import Coordinate
 import Prelude
-import Visit
+import Types
 
 
 public struct MapEnvironment {

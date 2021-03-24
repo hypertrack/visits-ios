@@ -1,6 +1,6 @@
-import Coordinate
 import MapKit
 import SwiftUI
+import Types
 
 public struct MapVisit: Equatable {
   public enum Status: Equatable {

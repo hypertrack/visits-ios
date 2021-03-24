@@ -3,8 +3,7 @@ import Combine
 import ComposableArchitecture
 import NetworkEnvironment
 import NonEmpty
-import SDK
-import Visit
+import Types
 
 let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer { state, action, environment in
   switch (state.flow, action) {

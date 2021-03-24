@@ -1,11 +1,10 @@
 import Combine
 import ComposableArchitecture
 import Contacts
-import Coordinate
 import CoreLocation
 import NonEmpty
 import Prelude
-import Visit
+import Types
 
 
 public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<Visit.Street, Visit.FullAddress>?)], Never> {

@@ -1,12 +1,10 @@
 import APIEnvironment
-import DeviceID
 import Combine
 import ComposableArchitecture
 import LogEnvironment
 import NonEmpty
 import Prelude
-import PublishableKey
-import Visit
+import Types
 
 
 public func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never> {

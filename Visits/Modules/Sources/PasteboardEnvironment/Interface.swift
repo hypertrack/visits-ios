@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import Credentials
 import NonEmpty
+import Types
 
 
 public struct PasteboardEnvironment {

@@ -1,10 +1,8 @@
 import APIEnvironment
 import Combine
-import Coordinate
-import DeviceID
 import Foundation
 import NonEmpty
-import Visit
+import Types
 
 
 func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError> {

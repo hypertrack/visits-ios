@@ -1,5 +1,5 @@
 import XCTest
-@testable import GeoJSON
+@testable import Types
 
 final class GeoJSONStructureTests: XCTestCase {
   func testDecoding_whenTypeIsInvalid_itThrows() throws {

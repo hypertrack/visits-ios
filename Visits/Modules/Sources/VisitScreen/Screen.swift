@@ -1,7 +1,7 @@
 import ComposableArchitecture
-import Coordinate
 import NonEmpty
 import SwiftUI
+import Types
 import Views
 
 

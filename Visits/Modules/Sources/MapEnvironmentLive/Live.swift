@@ -3,7 +3,7 @@ import LogEnvironment
 import MapEnvironment
 import MapKit
 import Prelude
-import Visit
+import Types
 
 
 public extension MapEnvironment {

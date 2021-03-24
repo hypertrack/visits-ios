@@ -1,6 +1,6 @@
 import Prelude
 import XCTest
-import Visit
+import Types
 @testable import APIEnvironmentLive
 
 final class APIEnvironmentLiveConstructAddressTests: XCTestCase {

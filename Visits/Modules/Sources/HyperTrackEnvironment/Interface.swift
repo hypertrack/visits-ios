@@ -1,11 +1,7 @@
 import ComposableArchitecture
-import DeviceID
-import DriverID
 import Prelude
-import PublishableKey
-import SDK
+import Types
 import UIKit
-import Visit
 
 public enum Geotag: Equatable {
   case cancel(Visit.ID, Visit.Source, Visit.VisitNote?)

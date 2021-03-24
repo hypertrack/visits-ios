@@ -1,6 +1,5 @@
-import Coordinate
 import XCTest
-@testable import GeoJSON
+@testable import Types
 
 
 final class GeoJSONPointTests: XCTestCase {

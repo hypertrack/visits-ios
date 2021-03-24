@@ -1,5 +1,3 @@
-import Coordinate
-
 public struct History: Equatable {
   public init(
     coordinates: [Coordinate],

@@ -1,7 +1,6 @@
-import Coordinate
 import NonEmpty
 import XCTest
-@testable import GeoJSON
+@testable import Types
 
 
 final class GeoJSONLineStringTests: XCTestCase {
