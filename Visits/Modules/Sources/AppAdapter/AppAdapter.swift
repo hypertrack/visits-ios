@@ -249,7 +249,7 @@ func processingDeepLink(_ p: ProcessingDeepLink) -> AppScreen.State {
   }
 }
 
-func email(from s: SignInState) -> String {
+func email(from s: SignIn) -> String {
   switch s {
   case let .signingIn(e, _),
        let .editingCredentials(.both(e, _), _),
@@ -259,7 +259,7 @@ func email(from s: SignInState) -> String {
   }
 }
 
-func password(from s: SignInState) -> String {
+func password(from s: SignIn) -> String {
   switch s {
   case let .signingIn(_, p),
        let .editingCredentials(.both(_, p), _),
@@ -269,7 +269,7 @@ func password(from s: SignInState) -> String {
   }
 }
 
-func buttonState(from s: SignInState) -> SignInScreen.State.ButtonState {
+func buttonState(from s: SignIn) -> SignInScreen.State.ButtonState {
   switch s {
   case .signingIn: return .destructive
   case .editingCredentials(.both, .left),
@@ -279,7 +279,7 @@ func buttonState(from s: SignInState) -> SignInScreen.State.ButtonState {
   }
 }
 
-func errorMessage(from s: SignInState) -> String {
+func errorMessage(from s: SignIn) -> String {
   switch s {
   case let .editingCredentials(_, .left(.both(_, e))),
        let .editingCredentials(_, .left(.that(e))):
@@ -288,7 +288,7 @@ func errorMessage(from s: SignInState) -> String {
   }
 }
 
-func fieldInFocus(from s: SignInState) -> SignInScreen.State.Focus {
+func fieldInFocus(from s: SignIn) -> SignInScreen.State.Focus {
   switch s {
   case .editingCredentials(_, .left(.this(.email))),
        .editingCredentials(_, .left(.both(.email, _))):
@@ -300,7 +300,7 @@ func fieldInFocus(from s: SignInState) -> SignInScreen.State.Focus {
   }
 }
 
-func signingIn(from s: SignInState) -> Bool {
+func signingIn(from s: SignIn) -> Bool {
   switch s {
   case .signingIn: return true
   default: return false

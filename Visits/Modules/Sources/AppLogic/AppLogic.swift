@@ -30,24 +30,13 @@ public enum AppFlow: Equatable {
   case appLaunching
   case noMotionServices
   case signUp(SignUpState)
-  case signIn(SignInState)
+  case signIn(SignIn)
   case driverID(DriverID?, PublishableKey, ProcessingDeepLink?)
   case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, These<RefreshingVisits, RefreshingHistory>?, PushStatus, Experience, ProcessingDeepLink?)
 }
 
 public struct RefreshingVisits: Equatable {}
 public struct RefreshingHistory: Equatable {}
-
-public enum SignInState: Equatable {
-  case signingIn(Email, Password)
-  case editingCredentials(These<Email, Password>?, Either<These<SignInFocus, SignInError>, ProcessingDeepLink>?)
-}
-
-public enum SignInFocus: Equatable { case email, password }
-
-public typealias SignInError = Tagged<SignInErrorTag, NonEmptyString>
-public enum SignInErrorTag {}
-
 
 public struct GeocodedResult: Equatable {
   let coordinate: Coordinate
@@ -650,7 +639,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       if case .right = focusAndDeeplink {
         return .none
       } else {
-        let focusAndError: These<SignInFocus, SignInError>?
+        let focusAndError: These<SignIn.Focus, SignIn.Error>?
         if case let .left(f) = focusAndDeeplink {
           focusAndError = f
         } else {
