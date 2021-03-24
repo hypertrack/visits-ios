@@ -63,7 +63,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       state.flow = .noMotionServices
       return .none
     case let .unlocked(deID, s):
-      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, nil, .dialogSplash(.notShown), .firstRun, .none)
+      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, .none, .dialogSplash(.notShown), .firstRun, .none)
       return .merge(
         environment
           .hyperTrack
@@ -83,7 +83,7 @@ let deepLinkReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironme
       state.flow = .noMotionServices
       return .none
     case let .unlocked(deID, s):
-      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, nil, ps, e, .none)
+      state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, s, p, .none, ps, e, .none)
       return .merge(
         environment
           .hyperTrack

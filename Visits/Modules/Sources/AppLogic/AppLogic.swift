@@ -32,11 +32,8 @@ public enum AppFlow: Equatable {
   case signUp(SignUpState)
   case signIn(SignIn)
   case driverID(DriverID?, PublishableKey, ProcessingDeepLink?)
-  case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, These<RefreshingVisits, RefreshingHistory>?, PushStatus, Experience, ProcessingDeepLink?)
+  case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience, ProcessingDeepLink?)
 }
-
-public struct RefreshingVisits: Equatable {}
-public struct RefreshingHistory: Equatable {}
 
 public struct GeocodedResult: Equatable {
   let coordinate: Coordinate
@@ -220,7 +217,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .noMotionServices
       return .none
     case let .appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, pushStatus, experience):
-      state.flow = .visits([], nil, nil, .defaultTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, experience, nil)
+      state.flow = .visits([], nil, nil, .defaultTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience, nil)
       return .none
     default:
       return .none
@@ -772,7 +769,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         return .none
       case let .madeSDK(.unlocked(deID, us), p):
         if let drID = drID {
-          state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, us, p, nil, .dialogSplash(.notShown), .firstRun, nil)
+          state.flow = .visits([], nil, nil, .defaultTab, pk, drID, deID, us, p, .none, .dialogSplash(.notShown), .firstRun, nil)
           return .concatenate(
             environment.hyperTrack
               .subscribeToStatusUpdates()
@@ -809,34 +806,23 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case .willEnterForeground,
            .receivedPushNotification:
         var effects: [Effect<AppAction, Never>] = []
-        switch r {
-        case .none:
-          effects += [getVisits, getHistory]
-        case .some(.this):
+        if r.history == .notRefreshingHistory {
           effects += [getHistory]
-        case .some(.that):
-          effects += [getVisits]
-        case .some(.both):
-          return .none
         }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), ps, e, d)
+        if r.visits == .notRefreshingVisits {
+          effects += [getVisits]
+        }
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
         return .merge(effects)
       case .updateVisits:
         let effect: Effect<AppAction, Never>
-        let refreshing: These<RefreshingVisits, RefreshingHistory>
-        switch r {
-        case .none, .some(.that):
+        let refreshing: Refreshing
+        if r.visits == .notRefreshingVisits {
           effect = getVisits
-        case .some(.this), .some(.both):
+        } else {
           effect = .none
         }
-        switch r {
-        case .none, .some(.this):
-          refreshing = .this(RefreshingVisits())
-        case .some(.that), .some(.both):
-          refreshing = .both(RefreshingVisits(), RefreshingHistory())
-        }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, refreshing, ps, e, d)
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, r |> \.visits *< .refreshingVisits, ps, e, d)
         return effect
       case let .copyToPasteboard(s):
         return .merge(
@@ -977,17 +963,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             .addGeotag(.clockIn)
             .fireAndForget()
         ]
-        switch r {
-        case .none:
-          effects += [getVisits, getHistory]
-        case .some(.this):
+        if r.history == .notRefreshingHistory {
           effects += [getHistory]
-        case .some(.that):
-          effects += [getVisits]
-        case .some(.both):
-          break
         }
-        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), ps, e, d)
+        if r.visits == .notRefreshingVisits {
+          effects += [getVisits]
+        }
+        state.flow = .visits(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
         return .merge(effects)
       case .stopTracking:
         var effects: [Effect<AppAction, Never>] = [
@@ -998,18 +980,11 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             .addGeotag(.clockOut)
             .fireAndForget()
         ]
-        switch r {
-        case .none:
-          break
-        case .some(.this):
-          effects += [.cancel(id: RefreshingVisitsID())]
-        case .some(.that):
+        if r.history == .refreshingHistory {
           effects += [.cancel(id: RefreshingHistoryID())]
-        case .some(.both):
-          effects += [
-            .cancel(id: RefreshingVisitsID()),
-            .cancel(id: RefreshingHistoryID())
-          ]
+        }
+        if r.visits == .refreshingVisits {
+          effects += [.cancel(id: RefreshingVisitsID())]
         }
         state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .none, ps, e, d)
         return .merge(effects)
@@ -1028,7 +1003,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           (nv, nsv) = (freshVs, nil)
         }
         
-        state.flow = .visits(nv, nsv, h, s, pk, drID, deID, us, p, r >>- removeThis, ps, e, d)
+        state.flow = .visits(nv, nsv, h, s, pk, drID, deID, us, p, r |> \.visits *< .notRefreshingVisits, ps, e, d)
         if let reverseGeocodingCoordinates = NonEmptySet(rawValue: visitCoordinatesWithoutAddress(freshVs)) {
           return environment.api
             .reverseGeocode(reverseGeocodingCoordinates.map(identity))
@@ -1040,7 +1015,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
       case let .historyUpdated(h):
-        state.flow = .visits(v, sv, resultSuccess(h), s, pk, drID, deID, us, p, r >>- removeThat, ps, e, d)
+        state.flow = .visits(v, sv, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e, d)
         return .none
       default:
         return .none
@@ -1059,20 +1034,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r, ps, e, d)
       
       let effect: Effect<AppAction, Never>
-      let refreshing: These<RefreshingVisits, RefreshingHistory>
-      switch r {
-      case .none, .some(.this):
+      if r.history == .notRefreshingHistory {
         effect = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
-      case .some(.that), .some(.both):
+      } else {
         effect = .none
       }
-      switch r {
-      case .none, .some(.that):
-        refreshing = .that(RefreshingHistory())
-      case .some(.this), .some(.both):
-        refreshing = .both(RefreshingVisits(), RefreshingHistory())
-      }
-      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, refreshing, ps, e, d)
+      state.flow = .visits(v, sv, h, .map, pk, drID, deID, us, p, r |> \.history *< .refreshingHistory, ps, e, d)
       return effect
     case let (.visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e, d), .switchToSummary) where s != .summary:
       state.flow = .visits(v, sv, h, .summary, pk, drID, deID, us, p, r, ps, e, d)
@@ -1103,18 +1070,14 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
         
         var effects: [Effect<AppAction, Never>] = [effects]
-        switch r {
-        case .none:
-          effects += [getVisits, getHistory]
-        case .some(.this):
+        if r.history == .notRefreshingHistory {
           effects += [getHistory]
-        case .some(.that):
+        }
+        if r.visits == .notRefreshingVisits {
           effects += [getVisits]
-        case .some(.both):
-          return .none
         }
         
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .both(RefreshingVisits(), RefreshingHistory()), ps, e, d)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, .all, ps, e, d)
         return .merge(effects)
       default: return effects
       }
@@ -1143,7 +1106,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
           getVisits,
           getHistory
         ]
-        state.flow = .visits(v, sv, h, s, pk, drID, deID, .running, p, .both(RefreshingVisits(), RefreshingHistory()), .dialogSplash(.shown), .regular, .none)
+        state.flow = .visits(v, sv, h, s, pk, drID, deID, .running, p, .all, .dialogSplash(.shown), .regular, .none)
         return .merge(combinedEffects)
       default: return effects
       }

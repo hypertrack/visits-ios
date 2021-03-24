@@ -16,7 +16,7 @@ extension AppState {
       deviceID,
       .running,
       permissions,
-      nil,
+      .none,
       .dialogSplash(.shown),
       .regular,
       nil
@@ -35,7 +35,7 @@ extension AppState {
       deviceID,
       .running,
       permissions,
-      nil,
+      .none,
       .dialogSplash(.shown),
       .regular,
       nil
@@ -88,7 +88,7 @@ extension AppState {
       deviceID,
       .running,
       permissions,
-      nil,
+      .none,
       .dialogSplash(.shown),
       .regular,
       nil
@@ -115,7 +115,7 @@ extension AppState {
       deviceID,
       .running,
       permissions,
-      nil,
+      .none,
       .dialogSplash(.shown),
       .regular,
       nil
@@ -134,7 +134,7 @@ extension AppState {
       deviceID,
       .running,
       permissions,
-      nil,
+      .none,
       .dialogSplash(.shown),
       .regular,
       nil

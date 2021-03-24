@@ -134,13 +134,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     case (.stopped, _, _, _, _):                             return .blocker(.stopped)
     case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
-      let refreshingVisits: Bool
-      switch r {
-      case .none, .some(.that):
-        refreshingVisits = false
-      case .some(.this), .some(.both):
-        refreshingVisits = true
-      }
+      let refreshingVisits = r.visits == .refreshingVisits
       let mapVisitsList = mapVisits(from: v)
       
       if let sv = sv {

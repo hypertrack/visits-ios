@@ -88,7 +88,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
         state.flow = .signIn(.editingCredentials(.this(email), nil))
       case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
         let fvs = filterOutOldVisits(environment.date())
-        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, nil, pushStatus, experience, nil)
+        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience, nil)
         return .merge(
           stateRestored,
           environment
