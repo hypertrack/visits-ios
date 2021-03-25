@@ -24,18 +24,20 @@ public struct AppleMapView: UIViewRepresentable {
     mapView.isRotateEnabled = false
     mapView.isUserInteractionEnabled = false
     
+    return mapView
+  }
+
+  public func updateUIView(_ mapView: MKMapView, context _: Context) {
+    mapView.annotations.forEach{ mapView.removeAnnotation($0) }
+    
     let annotation = MKPointAnnotation()
     annotation.coordinate = coordinate
     mapView.addAnnotation(annotation)
     mapView.setRegion(coordinateRegion, animated: false)
-    
-    return mapView
   }
-
-  public func updateUIView(_ uiView: MKMapView, context _: Context) { }
   
-  public static func dismantleUIView(_ uiView: MKMapView, coordinator: ()) {
-    uiView.annotations.forEach{ uiView.removeAnnotation($0) }
+  public static func dismantleUIView(_ mapView: MKMapView, coordinator: ()) {
+    mapView.annotations.forEach{ mapView.removeAnnotation($0) }
   }
 }
 
