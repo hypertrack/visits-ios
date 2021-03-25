@@ -124,6 +124,35 @@ struct VisitsBlock: View {
         set: { sendTab($0) }
       )
     ) {
+      ZStack() {
+        MapScreen(
+          polyline: Binding.constant(state.history?.coordinates ?? []),
+          sendSelectedMapVisit: sendMap,
+          visits: Binding.constant(state.assignedVisits)
+        )
+        .edgesIgnoringSafeArea(.top)
+        .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
+        if let distance = state.history?.driveDistance, distance != 0 {
+          VStack {
+            Spacer()
+            RoundedStack {
+              HStack {
+                Text("Distance: \(localizedDistance(distance))")
+                  .font(.normalHighBold)
+                  .padding()
+                Spacer()
+              }
+            }
+            .padding(.bottom, -10)
+          }
+        }
+      }
+      .tabItem {
+        Image(systemName: "map")
+        Text("Map")
+      }
+      .tag(TabSelection.map)
+      
       switch state.visits {
       case let .visit(v):
         VisitScreen(state: v) {
@@ -135,35 +164,6 @@ struct VisitsBlock: View {
         }
         .tag(TabSelection.visits)
       case let .visits(vs):
-        ZStack() {
-          MapScreen(
-            polyline: Binding.constant(state.history?.coordinates ?? []),
-            sendSelectedMapVisit: sendMap,
-            visits: Binding.constant(state.assignedVisits)
-          )
-          .edgesIgnoringSafeArea(.top)
-          .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
-          if let distance = state.history?.driveDistance, distance != 0 {
-            VStack {
-              Spacer()
-              RoundedStack {
-                HStack {
-                  Text("Distance: \(localizedDistance(distance))")
-                    .font(.normalHighBold)
-                    .padding()
-                  Spacer()
-                }
-              }
-              .padding(.bottom, -10)
-            }
-          }
-        }
-        .tabItem {
-          Image(systemName: "map")
-          Text("Map")
-        }
-        .tag(TabSelection.map)
-        
         VisitsScreen(state: vs) {
           sendVisits($0)
         }
