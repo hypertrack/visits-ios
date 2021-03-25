@@ -81,7 +81,7 @@ public struct VisitsScreen: View {
   
   public var body: some View {
     Navigation(
-      title: "Visits",
+      title: "Orders",
       leading: {
         Button("Clock Out") {
           send(.clockOutButtonTapped)
@@ -99,7 +99,7 @@ public struct VisitsScreen: View {
         ZStack {
           VStack(spacing: 0) {
             VisitStatus(
-              text: state.refreshing ? "Updating visits." : state.noVisits ? "No visits for today, tap refresh to update." : "You've completed \(state.completed.count + state.canceled.count) out of \(state.totalVisits) visits so far.",
+              text: state.refreshing ? "Updating orders." : state.noVisits ? "No orders for today, tap refresh to update." : "You've completed \(state.completed.count + state.canceled.count) out of \(state.totalVisits) orders so far.",
               state: state.noVisits ? .custom(color: Color.gray) : .visited
             )
             .padding(.top, 44)

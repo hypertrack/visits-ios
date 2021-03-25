@@ -353,7 +353,7 @@ func visitedString(_ visited: Order.Geotag.Visited) -> String {
 
 func visitTitle(from v: Order) -> String {
   switch v.address {
-  case .none: return "Visit @ \(DateFormatter.stringDate(v.createdAt))"
+  case .none: return "Order @ \(DateFormatter.stringDate(v.createdAt))"
   case let .some(.both(s, _)),
        let .some(.this(s)): return s.rawValue.rawValue
   case let .some(.that(f)): return f.rawValue.rawValue

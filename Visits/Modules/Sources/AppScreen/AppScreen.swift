@@ -160,7 +160,7 @@ struct VisitsBlock: View {
         }
         .tabItem {
           Image(systemName: "list.dash")
-          Text("Visits")
+          Text("Orders")
         }
         .tag(TabSelection.visits)
       case let .visits(vs):
@@ -169,7 +169,7 @@ struct VisitsBlock: View {
         }
         .tabItem {
           Image(systemName: "list.dash")
-          Text("Visits")
+          Text("Orders")
         }
         .tag(TabSelection.visits)
       }

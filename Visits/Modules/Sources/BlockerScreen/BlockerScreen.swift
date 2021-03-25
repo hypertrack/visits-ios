@@ -102,7 +102,7 @@ func message(from s: Blocker.State) -> String {
   case let .invalidPublishableKey(id):
     return "Our server can't identify the company belonging to your deeplink/credentials. Please contact your manager with the screenshot of this screen.\n\nDeviceID: \(id)"
   case .stopped:
-    return "You are currently clocked out. Clocking in starts location tracking and opens the visits for today.\n\nThe app does not track your location while you are clocked out."
+    return "You are currently clocked out. Clocking in starts location tracking and opens the orders for today.\n\nThe app does not track your location while you are clocked out."
   case .locationDenied:
     return """
            We need your permission to access your location. Visits app uses your location to calculate mileage.
@@ -147,7 +147,7 @@ func message(from s: Blocker.State) -> String {
     return "We use Motion & Fitness to efficiently use your battery when tracking."
     
   case .pushNotShown:
-    return "We use push notifications to notify about new visits."
+    return "We use push notifications to notify about new orders."
   }
 }
 

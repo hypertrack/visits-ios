@@ -207,7 +207,7 @@ struct VisitInformationView: View {
         case .notSent, .pickedUp, .entered, .visited:
           TextFieldBlock(
             text: $deleveryNoteBinding,
-            name: "Visit note",
+            name: "Order note",
             errorText: "",
             focused: noteFieldFocused,
             textContentType: .addressCityAndState,
@@ -220,7 +220,7 @@ struct VisitInformationView: View {
         case .checkedOut, .canceled:
           if !visitNote.isEmpty {
             ContentCell(
-              title: "Visit note",
+              title: "Order note",
               subTitle: visitNote,
               leadingPadding: 16,
               copyTextPressed
