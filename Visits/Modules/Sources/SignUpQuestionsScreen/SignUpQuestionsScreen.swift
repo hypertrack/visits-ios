@@ -252,7 +252,6 @@ public struct SignUpQuestionsScreen: View {
       .animation(.default)
       .modifier(AppBackground())
       .edgesIgnoringSafeArea(.all)
-      .ignoreKeyboard()
       .onTapGesture {
         send(.deselectQuestions)
       }

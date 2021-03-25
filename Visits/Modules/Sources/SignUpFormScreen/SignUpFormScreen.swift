@@ -60,99 +60,91 @@ public struct SignUpFormScreen: View {
   }
   
   public var body: some View {
-    GeometryReader { geometry in
-      VStack {
-        Title(title: "Sign up for a new account")
-        Text("Free 100k events per month. No credit card required.")
-          .multilineTextAlignment(.center)
-          .font(.smallMedium)
-          .foregroundColor(colorScheme == .dark ? .ghost : .greySuit)
-        HStack {
-          Rectangle()
-            .frame(width: 24, height: 8)
-            .foregroundColor(state.formIsValid ? Color.dodgerBlue : .ghost)
-            .cornerRadius(4)
-          Rectangle()
-            .frame(width: 8, height: 8)
-            .foregroundColor(state.questionsAnswered ? Color.dodgerBlue : .ghost)
-            .cornerRadius(4)
-        }
-        TextFieldBlock(
-          text: Binding(
-            get: { state.name },
-            set: { send(.nameChanged($0)) }
-          ),
-          name: "Business name",
-          errorText: "",
-          focused: state.fieldInFocus == .name,
-          textContentType: .organizationName,
-          keyboardType: .alphabet,
-          returnKeyType: .next,
-          wantsToBecomeFocused: { send(.nameTapped) },
-          enterButtonPressed: { send(.nameEnterKeyboardButtonTapped) }
-        )
-        .disabled(false)
-        .padding([.trailing, .leading], 16)
-        TextFieldBlock(
-          text: Binding(
-            get: { state.email },
-            set: { send(.emailChanged($0)) }
-          ),
-          name: "Business email",
-          errorText: "",
-          focused: state.fieldInFocus == .email,
-          textContentType: .emailAddress,
-          keyboardType: .emailAddress,
-          returnKeyType: .next,
-          wantsToBecomeFocused: { send(.emailTapped) },
-          enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
-        )
-        .padding([.trailing, .leading], 16)
-        TextFieldBlock(
-          text: Binding(
-            get: { state.password },
-            set: { send(.passwordChanged($0)) }
-          ),
-          name: "Password",
-          errorText: state.errorMessage,
-          focused: state.fieldInFocus == .password,
-          textContentType: .password,
-          secure: true,
-          keyboardType: .default,
-          returnKeyType: .send,
-          enablesReturnKeyAutomatically: false,
-          wantsToBecomeFocused: { send(.passwordTapped) },
-          enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
-        )
-        .padding([.trailing, .leading], 16)
-        PrimaryButton(variant: .normal(title: "Next")) {
-          send(.nextButtonTapped)
-        }
-        .padding([.leading, .trailing], 44)
-        Spacer()
-        Text("Already have an account?")
-          .font(
-            Font.system(size: 14)
-              .weight(.medium))
-          .foregroundColor(.ghost)
-        TransparentButton(title: "Sign in") {
-          send(.signInTapped)
-        }
-        .padding(.top, 12)
-        .padding([.trailing, .leading], 58)
-        .padding(
-          .bottom,
-          geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets
-            .bottom : 24
-        )
-
+    VStack {
+      Title(title: "Sign up for a new account")
+      Text("Free 100k events per month. No credit card required.")
+        .multilineTextAlignment(.center)
+        .font(.smallMedium)
+        .foregroundColor(colorScheme == .dark ? .ghost : .greySuit)
+      HStack {
+        Rectangle()
+          .frame(width: 24, height: 8)
+          .foregroundColor(state.formIsValid ? Color.dodgerBlue : .ghost)
+          .cornerRadius(4)
+        Rectangle()
+          .frame(width: 8, height: 8)
+          .foregroundColor(state.questionsAnswered ? Color.dodgerBlue : .ghost)
+          .cornerRadius(4)
       }
-      .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.all)
-      .ignoreKeyboard()
-      .onTapGesture {
-        send(.tappedOutsideFocus)
+      TextFieldBlock(
+        text: Binding(
+          get: { state.name },
+          set: { send(.nameChanged($0)) }
+        ),
+        name: "Business name",
+        errorText: "",
+        focused: state.fieldInFocus == .name,
+        textContentType: .organizationName,
+        keyboardType: .alphabet,
+        returnKeyType: .next,
+        wantsToBecomeFocused: { send(.nameTapped) },
+        enterButtonPressed: { send(.nameEnterKeyboardButtonTapped) }
+      )
+      .disabled(false)
+      .padding([.trailing, .leading], 16)
+      TextFieldBlock(
+        text: Binding(
+          get: { state.email },
+          set: { send(.emailChanged($0)) }
+        ),
+        name: "Business email",
+        errorText: "",
+        focused: state.fieldInFocus == .email,
+        textContentType: .emailAddress,
+        keyboardType: .emailAddress,
+        returnKeyType: .next,
+        wantsToBecomeFocused: { send(.emailTapped) },
+        enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
+      )
+      .padding([.trailing, .leading], 16)
+      TextFieldBlock(
+        text: Binding(
+          get: { state.password },
+          set: { send(.passwordChanged($0)) }
+        ),
+        name: "Password",
+        errorText: state.errorMessage,
+        focused: state.fieldInFocus == .password,
+        textContentType: .password,
+        secure: true,
+        keyboardType: .default,
+        returnKeyType: .send,
+        enablesReturnKeyAutomatically: false,
+        wantsToBecomeFocused: { send(.passwordTapped) },
+        enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
+      )
+      .padding([.trailing, .leading], 16)
+      PrimaryButton(variant: .normal(title: "Next")) {
+        send(.nextButtonTapped)
       }
+      .padding([.leading, .trailing], 44)
+      Spacer()
+      Text("Already have an account?")
+        .font(
+          Font.system(size: 14)
+            .weight(.medium))
+        .foregroundColor(.ghost)
+      TransparentButton(title: "Sign in") {
+        send(.signInTapped)
+      }
+      .padding(.top, 12)
+      .padding([.trailing, .leading], 58)
+      .padding(.bottom, 30)
+    }
+    .modifier(AppBackground())
+    .edgesIgnoringSafeArea(.all)
+    .onTapGesture {
+      send(.tappedOutsideFocus)
     }
   }
 }

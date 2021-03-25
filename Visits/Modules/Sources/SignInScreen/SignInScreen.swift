@@ -55,94 +55,87 @@ public struct SignInScreen: View {
   }
   
   public var body: some View {
-    GeometryReader { geometry in
-      VStack {
-        Title(title: "Sign in to your account")
-        TextFieldBlock(
-          text: Binding(
-            get: { state.email },
-            set: { send(.emailChanged($0)) }
-          ),
-          name: "Email address",
-          errorText: "",
-          focused: state.fieldInFocus == .email,
-          textContentType: .emailAddress,
-          keyboardType: .emailAddress,
-          returnKeyType: .next,
-          wantsToBecomeFocused: { send(.emailTapped) },
-          enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
-        )
-        .disabled(state.signingIn)
-        .padding(.top, 50)
-        .padding([.trailing, .leading], 16)
-        TextFieldBlock(
-          text: Binding(
-            get: { state.password },
-            set: { send(.passwordChanged($0)) }
-          ),
-          name: "Password",
-          errorText: state.errorMessage,
-          focused: state.fieldInFocus == .password,
-          textContentType: .password,
-          secure: true,
-          keyboardType: .default,
-          returnKeyType: .send,
-          enablesReturnKeyAutomatically: false,
-          wantsToBecomeFocused: { send(.passwordTapped) },
-          enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
-        )
-        .disabled(state.signingIn)
-        .padding(.top, 17)
-        .padding([.trailing, .leading], 16)
-        switch state.buttonState {
-        case .normal:
-          PrimaryButton(
-            variant: .normal(title: "Sign in")
-          ) {
-            send(.signInTapped)
-          }
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
-        case .destructive:
-          PrimaryButton(
-            variant: .destructive(),
-            showActivityIndicator: state.signingIn) {
-            send(.cancelSignInTapped)
-          }
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
-        case .disabled:
-          PrimaryButton(
-            variant: .disabled(title: "Sign in")
-          ) {}
-          .disabled(true)
-          .padding(.top, 39)
-          .padding([.trailing, .leading], 58)
+    VStack {
+      Title(title: "Sign in to your account")
+      TextFieldBlock(
+        text: Binding(
+          get: { state.email },
+          set: { send(.emailChanged($0)) }
+        ),
+        name: "Email address",
+        errorText: "",
+        focused: state.fieldInFocus == .email,
+        textContentType: .emailAddress,
+        keyboardType: .emailAddress,
+        returnKeyType: .next,
+        wantsToBecomeFocused: { send(.emailTapped) },
+        enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
+      )
+      .disabled(state.signingIn)
+      .padding(.top, 50)
+      .padding([.trailing, .leading], 16)
+      TextFieldBlock(
+        text: Binding(
+          get: { state.password },
+          set: { send(.passwordChanged($0)) }
+        ),
+        name: "Password",
+        errorText: state.errorMessage,
+        focused: state.fieldInFocus == .password,
+        textContentType: .password,
+        secure: true,
+        keyboardType: .default,
+        returnKeyType: .send,
+        enablesReturnKeyAutomatically: false,
+        wantsToBecomeFocused: { send(.passwordTapped) },
+        enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
+      )
+      .disabled(state.signingIn)
+      .padding(.top, 17)
+      .padding([.trailing, .leading], 16)
+      switch state.buttonState {
+      case .normal:
+        PrimaryButton(
+          variant: .normal(title: "Sign in")
+        ) {
+          send(.signInTapped)
         }
-        Spacer()
-        Text("Don’t have an account?")
-          .font(
-            Font.system(size: 14)
-              .weight(.medium))
-          .foregroundColor(.ghost)
-        TransparentButton(title: "Sign up?") {
-          send(.signUpTapped)
-        }
-        .padding(.top, 12)
+        .padding(.top, 39)
         .padding([.trailing, .leading], 58)
-        .padding(
-          .bottom,
-          geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets
-            .bottom : 24
-        )
-      }
-      .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.all)
-      .ignoreKeyboard()
-      .onTapGesture {
-        if .none != state.fieldInFocus {
-          send(.tappedOutsideFocus)
+      case .destructive:
+        PrimaryButton(
+          variant: .destructive(),
+          showActivityIndicator: state.signingIn) {
+          send(.cancelSignInTapped)
         }
+        .padding(.top, 39)
+        .padding([.trailing, .leading], 58)
+      case .disabled:
+        PrimaryButton(
+          variant: .disabled(title: "Sign in")
+        ) {}
+        .disabled(true)
+        .padding(.top, 39)
+        .padding([.trailing, .leading], 58)
+      }
+      Spacer()
+      Text("Don’t have an account?")
+        .font(
+          Font.system(size: 14)
+            .weight(.medium))
+        .foregroundColor(.ghost)
+      TransparentButton(title: "Sign up?") {
+        send(.signUpTapped)
+      }
+      .padding(.top, 12)
+      .padding([.trailing, .leading], 58)
+      .padding(.bottom, 30)
+    }
+    .modifier(AppBackground())
+    .edgesIgnoringSafeArea(.all)
+    .onTapGesture {
+      if .none != state.fieldInFocus {
+        send(.tappedOutsideFocus)
       }
     }
   }

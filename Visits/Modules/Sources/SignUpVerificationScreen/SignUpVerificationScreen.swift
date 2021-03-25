@@ -65,108 +65,101 @@ public struct SignUpVerificationScreen: View {
   }
   
   public var body: some View {
-    GeometryReader { geometry in
-      VStack {
-        Title(title: "Verify your email", withCheck: true)
-        Text("We have sent you an email with the confirmation code. Please enter the code in the email to continue.")
-          .multilineTextAlignment(.center)
-          .font(.smallMedium)
-          .foregroundColor(colorScheme == .dark ? .ghost : .greySuit)
-          .padding(.horizontal, 6)
-          .padding(.bottom, 20)
-        Spacer()
-        HStack {
-          CodeDigitView(
-            tag: "First Digit",
-            code: state.firstField,
-            codeChanged: { send(.firstFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .first,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-          CodeDigitView(
-            tag: "Second Digit",
-            code: state.secondField,
-            codeChanged: { send(.secondFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .second,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-          CodeDigitView(
-            tag: "Third Digit",
-            code: state.thirdField,
-            codeChanged: { send(.thirdFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .third,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-          .padding(.trailing, 8)
-          CodeDigitView(
-            tag: "Fourth Digit",
-            code: state.fourthField,
-            codeChanged: { send(.fourthFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .fourth,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-          CodeDigitView(
-            tag: "Fifth Digit",
-            code: state.fifthField,
-            codeChanged: { send(.fifthFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .fifth,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-          CodeDigitView(
-            tag: "Sixth Digit",
-            code: state.sixthField,
-            codeChanged: { send(.sixthFieldChanged($0)) },
-            inFocus: state.fieldInFocus == .sixth,
-            tapped: { send(.fieldsTapped) },
-            backspacePressed: { send(.backspacePressed) }
-          )
-        }
-        if !state.error.isEmpty {
-          Text(state.error)
-            .lineLimit(3)
-            .font(.smallMedium)
-            .foregroundColor(.radicalRed)
-            .padding(.horizontal)
-        }
-        
-        if #available(iOS 14.0, *) {
-          if state.verifying {
-            ProgressView()
-          }
-        }
-        
-        LinkButton(title: "Resend verification code") {
-          send(.resendButtonTapped)
-        }
-        .padding(.bottom, 100)
-        Spacer()
-        Text("Already verified?")
-          .font(
-            Font.system(size: 14)
-              .weight(.medium))
-          .foregroundColor(.ghost)
-        TransparentButton(title: "Sign in") {
-          send(.signInTapped)
-        }
-        .padding(.top, 12)
-        .padding([.trailing, .leading], 58)
-        .padding(
-          .bottom,
-          geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets
-            .bottom : 24
+    VStack {
+      Title(title: "Verify your email", withCheck: true)
+      Text("We have sent you an email with the confirmation code. Please enter the code in the email to continue.")
+        .multilineTextAlignment(.center)
+        .font(.smallMedium)
+        .foregroundColor(colorScheme == .dark ? .ghost : .greySuit)
+        .padding(.horizontal, 6)
+        .padding(.bottom, 20)
+      Spacer()
+      HStack {
+        CodeDigitView(
+          tag: "First Digit",
+          code: state.firstField,
+          codeChanged: { send(.firstFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .first,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
+        )
+        CodeDigitView(
+          tag: "Second Digit",
+          code: state.secondField,
+          codeChanged: { send(.secondFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .second,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
+        )
+        CodeDigitView(
+          tag: "Third Digit",
+          code: state.thirdField,
+          codeChanged: { send(.thirdFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .third,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
+        )
+        .padding(.trailing, 8)
+        CodeDigitView(
+          tag: "Fourth Digit",
+          code: state.fourthField,
+          codeChanged: { send(.fourthFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .fourth,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
+        )
+        CodeDigitView(
+          tag: "Fifth Digit",
+          code: state.fifthField,
+          codeChanged: { send(.fifthFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .fifth,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
+        )
+        CodeDigitView(
+          tag: "Sixth Digit",
+          code: state.sixthField,
+          codeChanged: { send(.sixthFieldChanged($0)) },
+          inFocus: state.fieldInFocus == .sixth,
+          tapped: { send(.fieldsTapped) },
+          backspacePressed: { send(.backspacePressed) }
         )
       }
-      .appBackground()
-      .edgesIgnoringSafeArea(.all)
-      .ignoreKeyboard()
-      .onTapGesture {
-        send(.tappedOutsideFocus)
+      if !state.error.isEmpty {
+        Text(state.error)
+          .lineLimit(3)
+          .font(.smallMedium)
+          .foregroundColor(.radicalRed)
+          .padding(.horizontal)
       }
+      
+      if #available(iOS 14.0, *) {
+        if state.verifying {
+          ProgressView()
+        }
+      }
+      
+      LinkButton(title: "Resend verification code") {
+        send(.resendButtonTapped)
+      }
+      .padding(.bottom, 100)
+      Spacer()
+      Text("Already verified?")
+        .font(
+          Font.system(size: 14)
+            .weight(.medium))
+        .foregroundColor(.ghost)
+      TransparentButton(title: "Sign in") {
+        send(.signInTapped)
+      }
+      .padding(.top, 12)
+      .padding([.trailing, .leading], 58)
+      .padding(.bottom, 30)
+    }
+    .appBackground()
+    .edgesIgnoringSafeArea(.all)
+    .onTapGesture {
+      send(.tappedOutsideFocus)
     }
   }
 }
