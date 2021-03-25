@@ -7,7 +7,7 @@ import Types
 
 
 func resendVerification(email: Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never> {
-  URLSession.shared.dataTaskPublisher(for: resendVerificationRequest(email: email))
+  session.dataTaskPublisher(for: resendVerificationRequest(email: email))
     .map(\.data)
     .decode(type: ResendVerificationJSONResponse.self, decoder: snakeCaseDecoder)
     .map { response in

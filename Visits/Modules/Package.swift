@@ -5,6 +5,14 @@ import PackageDescription
 let architecture = Target.Dependency.product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 let nonEmpty = Target.Dependency.product(name: "NonEmpty", package: "swift-nonempty")
 
+let certificates: [Resource] = [
+  .copy("Resources/AmazonRootCA1.cer"),
+  .copy("Resources/AmazonRootCA2.cer"),
+  .copy("Resources/AmazonRootCA3.cer"),
+  .copy("Resources/AmazonRootCA4.cer"),
+  .copy("Resources/SFSRootCAG2.cer")
+]
+
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Prelude"]),
   // Type
@@ -27,7 +35,7 @@ let targets: [Target] = [
   .target(name: "VisitsScreen",                    dependencies: [architecture, "Views"]),
   // Environment
   .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Prelude", "Tagged", "Types"]),
-  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"]),
+  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
   .target(name: "DeepLinkEnvironment",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "DeepLinkEnvironmentLive",         dependencies: ["Branch", "DeepLinkEnvironment", "LogEnvironment"]),
   .target(name: "HapticFeedbackEnvironment",       dependencies: [architecture]),

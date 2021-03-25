@@ -12,7 +12,7 @@ func signUp(
   businessManages: BusinessManages,
   managesFor: ManagesFor
 ) -> Effect<Result<SignUpError?, APIError>, Never> {
-  URLSession.shared.dataTaskPublisher(
+  session.dataTaskPublisher(
     for: signUpRequest(
       name: name,
       email: email,

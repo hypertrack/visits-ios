@@ -7,7 +7,7 @@ import Types
 
 
 func verifyEmail(email: Email, code: VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never> {
-  URLSession.shared.dataTaskPublisher(for: verifyEmailRequest(email: email, code: code))
+  session.dataTaskPublisher(for: verifyEmailRequest(email: email, code: code))
     .map(\.data)
     .decode(type: VerificationJSONResponse.self, decoder: snakeCaseDecoder)
     .map { response in
