@@ -48,8 +48,53 @@ struct Trip {
   let coordinate: Coordinate
   let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
   let visitStatus: VisitStatus?
+  let orders: [_Order]
 }
 
+struct _Order {
+  let id: NonEmptyString
+  let coordinate: Coordinate
+  let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
+  let visitStatus: VisitStatus?
+}
+
+extension _Order: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case id = "order_id"
+    case destination
+    case metadata
+    case arrivedAt = "arrived_at"
+    case exitedAt = "exited_at"
+  }
+  
+  enum DestinationCodingKeys: String, CodingKey {
+    case geometry
+  }
+  
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    id = try values.decode(NonEmptyString.self, forKey: .id)
+    
+    let arrivedAt = try? decodeTimestamp(decoder: decoder, container: values, key: .arrivedAt)
+    let exitedAt = try? decodeTimestamp(decoder: decoder, container: values, key: .exitedAt)
+    
+    switch (arrivedAt, exitedAt) {
+    case let (.some(arrivedAt), .some(exitedAt)):
+      visitStatus = .visited(arrivedAt, exitedAt)
+    case let (.some(arrivedAt), .none):
+      visitStatus = .entered(arrivedAt)
+    case (.none, .some), (.none, .none):
+      visitStatus = nil
+    }
+    
+    let destinationJSON = try values.nestedContainer(keyedBy: DestinationCodingKeys.self, forKey: .destination)
+    
+    coordinate = try decodeGeofenceCentroid(decoder: decoder, container: destinationJSON, key: .geometry)
+    
+    metadata = try decodeMetadata(decoder: decoder, container: values, key: .metadata)
+  }
+}
 
 extension TripsPage: Decodable {
   enum CodingKeys: String, CodingKey {
@@ -70,6 +115,7 @@ extension Trip: Decodable {
     case createdAt = "started_at"
     case destination
     case metadata
+    case orders
   }
   
   enum DestinationCodingKeys: String, CodingKey {
@@ -101,5 +147,7 @@ extension Trip: Decodable {
     }
     
     metadata = try decodeMetadata(decoder: decoder, container: values, key: .metadata)
+    
+    orders = (try? values.decodeIfPresent([_Order].self, forKey: .orders)) ?? []
   }
 }
