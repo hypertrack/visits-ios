@@ -4,7 +4,7 @@ import Prelude
 import Tagged
 
 
-public struct Visit {
+public struct Order {
   public var id: ID
   public var createdAt: Date
   public var source: Source
@@ -15,7 +15,7 @@ public struct Visit {
   public var noteFieldFocused: Bool
   public var metadata: [Name: Contents]
   
-  public enum Source { case geofence, trip }
+  public enum Source { case order, trip }
   public enum Geotag {
     public enum Visited {
       case entered(Date)
@@ -164,28 +164,28 @@ public struct Visit {
   }
   
   // Newtypes
-  public typealias ID             = Tagged<Visit,                     NonEmptyString>
-  public typealias VisitNote      = Tagged<(Visit, visitNote: ()),    NonEmptyString>
-  public typealias Street         = Tagged<(Visit, street: ()),       NonEmptyString>
-  public typealias FullAddress    = Tagged<(Visit, address: ()),      NonEmptyString>
-  public typealias Name           = Tagged<(Visit, name: ()),         NonEmptyString>
-  public typealias Contents       = Tagged<(Visit, contents: ()),     NonEmptyString>
+  public typealias ID             = Tagged<Order,                     NonEmptyString>
+  public typealias VisitNote      = Tagged<(Order, visitNote: ()),    NonEmptyString>
+  public typealias Street         = Tagged<(Order, street: ()),       NonEmptyString>
+  public typealias FullAddress    = Tagged<(Order, address: ()),      NonEmptyString>
+  public typealias Name           = Tagged<(Order, name: ()),         NonEmptyString>
+  public typealias Contents       = Tagged<(Order, contents: ()),     NonEmptyString>
 }
 
 // MARK: - Foundation
 
-extension Visit: Equatable {}
-extension Visit: Hashable {}
-extension Visit: Codable {}
+extension Order: Equatable {}
+extension Order: Hashable {}
+extension Order: Codable {}
 
-extension Visit.Geotag: Equatable {}
-extension Visit.Geotag: Hashable {}
-extension Visit.Geotag: AutoCodable {}
+extension Order.Geotag: Equatable {}
+extension Order.Geotag: Hashable {}
+extension Order.Geotag: AutoCodable {}
 
-extension Visit.Geotag.Visited: Equatable {}
-extension Visit.Geotag.Visited: Hashable {}
-extension Visit.Geotag.Visited: AutoCodable {}
+extension Order.Geotag.Visited: Equatable {}
+extension Order.Geotag.Visited: Hashable {}
+extension Order.Geotag.Visited: AutoCodable {}
 
-extension Visit.Source: Equatable {}
-extension Visit.Source: Hashable {}
-extension Visit.Source: AutoCodable {}
+extension Order.Source: Equatable {}
+extension Order.Source: Hashable {}
+extension Order.Source: AutoCodable {}

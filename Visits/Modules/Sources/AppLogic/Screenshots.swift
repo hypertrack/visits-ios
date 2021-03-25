@@ -138,16 +138,16 @@ extension AppState {
 }
 
 
-let notSent = Visit(
-  id: Visit.ID(rawValue: "ID4"),
+let notSent = Order(
+  id: Order.ID(rawValue: "ID4"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 37, second: 0, of: Date())!,
-  source: .geofence,
+  source: .trip,
   location: Coordinate(latitude: 37.780592, longitude: -122.413322)!,
   geotagSent: .pickedUp,
   noteFieldFocused: false,
   address: .both(
-    Visit.Street(rawValue: "87 McAllister St"),
-    Visit.FullAddress(rawValue: "87 McAllister St, San Francisco, CA  94102, United States")
+    Order.Street(rawValue: "87 McAllister St"),
+    Order.FullAddress(rawValue: "87 McAllister St, San Francisco, CA  94102, United States")
   ),
   metadata: [
     "Customer Notes": "Please deliver before 10 AM",
@@ -155,59 +155,59 @@ let notSent = Visit(
   ]
 )
 
-let entered = Visit(
-  id: Visit.ID(rawValue: "ID7"),
+let entered = Order(
+  id: Order.ID(rawValue: "ID7"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
-  source: .geofence,
+  source: .trip,
   location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
   geotagSent: .entered(Date()),
   noteFieldFocused: false,
   address: .both(
-    Visit.Street(rawValue: "333 Fulton St"),
-    Visit.FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
+    Order.Street(rawValue: "333 Fulton St"),
+    Order.FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
   )
 )
 
-let checkedOut1 = Visit(
-  id: Visit.ID(rawValue: "ID1"),
+let checkedOut1 = Order(
+  id: Order.ID(rawValue: "ID1"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 35, second: 0, of: Date())!,
-  source: .geofence,
+  source: .trip,
   location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
-    Visit.Street(rawValue: "1301 Market St"),
-    Visit.FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
+    Order.Street(rawValue: "1301 Market St"),
+    Order.FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
   )
 )
 
-let checkedOut2 = Visit(
-  id: Visit.ID(rawValue: "ID2"),
+let checkedOut2 = Order(
+  id: Order.ID(rawValue: "ID2"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!,
-  source: .geofence,
+  source: .trip,
   location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
-    Visit.Street(rawValue: "275 Hayes St"),
-    Visit.FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
+    Order.Street(rawValue: "275 Hayes St"),
+    Order.FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
   )
 )
 
-let checkedOut3 = Visit(
-  id: Visit.ID(rawValue: "ID5"),
+let checkedOut3 = Order(
+  id: Order.ID(rawValue: "ID5"),
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
-  source: .geofence,
+  source: .trip,
   location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
   address: .both(
-    Visit.Street(rawValue: "601 Eddy St"),
-    Visit.FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
+    Order.Street(rawValue: "601 Eddy St"),
+    Order.FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
   )
 )
 
-let visits: Set<Visit> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
+let visits: Set<Order> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
 
 let publishableKey = PublishableKey(rawValue: "Key")
 let deviceID = DeviceID(rawValue: "UNIQUE-ID")

@@ -2,7 +2,7 @@
 // DO NOT EDIT
 import Foundation
 
-extension Visit.Geotag {
+extension Order.Geotag {
 
     enum CodingKeys: String, CodingKey {
         case notSent
@@ -82,7 +82,7 @@ extension Visit.Geotag {
 
 }
 
-extension Visit.Geotag.Visited {
+extension Order.Geotag.Visited {
 
     enum CodingKeys: String, CodingKey {
         case entered
@@ -124,10 +124,10 @@ extension Visit.Geotag.Visited {
 
 }
 
-extension Visit.Source {
+extension Order.Source {
 
     enum CodingKeys: String, CodingKey {
-        case geofence
+        case order
         case trip
     }
 
@@ -136,7 +136,7 @@ extension Visit.Source {
 
         let enumCase = try container.decode(String.self)
         switch enumCase {
-        case CodingKeys.geofence.rawValue: self = .geofence
+        case CodingKeys.order.rawValue: self = .order
         case CodingKeys.trip.rawValue: self = .trip
         default: throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unknown enum case '\(enumCase)'"))
         }
@@ -146,7 +146,7 @@ extension Visit.Source {
         var container = encoder.singleValueContainer()
 
         switch self {
-        case .geofence: try container.encode(CodingKeys.geofence.rawValue)
+        case .order: try container.encode(CodingKeys.order.rawValue)
         case .trip: try container.encode(CodingKeys.trip.rawValue)
         }
     }

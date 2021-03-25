@@ -4,11 +4,11 @@ import Types
 import UIKit
 
 public enum Geotag: Equatable {
-  case cancel(Visit.ID, Visit.Source, Visit.VisitNote?)
-  case checkOut(Visit.ID, Visit.Source, Visit.VisitNote?)
+  case cancel(Order.ID, Order.Source, Order.VisitNote?)
+  case checkOut(Order.ID, Order.Source, Order.VisitNote?)
   case clockIn
   case clockOut
-  case pickUp(Visit.ID, Visit.Source)
+  case pickUp(Order.ID, Order.Source)
 }
 
 public struct HyperTrackEnvironment {

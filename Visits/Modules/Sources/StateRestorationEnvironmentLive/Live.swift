@@ -26,7 +26,7 @@ public extension StateRestorationEnvironment {
               >>- NonEmptyString.init(rawValue:)
               <¡> DriverID.init(rawValue:),
             visits: (UserDefaults.standard.object(forKey: RestorationKey.visits.rawValue) as? Data)
-              >>- { try? JSONDecoder().decode(Set<Visit>.self, from: $0) },
+              >>- { try? JSONDecoder().decode(Set<Order>.self, from: $0) },
             tabSelection: (UserDefaults.standard.string(forKey: RestorationKey.tabSelection.rawValue))
               >>- TabSelection.init(rawValue:),
             pushStatus: (UserDefaults.standard.string(forKey: RestorationKey.pushStatus.rawValue))
@@ -81,7 +81,7 @@ func restoredStateFrom(
   email: Email?,
   publishableKey: PublishableKey?,
   driverID: DriverID?,
-  visits: Set<Visit>?,
+  visits: Set<Order>?,
   tabSelection: TabSelection?,
   pushStatus: PushStatus?,
   experience: Experience?

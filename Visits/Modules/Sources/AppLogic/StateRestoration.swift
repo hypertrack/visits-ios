@@ -108,19 +108,19 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
   }
 }
 
-func filterOutOldVisits(_ now: Date) -> (Set<Visit>) -> (Set<Visit>) {
+func filterOutOldVisits(_ now: Date) -> (Set<Order>) -> (Set<Order>) {
   {
     $0.filter(visitValid(now: now))
   }
 }
 
-func filterOutOldVisit(_ now: Date) -> (Visit?) -> Visit? {
+func filterOutOldVisit(_ now: Date) -> (Order?) -> Order? {
   {
     $0.flatMap { visitValid(now: now)($0) ? $0 : nil }
   }
 }
 
-func visitValid(now: Date) -> (Visit) -> Bool {
+func visitValid(now: Date) -> (Order) -> Bool {
   { valid($0.createdAt, now: now) }
 }
 

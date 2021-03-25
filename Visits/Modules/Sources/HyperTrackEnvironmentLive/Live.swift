@@ -173,9 +173,9 @@ public extension HyperTrackEnvironment {
   )
 }
 
-func fromAssignedSource(_ source: Visit.Source) -> String {
+func fromAssignedSource(_ source: Order.Source) -> String {
   switch source {
-  case .geofence: return C.geofenceID.rawValue
+  case .order: return C.orderID.rawValue
   case .trip: return C.tripID.rawValue
   }
 }
@@ -186,13 +186,14 @@ enum C: String {
   case checkOut = "VISIT_MARKED_COMPLETE"
   case clockIn = "CLOCK_IN"
   case clockOut = "CLOCK_OUT"
-  case visitNote = "visit_note"
   case driverID = "driver_id"
   case geofenceID = "geofence_id"
-  case tripID = "trip_id"
+  case orderID = "order_id"
   case pickUp = "PICK_UP"
+  case tripID = "trip_id"
   case type = "type"
   case visitID = "visit_id"
+  case visitNote = "visit_note"
 }
 
 var ht: HyperTrack?

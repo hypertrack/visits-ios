@@ -7,7 +7,7 @@ import Prelude
 import Types
 
 
-public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<Visit.Street, Visit.FullAddress>?)], Never> {
+public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never> {
   coordinates.publisher
     .flatMap { reverseGeocodeCoordinate($0) }
     .collect()
@@ -15,7 +15,7 @@ public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, 
 }
 
 
-func reverseGeocodeCoordinate(_ coordinate: Coordinate) -> AnyPublisher<(Coordinate, These<Visit.Street, Visit.FullAddress>?), Never> {
+func reverseGeocodeCoordinate(_ coordinate: Coordinate) -> AnyPublisher<(Coordinate, These<Order.Street, Order.FullAddress>?), Never> {
   Future { promise in
     reverseGeocodeLocation(coordinate) {
       if let address = $0 {
@@ -28,7 +28,7 @@ func reverseGeocodeCoordinate(_ coordinate: Coordinate) -> AnyPublisher<(Coordin
   .eraseToAnyPublisher()
 }
 
-func reverseGeocodeLocation(_ coordinate: Coordinate, completion: @escaping (These<Visit.Street, Visit.FullAddress>?) -> Void) {
+func reverseGeocodeLocation(_ coordinate: Coordinate, completion: @escaping (These<Order.Street, Order.FullAddress>?) -> Void) {
   let locaiton = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
   CLGeocoder().reverseGeocodeLocation(locaiton) { placemarks, error in
     guard error == nil, let first = placemarks?.first else {
@@ -49,7 +49,7 @@ func constructAddress(
   fromSubThoroughfare subThoroughfare: String?,
   thoroughfare: String?,
   formattedAddress: String?
-) -> These<Visit.Street, Visit.FullAddress>? {
+) -> These<Order.Street, Order.FullAddress>? {
   let streetString: String? = { streetNumber in { streetName in "\(streetNumber) \(streetName)" } }
     <!> subThoroughfare
     <*> thoroughfare
@@ -59,11 +59,11 @@ func constructAddress(
   
   let street = streetString
     >>- NonEmptyString.init(rawValue:)
-    <¡> Visit.Street.init(rawValue:)
+    <¡> Order.Street.init(rawValue:)
   
   let fullAddress = fullAddressString
     >>- NonEmptyString.init(rawValue:)
-    <¡> Visit.FullAddress.init(rawValue:)
+    <¡> Order.FullAddress.init(rawValue:)
   
   return maybeThese(street)(fullAddress)
 }

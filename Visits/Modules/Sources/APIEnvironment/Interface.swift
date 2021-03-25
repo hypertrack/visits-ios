@@ -16,7 +16,7 @@ public enum VisitStatus: Equatable {
 }
 
 public struct APIVisit: Equatable {
-  public enum Source: Equatable { case trip, geofence }
+  public enum Source: Equatable { case order, trip }
   
   public typealias Name     = Tagged<(APIVisit, name: ()),     NonEmptyString>
   public typealias Contents = Tagged<(APIVisit, contents: ()), NonEmptyString>
@@ -58,7 +58,7 @@ public struct APIEnvironment {
   public var getHistory: (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>
   public var getVisits: (PublishableKey, DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never>
   public var resendVerificationCode: (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>
-  public var reverseGeocode: ([Coordinate]) -> Effect<[(Coordinate, These<Visit.Street, Visit.FullAddress>?)], Never>
+  public var reverseGeocode: ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>
   public var signUp: (BusinessName, Email, Password, BusinessManages, ManagesFor) -> Effect<Result<SignUpError?, APIError>, Never>
   public var verifyEmail: (Email, VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never>
@@ -67,7 +67,7 @@ public struct APIEnvironment {
     getHistory: @escaping (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>,
     getVisits: @escaping (PublishableKey, DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never>,
     resendVerificationCode: @escaping (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>,
-    reverseGeocode: @escaping ([Coordinate]) -> Effect<[(Coordinate, These<Visit.Street, Visit.FullAddress>?)], Never>,
+    reverseGeocode: @escaping ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>,
     signUp: @escaping (BusinessName, Email, Password, BusinessManages, ManagesFor) -> Effect<Result<SignUpError?, APIError>, Never>,
     verifyEmail: @escaping (Email, VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never>

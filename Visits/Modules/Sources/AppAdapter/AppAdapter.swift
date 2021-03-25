@@ -277,7 +277,7 @@ func signingIn(from s: SignIn) -> Bool {
   }
 }
 
-func visitHeaders(from vs: [Visit]) -> ([VisitHeader], [VisitHeader], [VisitHeader], [VisitHeader]) {
+func visitHeaders(from vs: [Order]) -> ([VisitHeader], [VisitHeader], [VisitHeader], [VisitHeader]) {
   var pending: [(Date, VisitHeader)] = []
   var visited: [(Date, VisitHeader)] = []
   var completed: [(Date, VisitHeader)] = []
@@ -306,7 +306,7 @@ func sortHeaders(_ left: (date: Date, visit: VisitHeader), _ right: (date: Date,
   left.date > right.date
 }
 
-func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
+func visitScreen(from v: Order, pk: String, dID: String) -> VisitScreen.State {
   let visitNote: String
   let noteFieldFocused: Bool
   
@@ -344,14 +344,14 @@ func visitScreen(from v: Visit, pk: String, dID: String) -> VisitScreen.State {
   )
 }
 
-func visitedString(_ visited: Visit.Geotag.Visited) -> String {
+func visitedString(_ visited: Order.Geotag.Visited) -> String {
   switch visited {
   case let .entered(entry): return DateFormatter.stringDate(entry)
   case let .visited(entry, exit): return "\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))"
   }
 }
 
-func visitTitle(from v: Visit) -> String {
+func visitTitle(from v: Order) -> String {
   switch v.address {
   case .none: return "Visit @ \(DateFormatter.stringDate(v.createdAt))"
   case let .some(.both(s, _)),
@@ -359,7 +359,7 @@ func visitTitle(from v: Visit) -> String {
   case let .some(.that(f)): return f.rawValue.rawValue
   }}
 
-func assignedVisitFullAddress(from a: Visit) -> String {
+func assignedVisitFullAddress(from a: Order) -> String {
   switch a.address {
   case .none: return ""
   case let .some(.both(_, f)): return f.rawValue.rawValue
@@ -368,11 +368,11 @@ func assignedVisitFullAddress(from a: Visit) -> String {
   }
 }
 
-func assignedVisitMetadata(from a: Visit) -> [VisitScreen.State.Metadata] {
+func assignedVisitMetadata(from a: Order) -> [VisitScreen.State.Metadata] {
   a.metadata
     .map(identity)
     .sorted(by: \.key)
-    .map { (name: Visit.Name, contents: Visit.Contents) in
+    .map { (name: Order.Name, contents: Order.Contents) in
     VisitScreen.State.Metadata(key: "\(name)", value: "\(contents)")
   }
 }
@@ -394,11 +394,11 @@ extension DateFormatter {
   }
 }
 
-func mapVisits(from visits: Set<Visit>) -> [MapVisit] {
+func mapVisits(from visits: Set<Order>) -> [MapVisit] {
   visits.map { MapVisit(id: $0.id.rawValue.rawValue, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
 }
 
-func mapVisitStatus(from geotagSent: Visit.Geotag) -> MapVisit.Status {
+func mapVisitStatus(from geotagSent: Order.Geotag) -> MapVisit.Status {
   switch geotagSent {
   case .notSent, .pickedUp: return .pending
   case .entered, .visited:  return .visited

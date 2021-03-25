@@ -33,12 +33,12 @@ public enum AppFlow: Equatable {
   case signUp(SignUpState)
   case signIn(SignIn)
   case driverID(DriverID?, PublishableKey)
-  case visits(Set<Visit>, Visit?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience)
+  case visits(Set<Order>, Order?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience)
 }
 
 public struct GeocodedResult: Equatable {
   let coordinate: Coordinate
-  let address: These<Visit.Street, Visit.FullAddress>?
+  let address: These<Order.Street, Order.FullAddress>?
 }
 
 // MARK: - Action
@@ -817,7 +817,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case let .visitNoteChanged(n):
         guard var sv = sv else { return .none }
         
-        sv.visitNote = n >>- Visit.VisitNote.init(rawValue:)
+        sv.visitNote = n >>- Order.VisitNote.init(rawValue:)
         
         state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
@@ -834,7 +834,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case .openAppleMaps:
         guard var sv = sv else { return .none }
         
-        let add: Either<Visit.FullAddress, Visit.Street>?
+        let add: Either<Order.FullAddress, Order.Street>?
         switch sv.address {
         case .none:
           add = .none
@@ -944,7 +944,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         let updatedVs = (resultSuccess(vs) <¡> update(allVs)) ?? allVs
         let freshVs = updatedVs |> filterOutOldVisits(environment.date())
         
-        let (nv, nsv): (Set<Visit>, Visit?)
+        let (nv, nsv): (Set<Order>, Order?)
         if let id = sv?.id.rawValue.rawValue {
           (nv, nsv) = selectVisit(v: freshVs, sv: nil, id: id)
         } else {
@@ -1066,20 +1066,20 @@ public func resultSuccess<Success, Failure>(_ r: Result<Success, Failure>) -> Su
   try? r.get()
 }
 
-func selectVisit(v: Set<Visit>, sv: Visit?, id: String) -> (Set<Visit>, Visit?) {
+func selectVisit(v: Set<Order>, sv: Order?, id: String) -> (Set<Order>, Order?) {
   let v = combine(v, sv)
-  let sv: Visit? = v.firstIndex(where: { $0.id.rawValue.rawValue == id }).map { v[$0] }
+  let sv: Order? = v.firstIndex(where: { $0.id.rawValue.rawValue == id }).map { v[$0] }
   return (v.filter { $0.id.rawValue.rawValue != id }, sv)
 }
 
-func update(_ vs: Set<Visit>) -> ([APIVisitID: APIVisit]) -> Set<Visit> {
+func update(_ vs: Set<Order>) -> ([APIVisitID: APIVisit]) -> Set<Order> {
   { apiVisits in
     Set(
       apiVisits.map { tuple in
         if let match = vs.first(where: { tuple.key.rawValue == $0.id.rawValue }) {
           return update(visit: match, with: (tuple.key, tuple.value))
         } else {
-          return Visit(apiVisit: (tuple.key, tuple.value))
+          return Order(apiVisit: (tuple.key, tuple.value))
         }
       }
       +
@@ -1094,20 +1094,20 @@ func update(_ vs: Set<Visit>) -> ([APIVisitID: APIVisit]) -> Set<Visit> {
   }
 }
 
-func combine(_ v: Set<Visit>, _ sv: Visit?) -> Set<Visit> {
+func combine(_ v: Set<Order>, _ sv: Order?) -> Set<Order> {
   sv.map { Set.insert($0)(v) } ?? v
 }
 
 
-func update(visit: Visit?, with apiVisit: (id: APIVisitID, visit: APIVisit) ) -> Visit {
+func update(visit: Order?, with apiVisit: (id: APIVisitID, visit: APIVisit) ) -> Order {
   guard var visit = visit else { return .init(apiVisit: apiVisit) }
 
-  visit.geotagSent.isVisited = apiVisit.visit.visitStatus.map(Visit.Geotag.Visited.init(visitStatus:))
+  visit.geotagSent.isVisited = apiVisit.visit.visitStatus.map(Order.Geotag.Visited.init(visitStatus:))
   
   return visit
 }
 
-extension Visit.Geotag.Visited {
+extension Order.Geotag.Visited {
   init(visitStatus: VisitStatus) {
     switch visitStatus {
     case let .entered(entry): self = .entered(entry)
@@ -1116,11 +1116,11 @@ extension Visit.Geotag.Visited {
   }
 }
 
-extension Visit {
+extension Order {
   init(apiVisit: (id: APIVisitID, visit: APIVisit)) {
-    let source: Visit.Source
+    let source: Order.Source
     switch apiVisit.visit.source {
-    case .geofence: source = .geofence
+    case .order: source = .order
     case .trip: source = .trip
     }
     
@@ -1146,15 +1146,15 @@ func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagg
   .init(rawValue: source.rawValue)
 }
 
-func visitCoordinatesWithoutAddress(_ visits: Set<Visit>) -> Set<Coordinate> {
+func visitCoordinatesWithoutAddress(_ visits: Set<Order>) -> Set<Coordinate> {
   Set(visits.compactMap { $0.address == nil ? $0.location : nil })
 }
 
-func updateAddress(for visits: Set<Visit>, with geocodedResults: [GeocodedResult]) -> Set<Visit> {
+func updateAddress(for visits: Set<Order>, with geocodedResults: [GeocodedResult]) -> Set<Order> {
   Set(visits.map(updateAddress(with: geocodedResults)))
 }
 
-func updateAddress(with geocodedResults: [GeocodedResult]) -> (Visit) -> Visit {
+func updateAddress(with geocodedResults: [GeocodedResult]) -> (Order) -> Order {
   {
     var v = $0
     for g in geocodedResults where v.location == g.coordinate {
