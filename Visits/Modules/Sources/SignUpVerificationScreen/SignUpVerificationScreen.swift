@@ -182,7 +182,6 @@ struct CodeDigitView: View {
   
   var body: some View {
     CustomTextField(
-      tag: tag,
       text: Binding(
         get: { code },
         set: { codeChanged($0) }

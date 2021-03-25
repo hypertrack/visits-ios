@@ -61,7 +61,6 @@ public struct TextFieldBlock: View {
           .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
       }
       CustomTextField(
-        tag: name,
         text: $text,
         focused: focused,
         textContentType: textContentType,
@@ -105,7 +104,6 @@ public class FocusableTextField: UITextField {
 
 public struct CustomTextField: UIViewRepresentable {
   public init(
-    tag: String,
     text: Binding<String>,
     focused: Bool,
     blocksFocus: Bool = false,
@@ -119,7 +117,6 @@ public struct CustomTextField: UIViewRepresentable {
     enterButtonPressed: @escaping () -> Void,
     backspacePressed: @escaping () -> Void = {}
   ) {
-    self.tag = tag
     self._text = text
     self.focused = focused
     self.blocksFocus = blocksFocus
@@ -134,7 +131,6 @@ public struct CustomTextField: UIViewRepresentable {
     self.backspacePressed = backspacePressed
   }
   
-  let tag: String
   @Binding var text: String
   let focused: Bool
   let blocksFocus: Bool
@@ -149,8 +145,6 @@ public struct CustomTextField: UIViewRepresentable {
   let backspacePressed: () -> Void
   
   public func makeUIView(context: Context) -> FocusableTextField {
-    print("Making \(tag)")
-    
     let textField = FocusableTextField(frame: .zero)
     textField.customFocused = focused
     textField.blocksFocus = blocksFocus
@@ -167,7 +161,6 @@ public struct CustomTextField: UIViewRepresentable {
   }
   
   public func updateUIView(_ textField: FocusableTextField, context: Context) {
-    print("Updating \(tag) with focus: \(focused)")
     textField.customFocused = focused
     textField.text = text
     if focused {
@@ -175,10 +168,6 @@ public struct CustomTextField: UIViewRepresentable {
     } else {
       textField.resignFirstResponder()
     }
-  }
-  
-  public static func dismantleUIView(_ uiView: FocusableTextField, coordinator: Coordinator) {
-    print("Dismantling a view")
   }
   
   public func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -190,7 +179,6 @@ public struct CustomTextField: UIViewRepresentable {
     
     public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
       let textField = textField as! FocusableTextField
-      print("\(parent.tag) wants to become focused. Current focus: \(textField.customFocused)")
       if !textField.customFocused { parent.wantsToBecomeFocused() }
       return textField.blocksFocus ? textField.customFocused : true
     }
