@@ -633,20 +633,43 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // Sign In
   Reducer { state, action, environment in
     
+    func makeSDK(_ driverID: DriverID) -> (PublishableKey) -> Effect<AppAction, Never> {
+      { publishableKey in
+        environment.hyperTrack
+          .makeSDK(publishableKey)
+          .receive(on: environment.mainQueue())
+          .flatMap { (status: SDKStatus, permissions: Permissions) -> Effect<AppAction, Never> in
+            switch status {
+            case .locked:
+              return Effect(value: AppAction.appHandleSDKLocked)
+            case let .unlocked(deviceID, unlockedStatus):
+              return .merge(
+                Effect(value: AppAction.appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, .dialogSplash(.notShown), .firstRun)),
+                environment.hyperTrack
+                  .subscribeToStatusUpdates()
+                  .receive(on: environment.mainQueue())
+                  .eraseToEffect()
+                  .map(AppAction.statusUpdated),
+                environment.hyperTrack
+                  .setDriverID(driverID)
+                  .receive(on: environment.mainQueue())
+                  .eraseToEffect()
+                  .fireAndForget()
+              )
+            }
+          }
+          .eraseToEffect()
+      }
+    }
+    
     struct SignInID: Hashable {}
     
-//    case let (.signIn(.editingCredentials(email, _, _, _)), .goToSignUp):
-//      return Effect(value: .appHandleSignUpWith(email))
-    
     switch state.flow {
+    
     case let .signIn(.editingCredentials(e, p, f, er)):
-//      let focusAndError: These<SignIn.Focus, SignIn.Error>?
-//      if case let .left(f) = focusAndDeeplink {
-//        focusAndError = f
-//      } else {
-//        focusAndError = nil
-//      }
       switch action {
+      case .goToSignUp:
+        return Effect(value: .appHandleSignUpWith(e))
       case let .emailChanged(e):
         state.flow = .signIn(.editingCredentials(e, p, f, er))
         return .none
@@ -683,8 +706,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         state.flow = .signIn(.editingCredentials(e, p, nil, nil))
         return .cancel(id: SignInID())
       case let .signedIn(.success(pk)):
-        state.flow = .driverID(nil, pk)
-        return .none
+        return makeSDK(DriverID(rawValue: e.rawValue))(pk)
       case let .signedIn(.failure(error)):
         state.flow = .signIn(.editingCredentials(e, p, nil, "Unknown error"))
         return .none
