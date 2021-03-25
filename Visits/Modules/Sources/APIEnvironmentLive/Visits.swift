@@ -7,7 +7,7 @@ import Prelude
 import Types
 
 
-public func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never> {
+func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never> {
   logEffect("getVisits", failureType: APIError.self)
     .flatMap { getToken(auth: pk, deviceID: deID) }
     .flatMap { t in

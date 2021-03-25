@@ -7,7 +7,7 @@ import Prelude
 import Types
 
 
-public func getHistory(
+func getHistory(
   _ pk: PublishableKey,
   _ dID: DeviceID,
   _ date: Date

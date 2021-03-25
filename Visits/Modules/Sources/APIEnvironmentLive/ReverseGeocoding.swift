@@ -7,7 +7,7 @@ import Prelude
 import Types
 
 
-public func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never> {
+func reverseGeocode(_ coordinates: [Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never> {
   coordinates.publisher
     .flatMap { reverseGeocodeCoordinate($0) }
     .collect()
