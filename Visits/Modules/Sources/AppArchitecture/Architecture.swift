@@ -66,7 +66,7 @@ public struct SystemEnvironment<Environment> {
   public init(
     environment: Environment,
     date: @escaping () -> Date,
-    mainQueue: @escaping () -> AnySchedulerOf<DispatchQueue>,
+    mainQueue: AnySchedulerOf<DispatchQueue>,
     uuid: @escaping () -> UUID
   ) {
     self.environment = environment
@@ -77,7 +77,7 @@ public struct SystemEnvironment<Environment> {
   
   public var environment: Environment
   public var date: () -> Date
-  public var mainQueue: () -> AnySchedulerOf<DispatchQueue>
+  public var mainQueue: AnySchedulerOf<DispatchQueue>
   public var uuid: () -> UUID
 
   public subscript<Dependency>(
@@ -94,9 +94,9 @@ public struct SystemEnvironment<Environment> {
   public static func live(environment: Environment) -> Self {
     Self(
       environment: environment,
-      date: { Date() },
-      mainQueue: { DispatchQueue.main.eraseToAnyScheduler() },
-      uuid: { UUID() }
+      date: Date.init,
+      mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+      uuid: UUID.init
     )
   }
 
@@ -117,13 +117,13 @@ extension SystemEnvironment {
   public static func mock(
     environment: Environment,
     date: @escaping () -> Date,
-    mainQueue: @escaping () -> AnySchedulerOf<DispatchQueue> = { fatalError() },
+    mainQueue: AnySchedulerOf<DispatchQueue>,
     uuid: @escaping () -> UUID
   ) -> Self {
     Self(
       environment: environment,
       date: date,
-      mainQueue: { mainQueue().eraseToAnyScheduler() },
+      mainQueue: mainQueue,
       uuid: uuid
     )
   }
