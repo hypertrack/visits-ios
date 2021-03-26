@@ -18,9 +18,8 @@ let targets: [Target] = [
   // Type
   .target(name: "Types",                           dependencies: [nonEmpty, "Prelude", "Tagged"]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DeepLinkScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "ProfileScreen", "SignInScreen", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "SummaryScreen", "Types", "Views", "VisitScreen", "VisitsScreen"]),
+  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "ProfileScreen", "SignInScreen", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "SummaryScreen", "Types", "Views", "VisitScreen", "VisitsScreen"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
-  .target(name: "DeepLinkScreen",                  dependencies: [architecture, "Views"]),
   .target(name: "DriverIDScreen",                  dependencies: [architecture, "Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapScreen",                       dependencies: ["Types"]),
@@ -34,10 +33,11 @@ let targets: [Target] = [
   .target(name: "VisitScreen",                     dependencies: [architecture, nonEmpty, "Types", "Views"]),
   .target(name: "VisitsScreen",                    dependencies: [architecture, "Views"]),
   // Environment
+  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Prelude", "Tagged", "Types"]),
   .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
-  .target(name: "DeepLinkEnvironment",             dependencies: [architecture, nonEmpty, "Types"]),
-  .target(name: "DeepLinkEnvironmentLive",         dependencies: ["Branch", "DeepLinkEnvironment", "LogEnvironment"]),
+  .target(name: "BranchEnvironment",             dependencies: [architecture, nonEmpty, "Types"]),
+  .target(name: "BranchEnvironmentLive",         dependencies: ["Branch", "BranchEnvironment", "LogEnvironment"]),
   .target(name: "HapticFeedbackEnvironment",       dependencies: [architecture]),
   .target(name: "HapticFeedbackEnvironmentLive",   dependencies: ["HapticFeedbackEnvironment", "LogEnvironment"]),
   .target(name: "HyperTrackEnvironment",           dependencies: [architecture, "Prelude", "Types"]),
@@ -54,9 +54,10 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Prelude", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "DeepLinkEnvironment", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
-  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "DeepLinkEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
-  .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "DeepLinkScreen", "MapScreen", "Prelude", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "BranchEnvironment", "DeepLinkLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
+  .target(name: "DeepLinkLogic",                   dependencies: [architecture, "AppArchitecture", "Prelude", "Types"]),
+  // Ties everything together
+  .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Prelude", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "Types"]),
 ]
 
 let testTargets: [Target] = [

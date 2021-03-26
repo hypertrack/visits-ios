@@ -2,7 +2,6 @@ import AppLogic
 import AppScreen
 import BlockerScreen
 import ComposableArchitecture
-import DeepLinkScreen
 import DriverIDScreen
 import LoadingScreen
 import MapScreen

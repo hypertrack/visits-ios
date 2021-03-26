@@ -14,7 +14,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
         environment
           .network
           .subscribeToNetworkUpdates()
-          .receive(on: environment.mainQueue())
+          .receive(on: environment.mainQueue)
           .removeDuplicates()
           .map(AppAction.network)
           .eraseToEffect(),
@@ -65,7 +65,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
               .eraseToEffect()
           }
         }
-        .receive(on: environment.mainQueue())
+        .receive(on: environment.mainQueue)
         .eraseToEffect()
       )
   case let (.appLaunching, .restoredState(either, n)):
@@ -94,7 +94,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
           environment
             .hyperTrack
             .subscribeToStatusUpdates()
-            .receive(on: environment.mainQueue())
+            .receive(on: environment.mainQueue)
             .eraseToEffect()
             .map(AppAction.statusUpdated)
         )

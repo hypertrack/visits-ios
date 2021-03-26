@@ -1,6 +1,5 @@
 import BlockerScreen
 import ComposableArchitecture
-import DeepLinkScreen
 import DriverIDScreen
 import LoadingScreen
 import MapKit
@@ -34,7 +33,6 @@ public enum VisitOrVisits: Equatable {
 public struct AppScreen: View {
   public enum State {
     case loading
-    case deepLink(DeepLinkScreen.State)
     case signIn(SignInScreen.State)
     case signUpForm(SignUpFormScreen.State)
     case signUpQuestions(SignUpQuestionsScreen.State)
@@ -64,7 +62,7 @@ public struct AppScreen: View {
   public var body: some View {
     WithViewStore(store) { viewStore in
       switch viewStore.state {
-      case .loading, .deepLink:
+      case .loading:
         LoadingScreen()
       case let .signUpForm(s):
         SignUpFormScreen(state: s) {

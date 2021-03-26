@@ -1,8 +1,9 @@
 import APIEnvironment
 import AppArchitecture
+import BranchEnvironment
 import Combine
 import ComposableArchitecture
-import DeepLinkEnvironment
+import DeepLinkLogic
 import HapticFeedbackEnvironment
 import HyperTrackEnvironment
 import MapEnvironment
@@ -46,7 +47,7 @@ public struct GeocodedResult: Equatable {
 public enum AppAction: Equatable {
   // App
   case appHandleSDKLocked
-  case appHandleSDKUnlocked(PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, PushStatus, Experience)
+  case appHandleSDKUnlocked(PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions)
   case appHandleDriverIDFlow(PublishableKey)
   case appHandleFirstRunFlow
   case appHandleSignUpWith(Email?)
@@ -142,7 +143,7 @@ public enum AppAction: Equatable {
 
 public struct AppEnvironment {
   public var api: APIEnvironment
-  public var deepLink: DeepLinkEnvironment
+  public var deepLink: BranchEnvironment
   public var hapticFeedback: HapticFeedbackEnvironment
   public var hyperTrack: HyperTrackEnvironment
   public var maps: MapEnvironment
@@ -153,7 +154,7 @@ public struct AppEnvironment {
   
   public init(
     api: APIEnvironment,
-    deepLink: DeepLinkEnvironment,
+    deepLink: BranchEnvironment,
     hapticFeedback: HapticFeedbackEnvironment,
     hyperTrack: HyperTrackEnvironment,
     maps: MapEnvironment,
@@ -211,18 +212,29 @@ func over1<A, B, C, D, E, Z>(_ f: @escaping (A) -> Z) -> ((A, B, C, D, E)) -> (Z
   { (f($0.0), $0.1, $0.2, $0.3, $0.4) }
 }
 
+func view4<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> D { t.3 }
+func view11<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> K { t.10 }
+func view12<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> L { t.11 }
+
+
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
   networkReducer.pullback(state: \.network, action: .self, environment: constant(())),
-  deepLinkReducer,
+  deepLinkReducer.pullback(state: deepLinkStateAffine, action: deepLinkActionAffine, environment: toDeepLinkEnvironment),
   stateRestorationReducer,
   Reducer { state, action, environment in
     switch action {
     case .appHandleSDKLocked:
       state.flow = .noMotionServices
       return .none
-    case let .appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, pushStatus, experience):
-      state.flow = .visits([], nil, nil, .defaultTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
-      return .none
+    case let .appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions):
+      let selectedTab = (state.flow *^? /AppFlow.visits <¡> view4) ?? .defaultTab
+      let dialogSplash = (state.flow *^? /AppFlow.visits <¡> view11) ?? .dialogSplash(.notShown)
+      let experience   = (state.flow *^? /AppFlow.visits <¡> view12) ?? .firstRun
+      state.flow = .visits([], nil, nil, selectedTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .all, dialogSplash, experience)
+      return .merge(
+        getVisitsEffect(environment.api.getVisits(publishableKey, deviceID), environment.mainQueue),
+        getHistoryEffect(environment.api.getHistory(publishableKey, deviceID, environment.date()), environment.mainQueue)
+      )
     case let .appHandleDriverIDFlow(pk):
       state.flow = .driverID(nil, pk)
       return .none
@@ -250,7 +262,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       { publishableKey in
         environment.hyperTrack
           .makeSDK(publishableKey)
-          .receive(on: environment.mainQueue())
+          .receive(on: environment.mainQueue)
           .flatMap { (status: SDKStatus, permissions: Permissions) -> Effect<AppAction, Never> in
             switch status {
             case .locked:
@@ -261,15 +273,15 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             case let .unlocked(deviceID, unlockedStatus):
               return .merge(
                 .cancel(id: VerificationPasteboardSubscriptionID()),
-                Effect(value: AppAction.appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, .dialogSplash(.notShown), .firstRun)),
+                Effect(value: AppAction.appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions)),
                 environment.hyperTrack
                   .subscribeToStatusUpdates()
-                  .receive(on: environment.mainQueue())
+                  .receive(on: environment.mainQueue)
                   .eraseToEffect()
                   .map(AppAction.statusUpdated),
                 environment.hyperTrack
                   .setDriverID(driverID)
-                  .receive(on: environment.mainQueue())
+                  .receive(on: environment.mainQueue)
                   .eraseToEffect()
                   .fireAndForget()
               )
@@ -281,7 +293,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     
     let checkVerificationCode = environment.pasteboard
       .verificationCodeFromPasteboard()
-      .receive(on: environment.mainQueue())
+      .receive(on: environment.mainQueue)
       .flatMap { (code: VerificationCode?) -> Effect<AppAction, Never> in
         switch code {
         case .none:           return .none
@@ -293,7 +305,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     func verify(email: Email, password: Password, code: VerificationCode) -> Effect<AppAction, Never> {
       environment.api
         .verifyEmail(email, code)
-        .receive(on: environment.mainQueue())
+        .receive(on: environment.mainQueue)
         .flatMap { (result: Result<VerificationResponse, APIError>) -> Effect<AppAction, Never> in
                     
           let makeSDKBaked = makeSDK(DriverID(rawValue: email.rawValue))
@@ -304,7 +316,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           case .success(.alreadyVerified):
             return environment.api
               .signIn(email, password)
-              .receive(on: environment.mainQueue())
+              .receive(on: environment.mainQueue)
               .eraseToEffect()
               .flatMap { (result: Result<PublishableKey, APIError>) -> Effect<AppAction, Never> in
                 switch result {
@@ -451,7 +463,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight)))
       return environment.api
         .signUp(n, e, p, bm, mf)
-        .receive(on: environment.mainQueue())
+        .receive(on: environment.mainQueue)
         .eraseToEffect()
         .map(AppAction.signedUp)
         .cancellable(id: SignUpID(), cancelInFlight: true)
@@ -461,9 +473,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         Effect.timer(  // Impossible without a timer because of an iOS bug: https://twitter.com/steipete/status/787985965432369152
           id: VerificationPasteboardSubscriptionID(),
           every: 5,
-          on: environment.mainQueue()
+          on: environment.mainQueue
         )
-        .receive(on: environment.mainQueue())
+        .receive(on: environment.mainQueue)
         .flatMap(constant(checkVerificationCode))
         .eraseToEffect()
       )
@@ -602,7 +614,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             case .success(.alreadyVerified):
               return environment.api
                 .signIn(e, p)
-                .receive(on: environment.mainQueue())
+                .receive(on: environment.mainQueue)
                 .eraseToEffect()
                 .flatMap { (result: Result<PublishableKey, APIError>) -> Effect<AppAction, Never> in
                   switch result {
@@ -637,22 +649,22 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       { publishableKey in
         environment.hyperTrack
           .makeSDK(publishableKey)
-          .receive(on: environment.mainQueue())
+          .receive(on: environment.mainQueue)
           .flatMap { (status: SDKStatus, permissions: Permissions) -> Effect<AppAction, Never> in
             switch status {
             case .locked:
               return Effect(value: AppAction.appHandleSDKLocked)
             case let .unlocked(deviceID, unlockedStatus):
               return .merge(
-                Effect(value: AppAction.appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions, .dialogSplash(.notShown), .firstRun)),
+                Effect(value: AppAction.appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions)),
                 environment.hyperTrack
                   .subscribeToStatusUpdates()
-                  .receive(on: environment.mainQueue())
+                  .receive(on: environment.mainQueue)
                   .eraseToEffect()
                   .map(AppAction.statusUpdated),
                 environment.hyperTrack
                   .setDriverID(driverID)
-                  .receive(on: environment.mainQueue())
+                  .receive(on: environment.mainQueue)
                   .eraseToEffect()
                   .fireAndForget()
               )
@@ -687,7 +699,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           state.flow = .signIn(.signingIn(e, p))
           return environment.api
             .signIn(e, p)
-            .receive(on: environment.mainQueue())
+            .receive(on: environment.mainQueue)
             .eraseToEffect()
             .map(AppAction.signedIn)
             .cancellable(id: SignInID(), cancelInFlight: true)
@@ -729,7 +741,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if let drID = drID {
           return environment.hyperTrack
             .makeSDK(pk)
-            .receive(on: environment.mainQueue())
+            .receive(on: environment.mainQueue)
             .eraseToEffect()
             .map(AppAction.madeSDK)
         }
@@ -743,12 +755,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .concatenate(
             environment.hyperTrack
               .subscribeToStatusUpdates()
-              .receive(on: environment.mainQueue())
+              .receive(on: environment.mainQueue)
               .eraseToEffect()
               .map(AppAction.statusUpdated),
             environment.hyperTrack
               .setDriverID(drID)
-              .receive(on: environment.mainQueue())
+              .receive(on: environment.mainQueue)
               .eraseToEffect()
               .fireAndForget()
           )
@@ -766,8 +778,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   Reducer { state, action, environment in
     switch state.flow {
     case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e):
-      let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
-      let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
+      let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue)
+      let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
       let fvs = filterOutOldVisits(environment.date())(v)
       let fv = filterOutOldVisit(environment.date())(sv)
       
@@ -903,14 +915,14 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       case .requestMotionPermissions:
         return environment.hyperTrack
           .requestMotionPermissions()
-          .receive(on: environment.mainQueue())
+          .receive(on: environment.mainQueue)
           .eraseToEffect()
           .map(AppAction.statusUpdated)
       case .requestPushAuthorization:
         state.flow = .visits(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e)
         return environment.push
           .requestAuthorization()
-          .receive(on: environment.mainQueue())
+          .receive(on: environment.mainQueue)
           .map(constant(AppAction.userHandledPushAuthorization))
           .eraseToEffect()
       case .userHandledPushAuthorization:
@@ -978,7 +990,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return environment.api
             .reverseGeocode(reverseGeocodingCoordinates.map(identity))
             .map { $0.map { GeocodedResult(coordinate: $0.0, address: $0.1) } }
-            .receive(on: environment.mainQueue())
+            .receive(on: environment.mainQueue)
             .eraseToEffect()
             .map(AppAction.reverseGeocoded)
         } else {
@@ -1005,7 +1017,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       
       let effect: Effect<AppAction, Never>
       if r.history == .notRefreshingHistory {
-        effect = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
+        effect = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
       } else {
         effect = .none
       }
@@ -1036,8 +1048,8 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       switch (previousState.flow, nextState.flow) {
       case (.visits, .visits): return effects
       case let (_, .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)):
-        let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
-        let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
+        let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue)
+        let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
         
         var effects: [Effect<AppAction, Never>] = [effects]
         if r.history == .notRefreshingHistory {
@@ -1066,8 +1078,8 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
             && p.locationPermissions == .authorized
             && p.motionPermissions == .authorized:
         
-        let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue())
-        let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue())
+        let getVisits = getVisitsEffect(environment.api.getVisits(pk, deID), environment.mainQueue)
+        let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
         let combinedEffects: [Effect<AppAction, Never>] = [
           effects,
           environment.hyperTrack

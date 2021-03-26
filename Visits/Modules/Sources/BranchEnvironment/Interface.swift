@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import Types
 
-public struct DeepLinkEnvironment {
+public struct BranchEnvironment {
   public var subscribeToDeepLinks: () -> Effect<(PublishableKey, DriverID?), Never>
   public var continueUserActivity: (NSUserActivity) -> Effect<Never, Never>
   

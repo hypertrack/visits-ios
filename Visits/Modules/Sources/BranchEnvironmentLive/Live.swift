@@ -1,14 +1,14 @@
 import Branch
+import BranchEnvironment
 import Combine
 import ComposableArchitecture
-import DeepLinkEnvironment
 import LogEnvironment
 import NonEmpty
 import Types
 
 
-public extension DeepLinkEnvironment {
-  static let live = DeepLinkEnvironment(
+public extension BranchEnvironment {
+  static let live = BranchEnvironment(
     subscribeToDeepLinks: {
       Effect.run { subscriber in
         logEffect("subscribeToDeepLinks")
