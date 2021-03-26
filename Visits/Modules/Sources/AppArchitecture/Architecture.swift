@@ -8,18 +8,23 @@ public func send<State, Action>(_ viewStore: ViewStore<State, Action>) -> (Actio
 
 public extension Reducer {
   func pullback<GlobalState, GlobalAction, GlobalEnvironment>(
-    state toLocalState: Affine<GlobalState, State>,
-    action toLocalAction: Prism<GlobalAction, Action>,
+    state localStateAffine: Affine<GlobalState, State>,
+    action localActionAffine: Affine<GlobalAction, Action>,
     environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment
   ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
     .init { gs, ga, ge in
-      guard let ls = toLocalState.extract(from: gs),
-            let la = toLocalAction.extract(from: ga)
+      guard let ls = localStateAffine.extract(from: gs),
+            let la = localActionAffine.extract(from: ga)
       else { return .none }
       var mls = ls
       let e = self.run(&mls, la, toLocalEnvironment(ge))
-        .map(toLocalAction.embed)
-      gs = (gs |> toLocalState.inject(mls))!
+        .compactMap { m in
+          // Actions will emit only if they don't need context or they need original action's context
+          ga |> localActionAffine.inject(m)
+        }
+        .eraseToEffect()
+      // Setting state will only succeed if there is context for setting it
+      gs = (gs |> localStateAffine.inject(mls)) ?? gs
       return e
     }
   }
