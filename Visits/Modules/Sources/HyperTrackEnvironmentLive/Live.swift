@@ -113,6 +113,7 @@ public extension HyperTrackEnvironment {
             dictionary: [C.driverID.rawValue: dID.rawValue.rawValue]
           )!
         )
+        ht?.setDeviceName(dID.rawValue.rawValue)
       }
     },
     startTracking: {
