@@ -4,13 +4,13 @@ import Types
 
 
 extension AppState {
-  public static let visitsScreenshot = Self(
+  public static let ordersScreenshot = Self(
     network: .online,
-    flow: .visits(
-      visits,
+    flow: .main(
+      orders,
       nil,
       nil,
-      .visits,
+      .orders,
       publishableKey,
       driverID,
       deviceID,
@@ -22,13 +22,13 @@ extension AppState {
     )
   )
   
-  public static let visitScreenshot = Self(
+  public static let orderScreenshot = Self(
     network: .online,
-    flow: .visits(
+    flow: .main(
       [],
       notSent,
       nil,
-      .visits,
+      .orders,
       publishableKey,
       driverID,
       deviceID,
@@ -42,8 +42,8 @@ extension AppState {
   
   public static let mapScreenshot = Self(
     network: .online,
-    flow: .visits(
-      visits,
+    flow: .main(
+      orders,
       nil,
       History(
         coordinates: [
@@ -94,7 +94,7 @@ extension AppState {
   
   public static let summaryScreenshot = Self(
     network: .online,
-    flow: .visits(
+    flow: .main(
       [],
       nil,
       History(
@@ -120,7 +120,7 @@ extension AppState {
   
   public static let profileScreenshot = Self(
     network: .online,
-    flow: .visits(
+    flow: .main(
       [],
       nil,
       nil,
@@ -207,7 +207,7 @@ let checkedOut3 = Order(
   )
 )
 
-let visits: Set<Order> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
+let orders: Set<Order> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
 
 let publishableKey = PublishableKey(rawValue: "Key")
 let deviceID = DeviceID(rawValue: "UNIQUE-ID")

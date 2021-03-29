@@ -5,7 +5,7 @@ import NonEmpty
 public extension APIEnvironment {
   static let live = Self(
     getHistory: getHistory(_:_:_:),
-    getVisits: getVisits(_:_:),
+    getOrders: getOrders(_:_:),
     resendVerificationCode: resendVerification(email:),
     reverseGeocode: reverseGeocode(_:),
     signIn: signIn(_:_:),

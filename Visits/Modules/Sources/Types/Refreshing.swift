@@ -2,22 +2,22 @@ import Prelude
 
 public struct Refreshing {
   public var history: History
-  public var visits: Visits
+  public var orders: Orders
   
   public enum History { case refreshingHistory, notRefreshingHistory }
-  public enum Visits { case refreshingVisits, notRefreshingVisits }
+  public enum Orders { case refreshingOrders, notRefreshingOrders }
   
-  public init(history: History, visits: Visits) {
+  public init(history: History, orders: Orders) {
     self.history = history
-    self.visits = visits
+    self.orders = orders
   }
 }
 
 // MARK: - Convenience
 
 extension Refreshing {
-  public static let none = Self(history: .notRefreshingHistory, visits: .notRefreshingVisits)
-  public static let all = Self(history: .refreshingHistory, visits: .refreshingVisits)
+  public static let none = Self(history: .notRefreshingHistory, orders: .notRefreshingOrders)
+  public static let all = Self(history: .refreshingHistory, orders: .refreshingOrders)
 }
 
 // MARK: - Equatable
@@ -25,4 +25,4 @@ extension Refreshing {
 extension Refreshing: Equatable {}
 
 extension Refreshing.History: Equatable {}
-extension Refreshing.Visits: Equatable {}
+extension Refreshing.Orders: Equatable {}

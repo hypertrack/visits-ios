@@ -5,14 +5,14 @@ import ComposableArchitecture
 import DriverIDScreen
 import LoadingScreen
 import MapScreen
+import OrderScreen
+import OrdersScreen
 import Prelude
 import SignInScreen
 import SignUpFormScreen
 import SignUpQuestionsScreen
 import SignUpVerificationScreen
 import Types
-import VisitScreen
-import VisitsScreen
 
 
 
@@ -108,7 +108,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .driverID(.some(drID), _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .visits(v, sv, h, s, pk, drID, deID, us, p, r, ps, _):
+  case let .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
     case (_, _, .disabled, _, _):                            return .blocker(.locationDisabled)
     case (_, _, .denied, _, _):                              return .blocker(.locationDenied)
@@ -125,14 +125,14 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     case (.stopped, _, _, _, _):                             return .blocker(.stopped)
     case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
-      let refreshingVisits = r.visits == .refreshingVisits
-      let mapVisitsList = mapVisits(from: v)
+      let refreshingOrders = r.orders == .refreshingOrders
+      let mapOrdersList = mapOrders(from: v)
       
       if let sv = sv {
-        return .visits(.visit(visitScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, mapVisitsList, drID, deID, s)
+        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, mapOrdersList, drID, deID, s)
       } else {
-        let (pending, visited, completed, canceled) = visitHeaders(from: Array(v))
-        return .visits(.visits(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingVisits, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, mapVisitsList, drID, deID, s)
+        let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
+        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, mapOrdersList, drID, deID, s)
       }
     }
   }
@@ -203,25 +203,26 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.motionDisabledButtonTapped): return .openSettings
   case .blocker(.motionNotDeterminedButtonTapped): return .requestMotionPermissions
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
-  case .visits(.clockOutButtonTapped): return .stopTracking
-  case .visits(.refreshButtonTapped): return .updateVisits
-  case let .visits(.visitTapped(id)): return .selectVisit(id)
-  case .visit(.backButtonTapped): return .deselectVisit
-  case .visit(.cancelButtonTapped): return .cancelVisit
-  case .visit(.checkOutButtonTapped): return .checkOutVisit
-  case let .visit(.copyTextPressed(t)): return .copyToPasteboard(t)
-  case .visit(.mapTapped): return .openAppleMaps
-  case .visit(.noteEnterKeyboardButtonTapped): return .dismissFocus
-  case let .visit(.noteFieldChanged(d)) where d.isEmpty: return .visitNoteChanged(nil)
-  case let .visit(.noteFieldChanged(d)): return .visitNoteChanged(.init(stringLiteral: d))
-  case .visit(.noteTapped): return .focusVisitNote
-  case .visit(.pickedUpButtonTapped): return .pickUpVisit
-  case .visit(.tappedOutsideFocusedTextField): return .dismissFocus
+  case .orders(.clockOutButtonTapped): return .stopTracking
+  case .orders(.refreshButtonTapped): return .updateOrders
+  case let .orders(.orderTapped(id)): return .selectOrder(id)
+  case .order(.backButtonTapped): return .deselectOrder
+  case .order(.cancelButtonTapped): return .cancelOrder
+  case .order(.checkOutButtonTapped): return .checkOutOrder
+  case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)
+  case .order(.mapTapped): return .openAppleMaps
+  case .order(.noteEnterKeyboardButtonTapped): return .dismissFocus
+  case let .order(.noteFieldChanged(d)) where d.isEmpty: return .orderNoteChanged(nil)
+  case let .order(.noteFieldChanged(d)): return .orderNoteChanged(.init(stringLiteral: d))
+  case .order(.noteTapped): return .focusOrderNote
+  case .order(.pickedUpButtonTapped): return .pickUpOrder
+  case .order(.tappedOutsideFocusedTextField): return .dismissFocus
   case .tab(.map): return .switchToMap
-  case .tab(.visits): return .switchToVisits
+  case .tab(.orders): return .switchToOrders
   case .tab(.summary): return .switchToSummary
   case .tab(.profile): return .switchToProfile
-  case let .map(id): return .selectVisit(id)
+  case let .map(id): return .selectOrder(id)
+  case .tab(.places): return .switchToPlaces
   }
 }
 
@@ -276,16 +277,16 @@ func signingIn(from s: SignIn) -> Bool {
   }
 }
 
-func visitHeaders(from vs: [Order]) -> ([VisitHeader], [VisitHeader], [VisitHeader], [VisitHeader]) {
-  var pending: [(Date, VisitHeader)] = []
-  var visited: [(Date, VisitHeader)] = []
-  var completed: [(Date, VisitHeader)] = []
-  var canceled: [(Date, VisitHeader)] = []
+func orderHeaders(from vs: [Order]) -> ([OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader]) {
+  var pending: [(Date, OrderHeader)] = []
+  var visited: [(Date, OrderHeader)] = []
+  var completed: [(Date, OrderHeader)] = []
+  var canceled: [(Date, OrderHeader)] = []
   
   for v in vs {
-    let t = visitTitle(from: v)
+    let t = orderTitle(from: v)
     
-    let h = VisitHeader(id: v.id.rawValue.rawValue, title: t)
+    let h = OrderHeader(id: v.id.rawValue.rawValue, title: t)
     switch v.geotagSent {
     case .notSent, .pickedUp: pending.append((v.createdAt, h))
     case .entered, .visited:  visited.append((v.createdAt, h))
@@ -301,20 +302,20 @@ func visitHeaders(from vs: [Order]) -> ([VisitHeader], [VisitHeader], [VisitHead
   )
 }
 
-func sortHeaders(_ left: (date: Date, visit: VisitHeader), _ right: (date: Date, visit: VisitHeader)) -> Bool {
+func sortHeaders(_ left: (date: Date, order: OrderHeader), _ right: (date: Date, order: OrderHeader)) -> Bool {
   left.date > right.date
 }
 
-func visitScreen(from v: Order, pk: String, dID: String) -> VisitScreen.State {
-  let visitNote: String
+func orderScreen(from v: Order, pk: String, dID: String) -> OrderScreen.State {
+  let orderNote: String
   let noteFieldFocused: Bool
   
   let coordinate =  v.location
   let address = assignedVisitFullAddress(from: v)
   let metadata = assignedVisitMetadata(from: v)
-  visitNote = v.visitNote?.rawValue.rawValue ?? ""
+  orderNote = v.orderNote?.rawValue.rawValue ?? ""
   noteFieldFocused = v.noteFieldFocused
-  let status: VisitScreen.State.VisitStatus
+  let status: OrderScreen.State.OrderStatus
   switch v.geotagSent {
   case .notSent:
     status = .notSent
@@ -331,8 +332,8 @@ func visitScreen(from v: Order, pk: String, dID: String) -> VisitScreen.State {
   }
   
   return .init(
-    title: visitTitle(from: v),
-    visitNote: visitNote,
+    title: orderTitle(from: v),
+    orderNote: orderNote,
     noteFieldFocused: noteFieldFocused,
     coordinate: coordinate,
     address: address,
@@ -350,7 +351,7 @@ func visitedString(_ visited: Order.Geotag.Visited) -> String {
   }
 }
 
-func visitTitle(from v: Order) -> String {
+func orderTitle(from v: Order) -> String {
   switch v.address {
   case .none: return "Order @ \(DateFormatter.stringDate(v.createdAt))"
   case let .some(.both(s, _)),
@@ -367,12 +368,12 @@ func assignedVisitFullAddress(from a: Order) -> String {
   }
 }
 
-func assignedVisitMetadata(from a: Order) -> [VisitScreen.State.Metadata] {
+func assignedVisitMetadata(from a: Order) -> [OrderScreen.State.Metadata] {
   a.metadata
     .map(identity)
     .sorted(by: \.key)
     .map { (name: Order.Name, contents: Order.Contents) in
-    VisitScreen.State.Metadata(key: "\(name)", value: "\(contents)")
+    OrderScreen.State.Metadata(key: "\(name)", value: "\(contents)")
   }
 }
 
@@ -393,11 +394,11 @@ extension DateFormatter {
   }
 }
 
-func mapVisits(from visits: Set<Order>) -> [MapVisit] {
-  visits.map { MapVisit(id: $0.id.rawValue.rawValue, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
+func mapOrders(from orders: Set<Order>) -> [MapOrder] {
+  orders.map { MapOrder(id: $0.id.rawValue.rawValue, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
 }
 
-func mapVisitStatus(from geotagSent: Order.Geotag) -> MapVisit.Status {
+func mapVisitStatus(from geotagSent: Order.Geotag) -> MapOrder.Status {
   switch geotagSent {
   case .notSent, .pickedUp: return .pending
   case .entered, .visited:  return .visited

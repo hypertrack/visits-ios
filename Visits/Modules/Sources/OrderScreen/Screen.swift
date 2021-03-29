@@ -5,16 +5,16 @@ import Types
 import Views
 
 
-public struct VisitScreen: View {
+public struct OrderScreen: View {
   public struct State: Equatable {
     
     public var title: String
-    public var visitNote: String
+    public var orderNote: String
     public var noteFieldFocused: Bool
     public var coordinate: Coordinate
     public var address: String
     public var metadata: [Metadata]
-    public var status: VisitStatus
+    public var status: OrderStatus
     public var deviceID: String
     public var publishableKey: String
     
@@ -28,7 +28,7 @@ public struct VisitScreen: View {
       }
     }
     
-    public enum VisitStatus: Equatable {
+    public enum OrderStatus: Equatable {
       case notSent
       case pickedUp
       case entered(String)
@@ -49,17 +49,17 @@ public struct VisitScreen: View {
     
     public init(
       title: String,
-      visitNote: String,
+      orderNote: String,
       noteFieldFocused: Bool,
       coordinate: Coordinate,
       address: String,
       metadata: [Metadata],
-      status: VisitStatus,
+      status: OrderStatus,
       deviceID: String,
       publishableKey: String
     ) {
       self.title = title
-      self.visitNote = visitNote
+      self.orderNote = orderNote
       self.noteFieldFocused = noteFieldFocused
       self.coordinate = coordinate
       self.address = address
@@ -105,20 +105,20 @@ public struct VisitScreen: View {
       trailing: { EmptyView() }
     ) {
       ZStack {
-        VisitInformationView(
+        InformationView(
           coordinate: state.coordinate,
           address: state.address,
           metadata: state.metadata,
           status: state.status,
           showButtons: !state.finished,
-          visitNote: state.visitNote,
+          orderNote: state.orderNote,
           deleveryNoteBinding: Binding(
-            get: { state.visitNote },
+            get: { state.orderNote },
             set: { send(.noteFieldChanged($0)) }
           ),
           noteFieldFocused: state.noteFieldFocused,
-          visitNoteWantsToBecomeFocused: { send(.noteTapped) },
-          visitNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
+          orderNoteWantsToBecomeFocused: { send(.noteTapped) },
+          orderNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
           mapTapped: { send(.mapTapped) },
           copyTextPressed: {
             if let na = NonEmptyString(rawValue: $0) {
@@ -126,7 +126,7 @@ public struct VisitScreen: View {
             }
           }
         )
-        VisitButtonView(
+        ButtonView(
           status: state.status,
           cancelButtonTapped: { send(.cancelButtonTapped) },
           checkOutButtonTapped: { send(.checkOutButtonTapped) },
@@ -156,8 +156,8 @@ public struct VisitScreen: View {
   }
 }
 
-struct VisitStatusView: View {
-  let status: VisitScreen.State.VisitStatus
+struct StatusView: View {
+  let status: OrderScreen.State.OrderStatus
 
   var body: some View {
     switch status {
@@ -181,17 +181,17 @@ struct VisitStatusView: View {
   }
 }
 
-struct VisitInformationView: View {
+struct InformationView: View {
   let coordinate: Coordinate
   let address: String
-  let metadata: [VisitScreen.State.Metadata]
-  let status: VisitScreen.State.VisitStatus
+  let metadata: [OrderScreen.State.Metadata]
+  let status: OrderScreen.State.OrderStatus
   let showButtons: Bool
-  let visitNote: String
+  let orderNote: String
   @Binding var deleveryNoteBinding: String
   let noteFieldFocused: Bool
-  let visitNoteWantsToBecomeFocused: () -> Void
-  let visitNoteEnterButtonPressed: () -> Void
+  let orderNoteWantsToBecomeFocused: () -> Void
+  let orderNoteEnterButtonPressed: () -> Void
   let mapTapped: () -> Void
   let copyTextPressed: (String) -> Void
   
@@ -202,7 +202,7 @@ struct VisitInformationView: View {
           .frame(height: 160)
           .padding(.top, 44)
           .onTapGesture(perform: mapTapped)
-        VisitStatusView(status: status)
+        StatusView(status: status)
         switch status {
         case .notSent, .pickedUp, .entered, .visited:
           TextFieldBlock(
@@ -213,15 +213,15 @@ struct VisitInformationView: View {
             textContentType: .addressCityAndState,
             returnKeyType: .default,
             enablesReturnKeyAutomatically: true,
-            wantsToBecomeFocused: visitNoteWantsToBecomeFocused,
-            enterButtonPressed: visitNoteEnterButtonPressed
+            wantsToBecomeFocused: orderNoteWantsToBecomeFocused,
+            enterButtonPressed: orderNoteEnterButtonPressed
           )
           .padding([.top, .trailing, .leading], 16)
         case .checkedOut, .canceled:
-          if !visitNote.isEmpty {
+          if !orderNote.isEmpty {
             ContentCell(
               title: "Order note",
-              subTitle: visitNote,
+              subTitle: orderNote,
               leadingPadding: 16,
               copyTextPressed
             )
@@ -254,8 +254,8 @@ struct VisitInformationView: View {
 }
 
 
-struct VisitButtonView: View {
-  let status: VisitScreen.State.VisitStatus
+struct ButtonView: View {
+  let status: OrderScreen.State.OrderStatus
   let cancelButtonTapped: () -> Void
   let checkOutButtonTapped: () -> Void
   let pickedUpButtonTapped: () -> Void
@@ -302,12 +302,12 @@ struct CancelButton: View {
 }
 
 
-struct VisitScreen_Previews: PreviewProvider {
+struct OrderScreen_Previews: PreviewProvider {
   static var previews: some View {
-    VisitScreen(
+    OrderScreen(
       state: .init(
         title: "Rauscherstraße 5",
-        visitNote: "Waiting for client",
+        orderNote: "Waiting for client",
         noteFieldFocused: false,
         coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
         address: "Rauscherstraße 5, 1200 Wien, Австрия",

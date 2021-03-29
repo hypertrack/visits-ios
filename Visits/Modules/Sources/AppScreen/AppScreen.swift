@@ -4,6 +4,8 @@ import DriverIDScreen
 import LoadingScreen
 import MapKit
 import MapScreen
+import OrderScreen
+import OrdersScreen
 import ProfileScreen
 import SignInScreen
 import SignUpFormScreen
@@ -13,18 +15,16 @@ import SummaryScreen
 import SwiftUI
 import Types
 import Views
-import VisitScreen
-import VisitsScreen
 
-public enum VisitOrVisits: Equatable {
-  case visit(VisitScreen.State)
-  case visits(VisitsScreen.State)
+public enum OrderOrOrders: Equatable {
+  case order(OrderScreen.State)
+  case orders(OrdersScreen.State)
   
   var credentials: (deviceID: String, publishableKey: String) {
     switch self {
-    case let .visit(s):
+    case let .order(s):
       return (s.deviceID, s.publishableKey)
-    case let .visits(s):
+    case let .orders(s):
       return (s.deviceID, s.publishableKey)
     }
   }
@@ -39,7 +39,7 @@ public struct AppScreen: View {
     case signUpVerification(SignUpVerificationScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case visits(VisitOrVisits, History?, [MapVisit], DriverID, DeviceID, TabSelection)
+    case main(OrderOrOrders, History?, [MapOrder], DriverID, DeviceID, TabSelection)
   }
   
   public enum Action {
@@ -49,8 +49,8 @@ public struct AppScreen: View {
     case signIn(SignInScreen.Action)
     case driverID(DriverIDScreen.Action)
     case blocker(Blocker.Action)
-    case visits(VisitsScreen.Action)
-    case visit(VisitScreen.Action)
+    case orders(OrdersScreen.Action)
+    case order(OrderScreen.Action)
     case tab(TabSelection)
     case map(String)
   }
@@ -88,12 +88,12 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .visits(s, h, mv, drID, deID, sel):
-        VisitsBlock(
+      case let .main(s, h, mv, drID, deID, sel):
+        MainBlock(
           state: (s, h, mv, drID, deID, sel),
           sendMap: { viewStore.send(.map($0)) },
-          sendVisit: { viewStore.send(.visit($0)) },
-          sendVisits: { viewStore.send(.visits($0)) },
+          sendOrder: { viewStore.send(.order($0)) },
+          sendOrders: { viewStore.send(.orders($0)) },
           sendTab: { viewStore.send(.tab($0)) }
         )
       }
@@ -101,18 +101,18 @@ public struct AppScreen: View {
   }
 }
 
-struct VisitsBlock: View {
+struct MainBlock: View {
   let state: (
-    visits: VisitOrVisits,
+    orderScreenState: OrderOrOrders,
     history: History?,
-    assignedVisits: [MapVisit],
+    orders: [MapOrder],
     driverID: DriverID,
     deviceID: DeviceID,
     tabSelection: TabSelection
   )
   let sendMap: (String) -> Void
-  let sendVisit: (VisitScreen.Action) -> Void
-  let sendVisits: (VisitsScreen.Action) -> Void
+  let sendOrder: (OrderScreen.Action) -> Void
+  let sendOrders: (OrdersScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
   
   var body: some View {
@@ -125,8 +125,8 @@ struct VisitsBlock: View {
       ZStack() {
         MapScreen(
           polyline: Binding.constant(state.history?.coordinates ?? []),
-          sendSelectedMapVisit: sendMap,
-          visits: Binding.constant(state.assignedVisits)
+          sendSelectedMapOrder: sendMap,
+          orders: Binding.constant(state.orders)
         )
         .edgesIgnoringSafeArea(.top)
         .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
@@ -151,25 +151,25 @@ struct VisitsBlock: View {
       }
       .tag(TabSelection.map)
       
-      switch state.visits {
-      case let .visit(v):
-        VisitScreen(state: v) {
-          sendVisit($0)
+      switch state.orderScreenState {
+      case let .order(v):
+        OrderScreen(state: v) {
+          sendOrder($0)
         }
         .tabItem {
           Image(systemName: "list.dash")
           Text("Orders")
         }
-        .tag(TabSelection.visits)
-      case let .visits(vs):
-        VisitsScreen(state: vs) {
-          sendVisits($0)
+        .tag(TabSelection.orders)
+      case let .orders(vs):
+        OrdersScreen(state: vs) {
+          sendOrders($0)
         }
         .tabItem {
           Image(systemName: "list.dash")
           Text("Orders")
         }
-        .tag(TabSelection.visits)
+        .tag(TabSelection.orders)
       }
       
       SummaryScreen(
@@ -218,8 +218,8 @@ struct AppScreen_Previews: PreviewProvider {
   static var previews: some View {
     AppScreen(
       store: .init(
-        initialState: .visits(
-          .visits(
+        initialState: .main(
+          .orders(
             .init(
               pending: [],
               visited: [],

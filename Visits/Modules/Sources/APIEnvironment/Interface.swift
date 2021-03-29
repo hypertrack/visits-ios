@@ -5,8 +5,8 @@ import Tagged
 import Types
 
 
-public typealias APIVisitID = Tagged<APIVisitIDTag, NonEmptyString>
-public enum APIVisitIDTag {}
+public typealias APIOrderID = Tagged<APIOrderIDTag, NonEmptyString>
+public enum APIOrderIDTag {}
 
 public enum APIError: Equatable, Error { case unknown }
 
@@ -15,11 +15,11 @@ public enum VisitStatus: Equatable {
   case visited(Date, Date)
 }
 
-public struct APIVisit: Equatable {
+public struct APIOrder: Equatable {
   public enum Source: Equatable { case order, trip }
   
-  public typealias Name     = Tagged<(APIVisit, name: ()),     NonEmptyString>
-  public typealias Contents = Tagged<(APIVisit, contents: ()), NonEmptyString>
+  public typealias Name     = Tagged<(APIOrder, name: ()),     NonEmptyString>
+  public typealias Contents = Tagged<(APIOrder, contents: ()), NonEmptyString>
   
   public let centroid: Coordinate
   public let createdAt: Date
@@ -56,7 +56,7 @@ public enum VerificationResponse: Equatable {
 
 public struct APIEnvironment {
   public var getHistory: (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>
-  public var getVisits: (PublishableKey, DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never>
+  public var getOrders: (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never>
   public var resendVerificationCode: (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>
   public var reverseGeocode: ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>
@@ -65,7 +65,7 @@ public struct APIEnvironment {
   
   public init(
     getHistory: @escaping (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>,
-    getVisits: @escaping (PublishableKey, DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never>,
+    getOrders: @escaping (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never>,
     resendVerificationCode: @escaping (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>,
     reverseGeocode: @escaping ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>,
@@ -73,7 +73,7 @@ public struct APIEnvironment {
     verifyEmail: @escaping (Email, VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never>
   ) {
     self.getHistory = getHistory
-    self.getVisits = getVisits
+    self.getOrders = getOrders
     self.resendVerificationCode = resendVerificationCode
     self.reverseGeocode = reverseGeocode
     self.signIn = signIn

@@ -1,5 +1,5 @@
 public enum TabSelection: String, Equatable, Codable {
-  case visits, map, summary, profile
+  case map, orders, places, summary, profile
   
   public static let defaultTab = Self.map
 }

@@ -17,19 +17,19 @@ public extension HyperTrackEnvironment {
         logEffect("addGeotag: \(geotag)")
         let metadata: [String: String]
         switch geotag {
-        case let .cancel(id, source, visitNote):
+        case let .cancel(id, source, orderNote):
           metadata =
             [
               fromAssignedSource(source): id.rawValue.rawValue,
               C.type.rawValue: C.cancel.rawValue,
-              C.visitNote.rawValue: visitNote?.rawValue.rawValue ?? ""
+              C.orderNote.rawValue: orderNote?.rawValue.rawValue ?? ""
             ]
-        case let .checkOut(id, source, visitNote):
+        case let .checkOut(id, source, orderNote):
           metadata =
             [
               fromAssignedSource(source): id.rawValue.rawValue,
               C.type.rawValue: C.checkOut.rawValue,
-              C.visitNote.rawValue: visitNote?.rawValue.rawValue ?? ""
+              C.orderNote.rawValue: orderNote?.rawValue.rawValue ?? ""
             ]
         case .clockIn:
           metadata = [C.type.rawValue: C.clockIn.rawValue]
@@ -193,8 +193,7 @@ enum C: String {
   case pickUp = "PICK_UP"
   case tripID = "trip_id"
   case type = "type"
-  case visitID = "visit_id"
-  case visitNote = "visit_note"
+  case orderNote = "visit_note"
 }
 
 var ht: HyperTrack?

@@ -1,19 +1,19 @@
 import MapKit
 
-// MARK: - Visits
+// MARK: - Orders
 
-func putVisits(
-  visits: [MapVisit],
+func putOrders(
+  orders: [MapOrder],
   onMapView mapView: MKMapView
 ) {
-  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? VisitAnnotation })
-  remove(overlay: VisitCircle.self, fromMapView: mapView)
+  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? OrderAnnotation })
+  remove(overlay: OrderCircle.self, fromMapView: mapView)
   
-  for visit in visits {
-    mapView.addAnnotation(VisitAnnotation(visit: visit))
+  for order in orders {
+    mapView.addAnnotation(OrderAnnotation(order: order))
     
-    let geofenceOverlay = VisitCircle(center: visit.coordinate.coordinate2D, radius: 50)
-    geofenceOverlay.visit = visit
+    let geofenceOverlay = OrderCircle(center: order.coordinate.coordinate2D, radius: 50)
+    geofenceOverlay.order = order
     if let polylineOverlay = polyline(fromMapView: mapView) {
       mapView.insertOverlay(geofenceOverlay, below: polylineOverlay)
     } else {
@@ -22,26 +22,26 @@ func putVisits(
   }
 }
 
-class VisitCircle: MKCircle {
-  var visit: MapVisit?
+class OrderCircle: MKCircle {
+  var order: MapOrder?
 }
 
-// MARK: Visit
+// MARK: Order
 
-class VisitAnnotation: NSObject, MKAnnotation {
+class OrderAnnotation: NSObject, MKAnnotation {
   var coordinate: CLLocationCoordinate2D
-  let visit: MapVisit
+  let order: MapOrder
 
-  init(visit: MapVisit) {
-    self.visit = visit
-    self.coordinate = visit.coordinate.coordinate2D
+  init(order: MapOrder) {
+    self.order = order
+    self.coordinate = order.coordinate.coordinate2D
     
     super.init()
   }
 }
 
-class VisitPendingAnnotationView: MKAnnotationView {
-  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+class OrderPendingAnnotationView: MKAnnotationView {
+  init(annotation: OrderAnnotation, reuseIdentifier: String) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -57,12 +57,12 @@ class VisitPendingAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawVisit(.pending)
+    drawOrder(.pending)
   }
 }
 
-class VisitVisitedAnnotationView: MKAnnotationView {
-  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+class OrderVisitedAnnotationView: MKAnnotationView {
+  init(annotation: OrderAnnotation, reuseIdentifier: String) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -78,12 +78,12 @@ class VisitVisitedAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawVisit(.visited)
+    drawOrder(.visited)
   }
 }
 
-class VisitCompletedAnnotationView: MKAnnotationView {
-  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+class OrderCompletedAnnotationView: MKAnnotationView {
+  init(annotation: OrderAnnotation, reuseIdentifier: String) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -99,12 +99,12 @@ class VisitCompletedAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawVisit(.completed)
+    drawOrder(.completed)
   }
 }
 
-class VisitCanceledAnnotationView: MKAnnotationView {
-  init(annotation: VisitAnnotation, reuseIdentifier: String) {
+class OrderCanceledAnnotationView: MKAnnotationView {
+  init(annotation: OrderAnnotation, reuseIdentifier: String) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -120,14 +120,14 @@ class VisitCanceledAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawVisit(.canceled)
+    drawOrder(.canceled)
   }
 }
 
-func drawVisit(_ visitStatus: MapVisit.Status) {
+func drawOrder(_ orderStatus: MapOrder.Status) {
   let emoji: String
   let visited: Bool
-  switch visitStatus {
+  switch orderStatus {
   case .pending:
     emoji = "⏳"
     visited = false
@@ -424,9 +424,9 @@ public func zoom(
   } else if let userLocation = mapView.userLocation.location {
     coordinate = userLocation.coordinate
   }
-  let visits = mapView.annotations.compactMap { $0 as? VisitAnnotation }
+  let orders = mapView.annotations.compactMap { $0 as? OrderAnnotation }
   
-  switch (maybePolyline, coordinate, visits.isEmpty) {
+  switch (maybePolyline, coordinate, orders.isEmpty) {
   
   case (.none, .none, true): return
   
@@ -441,7 +441,7 @@ public func zoom(
       coordinateCloud += [coordinate]
     }
     
-    coordinateCloud += visits.map(\.visit.coordinate.coordinate2D)
+    coordinateCloud += orders.map(\.order.coordinate.coordinate2D)
     
     if !coordinateCloud.isEmpty {
       var mapRect = mapRectFromCoordinates(coordinateCloud)
@@ -588,22 +588,22 @@ public func annotationViewForAnnotation(
         reuseIdentifier: reuseIdentifier
       )
     }
-  } else if let visitAnnotation = annotation as? VisitAnnotation {
+  } else if let orderAnnotation = annotation as? OrderAnnotation {
     let reuseIdentifier: String
-    switch visitAnnotation.visit.status {
-    case .pending:   reuseIdentifier = "VisitPendingAnnotation"
-    case .visited:   reuseIdentifier = "VisitVisitedAnnotation"
-    case .completed: reuseIdentifier = "VisitCompletedAnnotation"
-    case .canceled:  reuseIdentifier = "VisitCanceledAnnotation"
+    switch orderAnnotation.order.status {
+    case .pending:   reuseIdentifier = "OrderPendingAnnotation"
+    case .visited:   reuseIdentifier = "OrderVisitedAnnotation"
+    case .completed: reuseIdentifier = "OrderCompletedAnnotation"
+    case .canceled:  reuseIdentifier = "OrderCanceledAnnotation"
     }
-    if let visitAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) {
-      return visitAnnotationView
+    if let orderAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) {
+      return orderAnnotationView
     } else {
-      switch visitAnnotation.visit.status {
-      case .pending:   return VisitPendingAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
-      case .visited:   return VisitVisitedAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
-      case .completed: return VisitCompletedAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
-      case .canceled:  return VisitCanceledAnnotationView(annotation: visitAnnotation, reuseIdentifier: reuseIdentifier)
+      switch orderAnnotation.order.status {
+      case .pending:   return OrderPendingAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case .visited:   return OrderVisitedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case .completed: return OrderCompletedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case .canceled:  return OrderCanceledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
       }
     }
   } else {
@@ -615,11 +615,11 @@ public func annotationViewForAnnotation(
 public func rendererForOverlay(
   _ overlay: MKOverlay
 ) -> MKOverlayRenderer? {
-  if let visitCircle = overlay as? VisitCircle {
-    let circleRenderer = MKCircleRenderer(circle: visitCircle)
+  if let orderCircle = overlay as? OrderCircle {
+    let circleRenderer = MKCircleRenderer(circle: orderCircle)
     
-    let fillColor = visitCircle.visit?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
-    let strokeColor = visitCircle.visit?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
+    let fillColor = orderCircle.order?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
+    let strokeColor = orderCircle.order?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
     circleRenderer.fillColor = fillColor
     
     circleRenderer.strokeColor = strokeColor

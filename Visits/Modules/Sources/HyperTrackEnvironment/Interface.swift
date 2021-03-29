@@ -4,8 +4,8 @@ import Types
 import UIKit
 
 public enum Geotag: Equatable {
-  case cancel(Order.ID, Order.Source, Order.VisitNote?)
-  case checkOut(Order.ID, Order.Source, Order.VisitNote?)
+  case cancel(Order.ID, Order.Source, Order.OrderNote?)
+  case checkOut(Order.ID, Order.Source, Order.OrderNote?)
   case clockIn
   case clockOut
   case pickUp(Order.ID, Order.Source)

@@ -7,13 +7,13 @@ import Prelude
 import Types
 
 
-func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIVisitID: APIVisit], APIError>, Never> {
-  logEffect("getVisits", failureType: APIError.self)
+func getOrders(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never> {
+  logEffect("getOrders", failureType: APIError.self)
     .flatMap { getToken(auth: pk, deviceID: deID) }
     .flatMap { t in
       getTrips(auth: t, deviceID: deID)
         .map { trips in
-          trips.flatMap(apiVisit(fromTrip:))
+          trips.flatMap(apiOrder(fromTrip:))
         }
     }
     .map { Dictionary(uniqueKeysWithValues: ($0)) }
@@ -22,12 +22,12 @@ func getVisits(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIVisi
     .eraseToEffect()
 }
 
-func apiVisit(fromTrip trip: Trip) -> [(APIVisitID, APIVisit)] {
+func apiOrder(fromTrip trip: Trip) -> [(APIOrderID, APIOrder)] {
   if trip.orders.isEmpty {
     return [
       (
-        APIVisitID(rawValue: trip.id),
-        APIVisit(
+        APIOrderID(rawValue: trip.id),
+        APIOrder(
           centroid: trip.coordinate,
           createdAt: trip.createdAt,
           metadata: repackageMetadata(trip.metadata),
@@ -38,12 +38,12 @@ func apiVisit(fromTrip trip: Trip) -> [(APIVisitID, APIVisit)] {
     ]
   } else {
     var createdAt = trip.createdAt
-    var orders: [(APIVisitID, APIVisit)] = []
+    var orders: [(APIOrderID, APIOrder)] = []
     for order in trip.orders {
       orders += [
         (
-          APIVisitID(rawValue: order.id),
-          APIVisit(
+          APIOrderID(rawValue: order.id),
+          APIOrder(
             centroid: order.coordinate,
             createdAt: createdAt,
             metadata: repackageMetadata(order.metadata),
@@ -58,11 +58,11 @@ func apiVisit(fromTrip trip: Trip) -> [(APIVisitID, APIVisit)] {
   }
 }
 
-func repackageMetadata(_ metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?) -> [APIVisit.Name: APIVisit.Contents] {
+func repackageMetadata(_ metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?) -> [APIOrder.Name: APIOrder.Contents] {
   switch metadata {
   case let .some(metadata):
     return Dictionary(
-      uniqueKeysWithValues: metadata.rawValue.map { (APIVisit.Name(rawValue: $0), APIVisit.Contents(rawValue: $1)) }
+      uniqueKeysWithValues: metadata.rawValue.map { (APIOrder.Name(rawValue: $0), APIOrder.Contents(rawValue: $1)) }
     )
   case .none: return [:]
   }

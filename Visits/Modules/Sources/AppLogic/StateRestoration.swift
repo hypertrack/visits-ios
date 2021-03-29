@@ -47,7 +47,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                   return Effect(value: AppAction.restoredState(.left(.signIn(email)), network))
                 case let .some(.driverID(driverID, publishableKey)):
                   return Effect(value: AppAction.restoredState(.left(.driverID(driverID, publishableKey)), network))
-                case let .some(.visits(visits, tabSelection, publishableKey, driverID, pushStatus, experience)):
+                case let .some(.main(orders, tabSelection, publishableKey, driverID, pushStatus, experience)):
                   return environment
                     .hyperTrack
                     .makeSDK(publishableKey)
@@ -57,7 +57,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                         return AppAction.restoredState(.right(.motionActivityServicesUnavalible), network)
                       case let .unlocked(deviceID, unlockedStatus):
                         
-                        return AppAction.restoredState(.left(.visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions, experience)), network)
+                        return AppAction.restoredState(.left(.main(orders, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions, experience)), network)
                       }
                     }
                 }
@@ -86,9 +86,9 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
         state.flow = .signIn(.editingCredentials(nil, nil, nil, nil))
       case let .signIn(.some(email)):
         state.flow = .signIn(.editingCredentials(email, nil, nil, nil))
-      case let .visits(visits, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
-        let fvs = filterOutOldVisits(environment.date())
-        state.flow = .visits(fvs(visits), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
+      case let .main(orders, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
+        let fvs = filterOutOldOrders(environment.date())
+        state.flow = .main(fvs(orders), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
         return .merge(
           stateRestored,
           environment
@@ -108,19 +108,19 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
   }
 }
 
-func filterOutOldVisits(_ now: Date) -> (Set<Order>) -> (Set<Order>) {
+func filterOutOldOrders(_ now: Date) -> (Set<Order>) -> (Set<Order>) {
   {
-    $0.filter(visitValid(now: now))
+    $0.filter(orderValid(now: now))
   }
 }
 
-func filterOutOldVisit(_ now: Date) -> (Order?) -> Order? {
+func filterOutOldOrder(_ now: Date) -> (Order?) -> Order? {
   {
-    $0.flatMap { visitValid(now: now)($0) ? $0 : nil }
+    $0.flatMap { orderValid(now: now)($0) ? $0 : nil }
   }
 }
 
-func visitValid(now: Date) -> (Order) -> Bool {
+func orderValid(now: Date) -> (Order) -> Bool {
   { valid($0.createdAt, now: now) }
 }
 

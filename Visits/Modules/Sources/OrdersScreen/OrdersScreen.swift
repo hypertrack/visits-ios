@@ -4,7 +4,7 @@ import UIKit
 import Views
 
 
-public struct VisitHeader: Equatable, Hashable, Identifiable {
+public struct OrderHeader: Equatable, Hashable, Identifiable {
   public let id: String
   public let title: String
   
@@ -22,29 +22,29 @@ enum Status: String {
   case canceled = "❌ Canceled"
 }
 
-public struct VisitsScreen: View {
-  public struct State: Equatable {    public let pending: [VisitHeader]
-    public let visited: [VisitHeader]
-    public let completed: [VisitHeader]
-    public let canceled: [VisitHeader]
+public struct OrdersScreen: View {
+  public struct State: Equatable {    public let pending: [OrderHeader]
+    public let visited: [OrderHeader]
+    public let completed: [OrderHeader]
+    public let canceled: [OrderHeader]
     public let isNetworkAvailable: Bool
     public let refreshing: Bool
     public let deviceID: String
     public let publishableKey: String
     
-    public var noVisits: Bool {
+    public var noOrders: Bool {
       canceled.isEmpty && completed.isEmpty && pending.isEmpty && visited.isEmpty
     }
     
-    public var totalVisits: Int {
+    public var totalOrders: Int {
       canceled.count + completed.count + pending.count + visited.count
     }
     
     public init(
-      pending: [VisitHeader],
-      visited: [VisitHeader],
-      completed: [VisitHeader],
-      canceled: [VisitHeader],
+      pending: [OrderHeader],
+      visited: [OrderHeader],
+      completed: [OrderHeader],
+      canceled: [OrderHeader],
       isNetworkAvailable: Bool,
       refreshing: Bool,
       deviceID: String,
@@ -64,7 +64,7 @@ public struct VisitsScreen: View {
   public enum Action: Equatable {
     case clockOutButtonTapped
     case refreshButtonTapped
-    case visitTapped(String)
+    case orderTapped(String)
   }
   
   @Environment(\.colorScheme) var colorScheme
@@ -99,8 +99,8 @@ public struct VisitsScreen: View {
         ZStack {
           VStack(spacing: 0) {
             VisitStatus(
-              text: state.refreshing ? "Updating orders." : state.noVisits ? "No orders for today, tap refresh to update." : "You've completed \(state.completed.count + state.canceled.count) out of \(state.totalVisits) orders so far.",
-              state: state.noVisits ? .custom(color: Color.gray) : .visited
+              text: state.refreshing ? "Updating orders." : state.noOrders ? "No orders for today, tap refresh to update." : "You've completed \(state.completed.count + state.canceled.count) out of \(state.totalOrders) orders so far.",
+              state: state.noOrders ? .custom(color: Color.gray) : .visited
             )
             .padding(.top, 44)
             if !state.isNetworkAvailable {
@@ -111,28 +111,28 @@ public struct VisitsScreen: View {
             }
             List {
               if !state.pending.isEmpty {
-                visitSection(
+                orderSection(
                   for: .pending,
                   items: state.pending
-                ) { send(.visitTapped($0.id)) }
+                ) { send(.orderTapped($0.id)) }
               }
               if !state.visited.isEmpty {
-                visitSection(
+                orderSection(
                   for: .visited,
                   items: state.visited
-                ) { send(.visitTapped($0.id)) }
+                ) { send(.orderTapped($0.id)) }
               }
               if !state.completed.isEmpty {
-                visitSection(
+                orderSection(
                   for: .completed,
                   items: state.completed
-                ) { send(.visitTapped($0.id)) }
+                ) { send(.orderTapped($0.id)) }
               }
               if !state.canceled.isEmpty {
-                visitSection(
+                orderSection(
                   for: .canceled,
                   items: state.canceled
-                ) { send(.visitTapped($0.id)) }
+                ) { send(.orderTapped($0.id)) }
               }
             }
             .modifier(AppBackground())
@@ -148,8 +148,8 @@ public struct VisitsScreen: View {
 
 
 
-extension VisitsScreen {
-  func visitSection(for status: Status, items: [VisitHeader], didSelect cell: @escaping (VisitHeader) -> Void) -> some View {
+extension OrdersScreen {
+  func orderSection(for status: Status, items: [OrderHeader], didSelect cell: @escaping (OrderHeader) -> Void) -> some View {
     CustomSection(header: "\(status.rawValue)") {
       ForEach(items) { item in
         DeliveryCell(title: "\(item.title)") {
@@ -162,11 +162,11 @@ extension VisitsScreen {
 
 struct VisitsScreen_Previews: PreviewProvider {
   static var previews: some View {
-    VisitsScreen(
+    OrdersScreen(
       state: .init(
         pending: [.init(id: "1", title: "1301 Market St")],
         visited: [.init(id: "5", title: "2402 Davey St")],
-        completed: [.init(id: "2", title: "275 Hayes St"), .init(id: "3", title: "Visit 12:30 AM — 01:15 PM")],
+        completed: [.init(id: "2", title: "275 Hayes St"), .init(id: "3", title: "Visited at 12:30 AM — 01:15 PM")],
         canceled: [.init(id: "4", title: "4 Embracadero Ctr")],
         isNetworkAvailable: false,
         refreshing: false,

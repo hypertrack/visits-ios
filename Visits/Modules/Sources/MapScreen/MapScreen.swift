@@ -2,7 +2,7 @@ import MapKit
 import SwiftUI
 import Types
 
-public struct MapVisit: Equatable {
+public struct MapOrder: Equatable {
   public enum Status: Equatable {
     case pending, visited, completed, canceled
   }
@@ -20,13 +20,13 @@ public struct MapVisit: Equatable {
 
 public struct MapScreen: UIViewRepresentable {
   @Binding public var polyline: [Coordinate]
-  @Binding public var visits: [MapVisit]
-  var sendSelectedMapVisit: (String) -> Void
+  @Binding public var orders: [MapOrder]
+  var sendSelectedMapOrder: (String) -> Void
   
-  public init(polyline: Binding<[Coordinate]>, sendSelectedMapVisit: @escaping (String) -> Void, visits: Binding<[MapVisit]>) {
+  public init(polyline: Binding<[Coordinate]>, sendSelectedMapOrder: @escaping (String) -> Void, orders: Binding<[MapOrder]>) {
     self._polyline = polyline
-    self.sendSelectedMapVisit = sendSelectedMapVisit
-    self._visits = visits
+    self.sendSelectedMapOrder = sendSelectedMapOrder
+    self._orders = orders
   }
   
   public func makeUIView(context: Context) -> MKMapView {
@@ -42,7 +42,7 @@ public struct MapScreen: UIViewRepresentable {
     mapView.showsUserLocation = polyline.isEmpty
     
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
-    putVisits(visits: visits, onMapView: mapView)
+    putOrders(orders: orders, onMapView: mapView)
     zoom(withMapInsets: .all(100), interfaceInsets: nil, onMapView: mapView)
   }
   
@@ -70,8 +70,8 @@ public struct MapScreen: UIViewRepresentable {
     }
     
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-      if let visitAnnotation = view.annotation as? VisitAnnotation {
-        control.sendSelectedMapVisit(visitAnnotation.visit.id)
+      if let orderAnnotation = view.annotation as? OrderAnnotation {
+        control.sendSelectedMapOrder(orderAnnotation.order.id)
       }
     }
   }
