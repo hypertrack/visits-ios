@@ -1,9 +1,25 @@
 import APIEnvironment
 import Combine
+import ComposableArchitecture
 import Foundation
+import LogEnvironment
 import NonEmpty
+import Prelude
+import Tagged
 import Types
 
+
+func getPlaces(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError>, Never> {
+  logEffect("getPlaces", failureType: APIError.self)
+    .flatMap { getToken(auth: pk, deviceID: deID) }
+    .flatMap { t in
+      getGeofences(auth: t, deviceID: deID)
+        .map { Set($0.compactMap(Place.init(geofence:))) }
+    }
+    .map(Result.success)
+    .catch(Result.failure >>> Just.init(_:))
+    .eraseToEffect()
+}
 
 func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError> {
   paginate(
@@ -13,13 +29,18 @@ func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofen
     valuesFromPage: \.geofences,
     paginationFromPage: \.paginationToken
   )
+  
+  .eraseToAnyPublisher()
 }
 
 func getGeofencesPage(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> AnyPublisher<GeofencePage, APIError> {
   URLSession.shared.dataTaskPublisher(for: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
     .map(\.data)
     .decode(type: GeofencePage.self, decoder: JSONDecoder())
-    .mapError { _ in .unknown }
+    .mapError { error in
+      print(error)
+      return .unknown
+    }
     .eraseToAnyPublisher()
 }
 
@@ -29,13 +50,13 @@ func geofencesRequest(auth token: Token, deviceID: DeviceID, paginationToken: Pa
   components.host = "live-app-backend.htprod.hypertrack.com"
   components.path = "/client/geofences"
   components.queryItems = [
-    URLQueryItem(name: "device_id", value: deviceID.rawValue.rawValue),
+    URLQueryItem(name: "device_id", value: "\(deviceID)"),
     URLQueryItem(name: "include_archived", value: "false"),
     URLQueryItem(name: "include_markers", value: "true")
   ]
   if let paginationToken = paginationToken, let queryItems = components.queryItems {
     components.queryItems = queryItems + [
-      URLQueryItem(name: "pagination_token", value: paginationToken.rawValue.rawValue)
+      URLQueryItem(name: "pagination_token", value: "\(paginationToken)")
     ]
   }
   
@@ -47,18 +68,80 @@ func geofencesRequest(auth token: Token, deviceID: DeviceID, paginationToken: Pa
   return request
 }
 
+extension Place {
+  init?(geofence: Geofence) {
+    let id: Place.ID = wrap(geofence.id)
+    let address: Address = .init(string: geofence.address)
+    let createdAt: Place.CreatedTimestamp = wrap(geofence.createdAt)
+    let metadata: [Place.Name : Place.Contents] = geofence.metadata.map(\.rawValue).map(wrapDictionary) ?? [:]
+    let shape = geofence.shape
+       
+    func wrapRoute(_ routeTo: RouteTo) -> Place.Route {
+      .init(
+        distance: wrap(routeTo.distance),
+        duration: wrap(routeTo.duration),
+        idleTime: wrap(routeTo.idleTime)
+      )
+    }
+    
+    let visitOrExit: [Either<Place.Visit, Place.Entry>] = geofence.markers.map { marker in
+      switch marker.visitStatus {
+      case let .entered(en):
+        return .right(
+          .init(
+            entry: wrap(en),
+            duration: wrap(marker.duration),
+            route: marker.routeTo.map(wrapRoute)
+          )
+        )
+      case let .visited(en, ex):
+        return .left(
+          .init(
+            entry: wrap(en),
+            exit: wrap(ex),
+            duration: wrap(marker.duration),
+            route: marker.routeTo.map(wrapRoute)
+          )
+        )
+      }
+    }
+
+    let currentlyInside: Place.Entry? = visitOrExit.compactMap(eitherRight).first
+    let visits: [Place.Visit] = visitOrExit.compactMap(eitherLeft)
+    
+    self.init(
+      id: id,
+      address: address,
+      createdAt: createdAt,
+      currentlyInside: currentlyInside,
+      metadata: metadata,
+      shape: shape,
+      visits: visits
+    )
+  }
+}
+
+
+func wrapDictionary<A, B, C, D>(_ dict: Dictionary<A, B>) -> Dictionary<Tagged<C, A>, Tagged<D, B>> {
+  Dictionary(uniqueKeysWithValues: dict.map { (wrap($0), wrap($1)) })
+}
+
+func wrap<Destination, Value>(_ value: Value) -> Tagged<Destination, Value> {
+  .init(rawValue: value)
+}
+
 struct GeofencePage {
   let geofences: [Geofence]
   let paginationToken: PaginationToken?
 }
 
-
 struct Geofence {
   let id: NonEmptyString
+  let address: String
   let createdAt: Date
-  let coordinate: Coordinate
   let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
-  let visitStatus: VisitStatus?
+  let shape: GeofenceShape
+  let markers: [GeofenceMarker]
 }
 
 extension GeofencePage: Decodable {
@@ -77,27 +160,28 @@ extension GeofencePage: Decodable {
 extension Geofence: Decodable {
   enum CodingKeys: String, CodingKey {
     case id = "geofence_id"
+    case address
     case createdAt = "created_at"
     case geometry
     case metadata
     case markers
+    case radius
   }
   
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
     id = try values.decode(NonEmptyString.self, forKey: .id)
+    
+    address = (try? values.decodeIfPresent(String.self, forKey: .address)) ?? ""
+    
     createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
-    coordinate = try decodeGeofenceCentroid(decoder: decoder, container: values, key: .geometry)
+    let radius = try? values.decodeIfPresent(UInt.self, forKey: .radius)
+    shape = try decodeGeofenceShape(radius: radius, decoder: decoder, container: values, key: .geometry)
     metadata = try decodeMetadata(decoder: decoder, container: values, key: .metadata)
     
-    let geofenceMarkers = try? values.decodeIfPresent(GeofenceMarkerContainer.self, forKey: .markers)
-    switch geofenceMarkers {
-    case let .some(markerContainer):
-      visitStatus = visitStatusFrom(geofenceMarkers: markerContainer.data)
-    case .none:
-      visitStatus = nil
-    }
+    let geofenceMarkers = try? values.decode(GeofenceMarkerContainer.self, forKey: .markers)
+    markers = geofenceMarkers?.data ?? []
   }
 }
 
@@ -106,23 +190,6 @@ extension Sequence {
     return sorted { a, b in
       return a[keyPath: keyPath] < b[keyPath: keyPath]
     }
-  }
-}
-
-func visitStatusFrom(geofenceMarkers: [GeofenceMarker]) -> VisitStatus? {
-  let geofenceMarkers = geofenceMarkers.sorted(by: \.createdAt)
-  
-  guard let first = geofenceMarkers.first else { return nil }
-  
-  if let last = geofenceMarkers.last, geofenceMarkers.count != 1 {
-    switch last.visitStatus {
-    case .entered:
-      return .entered(first.visitStatus.entered)
-    case let .visited(_, exited):
-      return .visited(first.visitStatus.entered, exited)
-    }
-  } else {
-    return first.visitStatus
   }
 }
 
@@ -153,13 +220,39 @@ extension GeofenceMarkerContainer: Decodable {
 struct GeofenceMarker {
   let createdAt: Date
   let visitStatus: VisitStatus
+  let routeTo: RouteTo?
+  let duration: UInt
+}
+
+struct RouteTo {
+  let distance: UInt
+  let duration: UInt
+  let idleTime: UInt
+}
+
+extension RouteTo: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case distance
+    case duration
+    case idleTime = "idle_time"
+  }
+  
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    distance = try values.decode(UInt.self, forKey: .distance)
+    duration = try values.decode(UInt.self, forKey: .duration)
+    idleTime = try values.decode(UInt.self, forKey: .idleTime)
+  }
 }
 
 extension GeofenceMarker: Decodable {
   enum CodingKeys: String, CodingKey {
     case createdAt = "created_at"
     case arrival
+    case duration
     case exit
+    case routeTo = "route_to"
   }
   
   init(from decoder: Decoder) throws {
@@ -176,6 +269,10 @@ extension GeofenceMarker: Decodable {
     case .none:
       visitStatus = .entered(arrival.recordedAt)
     }
+    
+    routeTo = try values.decode(RouteTo?.self, forKey: .routeTo)
+    
+    duration = (try? values.decode(UInt.self, forKey: .duration)) ?? 0
   }
 }
 

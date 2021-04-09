@@ -30,7 +30,7 @@ public extension MapEnvironment {
   )
 }
 
-func addressString(from a: Either<Order.FullAddress, Order.Street>?) -> String? {
+func addressString(from a: Either<FullAddress, Street>?) -> String? {
   switch a {
   case .none: return nil
   case let .some(.left(full)): return full.rawValue.rawValue

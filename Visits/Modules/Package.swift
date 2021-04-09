@@ -18,11 +18,14 @@ let targets: [Target] = [
   // Type
   .target(name: "Types",                           dependencies: [nonEmpty, "Prelude", "Tagged"]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "ProfileScreen", "SignInScreen", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "SummaryScreen", "Types", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "DriverIDScreen",                  dependencies: [architecture, "Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapScreen",                       dependencies: ["Types"]),
+  .target(name: "OrderScreen",                     dependencies: [architecture, nonEmpty, "Types", "Views"]),
+  .target(name: "OrdersScreen",                    dependencies: [architecture, "Views"]),
+  .target(name: "PlacesScreen",                    dependencies: [architecture, "Types", "Views"]),
   .target(name: "ProfileScreen",                   dependencies: ["Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Views"]),
   .target(name: "SignUpFormScreen",                dependencies: ["Views"]),
@@ -30,8 +33,7 @@ let targets: [Target] = [
   .target(name: "SignUpVerificationScreen",        dependencies: ["Views"]),
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
-  .target(name: "OrderScreen",                     dependencies: [architecture, nonEmpty, "Types", "Views"]),
-  .target(name: "OrdersScreen",                    dependencies: [architecture, "Views"]),
+  
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Prelude", "Tagged", "Types"]),

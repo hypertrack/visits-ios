@@ -10,7 +10,7 @@ public struct Order {
   public var source: Source
   public var location: Coordinate
   public var geotagSent: Geotag
-  public var address: These<Street, FullAddress>?
+  public var address: Address
   public var orderNote: OrderNote?
   public var noteFieldFocused: Bool
   public var metadata: [Name: Contents]
@@ -148,7 +148,7 @@ public struct Order {
     location: Coordinate,
     geotagSent: Geotag,
     noteFieldFocused: Bool,
-    address: These<Street, FullAddress>? = nil,
+    address: Address,
     orderNote: OrderNote? = nil,
     metadata: [Name: Contents] = [:]
   ) {
@@ -166,8 +166,6 @@ public struct Order {
   // Newtypes
   public typealias ID             = Tagged<Order,                     NonEmptyString>
   public typealias OrderNote      = Tagged<(Order, orderNote: ()),    NonEmptyString>
-  public typealias Street         = Tagged<(Order, street: ()),       NonEmptyString>
-  public typealias FullAddress    = Tagged<(Order, address: ()),      NonEmptyString>
   public typealias Name           = Tagged<(Order, name: ()),         NonEmptyString>
   public typealias Contents       = Tagged<(Order, contents: ()),     NonEmptyString>
 }

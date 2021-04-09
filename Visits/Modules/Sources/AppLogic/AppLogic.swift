@@ -34,12 +34,12 @@ public enum AppFlow: Equatable {
   case signUp(SignUpState)
   case signIn(SignIn)
   case driverID(DriverID?, PublishableKey)
-  case main(Set<Order>, Order?, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience)
+  case main(Set<Order>, Order?, Set<Place>, History?, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, Permissions, Refreshing, PushStatus, Experience)
 }
 
 public struct GeocodedResult: Equatable {
   let coordinate: Coordinate
-  let address: These<Order.Street, Order.FullAddress>?
+  let address: Address
 }
 
 // MARK: - Action
@@ -108,6 +108,8 @@ public enum AppAction: Equatable {
   case pickUpOrder
   case reverseGeocoded([GeocodedResult])
   case ordersUpdated(Result<[APIOrderID: APIOrder], APIError>)
+  // Places
+  case placesUpdated(Result<Set<Place>, APIError>)
   // TabView
   case switchToOrders
   case switchToPlaces
@@ -180,8 +182,9 @@ public struct AppEnvironment {
 
 let networkReducer: Reducer<Network, AppAction, Void> = .toggleReducer(.online, .network(.online), .offline, .network(.offline))
 
-struct RefreshingVisitsID: Hashable {}
+struct RefreshingOrdersID: Hashable {}
 struct RefreshingHistoryID: Hashable {}
+struct RefreshingPlacesID: Hashable {}
 
 let getOrdersEffect = { (
   getOrders: Effect<Result<[APIOrderID: APIOrder], APIError>, Never>,
@@ -190,9 +193,54 @@ let getOrdersEffect = { (
   getOrders
     .receive(on: mainQueue)
     .eraseToEffect()
-    .cancellable(id: RefreshingVisitsID())
+    .cancellable(id: RefreshingOrdersID())
     .map(AppAction.ordersUpdated)
 }
+
+func getPlacesEffect(
+  _ getPlaces: Effect<Result<Set<Place>, APIError>, Never>,
+  _ reverseGeocode: @escaping (Coordinate) -> Effect<Address, Never>,
+  _ mainQueue: AnySchedulerOf<DispatchQueue>
+) -> Effect<AppAction, Never> {
+  getPlaces
+    .receive(on: mainQueue)
+    .eraseToEffect()
+    .cancellable(id: RefreshingPlacesID())
+    .flatMap { (result: Result<Set<Place>, APIError>) -> Effect<AppAction, Never> in
+      switch result {
+      case let .success(places):
+        return reverseGeocodePlaces(
+          places: Array(places),
+          coordinateKeyPath: \Place.shape.centerCoordinate,
+          addressLens: ^\Place.address,
+          reverseGeocode: reverseGeocode
+        )
+        .map(Set.init)
+        .map { AppAction.placesUpdated(.success($0)) }
+      case let .failure(error):
+        return Effect(value: AppAction.placesUpdated(.failure(error)))
+      }
+    }
+    .eraseToEffect()
+}
+
+func reverseGeocodePlaces<P>(
+  places: [P],
+  coordinateKeyPath: KeyPath<P, Coordinate>,
+  addressLens: Lens<P, Address>,
+  reverseGeocode: @escaping (Coordinate) -> Effect<Address, Never>
+) -> Effect<[P], Never> {
+  places.publisher
+    .flatMap { place in
+      reverseGeocode(place[keyPath: coordinateKeyPath])
+        .map { (address: Address) -> P in
+          place |> addressLens *< address
+        }
+    }
+    .collect()
+    .eraseToEffect()
+}
+
 
 let getHistoryEffect = { (
   getHistory: Effect<Result<History, APIError>, Never>,
@@ -213,9 +261,9 @@ func over1<A, B, C, D, E, Z>(_ f: @escaping (A) -> Z) -> ((A, B, C, D, E)) -> (Z
   { (f($0.0), $0.1, $0.2, $0.3, $0.4) }
 }
 
-func view4<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> D { t.3 }
-func view11<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> K { t.10 }
-func view12<A, B, C, D, E, F, G, H, I, J, K, L>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L)) -> L { t.11 }
+func view5<A, B, C, D, E, F, G, H, I, J, K, L, M>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L, M)) -> E { t.4 }
+func view12<A, B, C, D, E, F, G, H, I, J, K, L, M>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L, M)) -> L { t.11 }
+func view13<A, B, C, D, E, F, G, H, I, J, K, L, M>(_ t: (A, B, C, D, E, F, G, H, I, J, K, L, M)) -> M { t.12 }
 
 
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
@@ -228,12 +276,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       state.flow = .noMotionServices
       return .none
     case let .appHandleSDKUnlocked(publishableKey, driverID, deviceID, unlockedStatus, permissions):
-      let selectedTab = (state.flow *^? /AppFlow.main <¡> view4) ?? .defaultTab
-      let dialogSplash = (state.flow *^? /AppFlow.main <¡> view11) ?? .dialogSplash(.notShown)
-      let experience   = (state.flow *^? /AppFlow.main <¡> view12) ?? .firstRun
-      state.flow = .main([], nil, nil, selectedTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .all, dialogSplash, experience)
+      let selectedTab = (state.flow *^? /AppFlow.main <¡> view5) ?? .defaultTab
+      let dialogSplash = (state.flow *^? /AppFlow.main <¡> view12) ?? .dialogSplash(.notShown)
+      let experience   = (state.flow *^? /AppFlow.main <¡> view13) ?? .firstRun
+      state.flow = .main([], nil, [], nil, selectedTab, publishableKey, driverID, deviceID, unlockedStatus, permissions, .all, dialogSplash, experience)
       return .merge(
         getOrdersEffect(environment.api.getOrders(publishableKey, deviceID), environment.mainQueue),
+        getPlacesEffect(environment.api.getPlaces(publishableKey, deviceID), environment.api.reverseGeocode, environment.mainQueue),
         getHistoryEffect(environment.api.getHistory(publishableKey, deviceID, environment.date()), environment.mainQueue)
       )
     case let .appHandleDriverIDFlow(pk):
@@ -752,7 +801,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         return .none
       case let .madeSDK(.unlocked(deID, us), p):
         if let drID = drID {
-          state.flow = .main([], nil, nil, .defaultTab, pk, drID, deID, us, p, .none, .dialogSplash(.notShown), .firstRun)
+          state.flow = .main([], nil, [], nil, .defaultTab, pk, drID, deID, us, p, .none, .dialogSplash(.notShown), .firstRun)
           return .concatenate(
             environment.hyperTrack
               .subscribeToStatusUpdates()
@@ -778,8 +827,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // Orders
   Reducer { state, action, environment in
     switch state.flow {
-    case let .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e):
+    case let .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e):
       let getOrders = getOrdersEffect(environment.api.getOrders(pk, deID), environment.mainQueue)
+      let getPlaces = getPlacesEffect(environment.api.getPlaces(pk, deID), environment.api.reverseGeocode, environment.mainQueue)
       let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
       let fvs = filterOutOldOrders(environment.date())(v)
       let fv = filterOutOldOrder(environment.date())(sv)
@@ -795,7 +845,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.orders == .notRefreshingOrders {
           effects += [getOrders]
         }
-        state.flow = .main(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e)
+        if r.places == .notRefreshingPlaces {
+          effects += [getPlaces]
+        }
+        state.flow = .main(fvs, fv, places, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       case .updateOrders:
         let effect: Effect<AppAction, Never>
@@ -805,7 +858,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         } else {
           effect = .none
         }
-        state.flow = .main(fvs, fv, h, s, pk, drID, deID, us, p, r |> \.orders *< .refreshingOrders, ps, e)
+        state.flow = .main(fvs, fv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .refreshingOrders, ps, e)
         return effect
       case let .copyToPasteboard(s):
         return .merge(
@@ -818,12 +871,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         )
       case let .selectOrder(str):
         let (v, sv) = selectOrder(o: v, so: sv, id: str)
-        state.flow = .main(v, sv, h, .orders, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, .orders, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .cancelOrder:
         if var sv = sv, sv.geotagSent.checkedOut == nil, sv.geotagSent.cancelled == nil {
           sv.geotagSent = .cancelled(sv.geotagSent.isVisited, environment.date())
-          state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+          state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
           return .merge(
             environment.hyperTrack
               .addGeotag(.cancel(sv.id, sv.source, sv.orderNote))
@@ -840,7 +893,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           return .none
         }
         sv.geotagSent = .checkedOut(sv.geotagSent.isVisited, environment.date())
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .merge(
           environment.hyperTrack
             .addGeotag(.checkOut(sv.id, sv.source, sv.orderNote))
@@ -854,30 +907,29 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.orderNote = n >>- Order.OrderNote.init(rawValue:)
         
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .deselectOrder:
-        state.flow = .main(sv.map { Set.insert($0)(v) } ?? v, nil, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(sv.map { Set.insert($0)(v) } ?? v, nil, places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .focusOrderNote:
         guard var sv = sv else { return .none }
         
         sv.noteFieldFocused = true
         
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .openAppleMaps:
         guard var sv = sv else { return .none }
         
-        let add: Either<Order.FullAddress, Order.Street>?
-        switch sv.address {
-        case .none:
+        let add: Either<FullAddress, Street>?
+        switch (sv.address.fullAddress, sv.address.street) {
+        case (.none, .none):
           add = .none
-        case let .some(.both(_, f)),
-             let .some(.that(f)):
+        case let (.some(f), _):
           add = .left(f)
-        case let .some(.this(a)):
-          add = .right(a)
+        case let (_, .some(s)):
+          add = .right(s)
         }
         
         return environment.maps
@@ -888,7 +940,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.geotagSent = .pickedUp
         
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         
         return .merge(
           environment.hyperTrack
@@ -903,7 +955,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         sv.noteFieldFocused = false
         
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case .openSettings:
         return environment.hyperTrack
@@ -920,21 +972,21 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           .eraseToEffect()
           .map(AppAction.statusUpdated)
       case .requestPushAuthorization:
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, .dialogSplash(.waitingForUserAction), e)
         return environment.push
           .requestAuthorization()
           .receive(on: environment.mainQueue)
           .map(constant(AppAction.userHandledPushAuthorization))
           .eraseToEffect()
       case .userHandledPushAuthorization:
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, .dialogSplash(.shown), e)
         return .none
       case let .statusUpdated(st, p):
         switch st {
         case .locked:
           state.flow = .noMotionServices
         case let .unlocked(deID, us):
-          state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)
+          state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)
         }
         return .none
       case .startTracking:
@@ -952,7 +1004,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.orders == .notRefreshingOrders {
           effects += [getOrders]
         }
-        state.flow = .main(fvs, fv, h, s, pk, drID, deID, us, p, .all, ps, e)
+        state.flow = .main(fvs, fv, places, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       case .stopTracking:
         var effects: [Effect<AppAction, Never>] = [
@@ -967,12 +1019,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           effects += [.cancel(id: RefreshingHistoryID())]
         }
         if r.orders == .refreshingOrders {
-          effects += [.cancel(id: RefreshingVisitsID())]
+          effects += [.cancel(id: RefreshingOrdersID())]
         }
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, .none, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, .none, ps, e)
         return .merge(effects)
       case let .reverseGeocoded(g):
-        state.flow = .main(updateAddress(for: v, with: g), sv <¡> updateAddress(with: g), h, s, pk, drID, deID, us, p, r, ps, e)
+        state.flow = .main(updateAddress(for: v, with: g), sv <¡> updateAddress(with: g), places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
       case let .ordersUpdated(vs):
         let allVs = sv.map { Set.insert($0)(v) } ?? v
@@ -986,19 +1038,20 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           (nv, nsv) = (freshVs, nil)
         }
         
-        state.flow = .main(nv, nsv, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
+        state.flow = .main(nv, nsv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
         if let reverseGeocodingCoordinates = NonEmptySet(rawValue: orderCoordinatesWithoutAddress(freshVs)) {
-          return environment.api
-            .reverseGeocode(reverseGeocodingCoordinates.map(identity))
-            .map { $0.map { GeocodedResult(coordinate: $0.0, address: $0.1) } }
-            .receive(on: environment.mainQueue)
-            .eraseToEffect()
-            .map(AppAction.reverseGeocoded)
+//          return environment.api
+//            .reverseGeocode(reverseGeocodingCoordinates.map(identity))
+//            .map { $0.map { GeocodedResult(coordinate: $0.0, address: $0.1) } }
+//            .receive(on: environment.mainQueue)
+//            .eraseToEffect()
+//            .map(AppAction.reverseGeocoded)
+          return .none
         } else {
           return .none
         }
       case let .historyUpdated(h):
-        state.flow = .main(v, sv, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e)
+        state.flow = .main(v, sv, places, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e)
         return .none
       default:
         return .none
@@ -1007,14 +1060,35 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       return .none
     }
   },
+  // Places
+  Reducer { state, action, environment in
+    switch (state.flow, action) {
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(.success(newPlaces))):
+      state.flow = .main(v, sv, newPlaces, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
+      return .none
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(.failure)):
+      state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
+      return .none
+    default:
+      return .none
+    }
+  },
   // TabView
   Reducer { state, action, environment in
     switch (state.flow, action) {
-    case let (.main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToOrders) where s != .orders:
-      state.flow = .main(v, sv, h, .orders, pk, drID, deID, us, p, r, ps, e)
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .switchToOrders) where s != .orders:
+      state.flow = .main(v, sv, places, h, .orders, pk, drID, deID, us, p, r, ps, e)
       return Effect(value: .updateOrders)
-    case let (.main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToMap) where s != .map:
-      state.flow = .main(v, sv, h, .map, pk, drID, deID, us, p, r, ps, e)
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .switchToPlaces) where s != .places:
+      if r.places == .notRefreshingPlaces {
+        state.flow = .main(v, sv, places, h, .places, pk, drID, deID, us, p, r |> \.places *< .refreshingPlaces, ps, e)
+        return getPlacesEffect(environment.api.getPlaces(pk, deID), environment.api.reverseGeocode, environment.mainQueue)
+      } else {
+        state.flow = .main(v, sv, places, h, .places, pk, drID, deID, us, p, r, ps, e)
+        return .none
+      }
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .switchToMap) where s != .map:
+      state.flow = .main(v, sv, places, h, .map, pk, drID, deID, us, p, r, ps, e)
       
       let effect: Effect<AppAction, Never>
       if r.history == .notRefreshingHistory {
@@ -1022,13 +1096,13 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       } else {
         effect = .none
       }
-      state.flow = .main(v, sv, h, .map, pk, drID, deID, us, p, r |> \.history *< .refreshingHistory, ps, e)
+      state.flow = .main(v, sv, places, h, .map, pk, drID, deID, us, p, r |> \.history *< .refreshingHistory, ps, e)
       return effect
-    case let (.main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToSummary) where s != .summary:
-      state.flow = .main(v, sv, h, .summary, pk, drID, deID, us, p, r, ps, e)
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .switchToSummary) where s != .summary:
+      state.flow = .main(v, sv, places, h, .summary, pk, drID, deID, us, p, r, ps, e)
       return .none
-    case let (.main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e), .switchToProfile) where s != .profile:
-      state.flow = .main(v, sv, h, .profile, pk, drID, deID, us, p, r, ps, e)
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .switchToProfile) where s != .profile:
+      state.flow = .main(v, sv, places, h, .profile, pk, drID, deID, us, p, r, ps, e)
       return .none
     default:
       return .none
@@ -1048,8 +1122,9 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       switch (previousState.flow, nextState.flow) {
       case (.main, .main): return effects
-      case let (_, .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, e)):
+      case let (_, .main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e)):
         let getOrders = getOrdersEffect(environment.api.getOrders(pk, deID), environment.mainQueue)
+        let getPlaces = getPlacesEffect(environment.api.getPlaces(pk, deID), environment.api.reverseGeocode, environment.mainQueue)
         let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
         
         var effects: [Effect<AppAction, Never>] = [effects]
@@ -1059,8 +1134,11 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         if r.orders == .notRefreshingOrders {
           effects += [getOrders]
         }
+        if r.places == .notRefreshingPlaces {
+          effects += [getPlaces]
+        }
         
-        state.flow = .main(v, sv, h, s, pk, drID, deID, us, p, .all, ps, e)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       default: return effects
       }
@@ -1074,12 +1152,13 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       let effects = self.run(&state, action, environment)
       
       switch state.flow {
-      case let .main(v, sv, h, s, pk, drID, deID, .stopped, p, .none, .dialogSplash(.shown), .firstRun)
+      case let .main(v, sv, places, h, s, pk, drID, deID, .stopped, p, .none, .dialogSplash(.shown), .firstRun)
             where p.locationAccuracy == .full
             && p.locationPermissions == .authorized
             && p.motionPermissions == .authorized:
         
         let getOrders = getOrdersEffect(environment.api.getOrders(pk, deID), environment.mainQueue)
+        let getPlaces = getPlacesEffect(environment.api.getPlaces(pk, deID), environment.api.reverseGeocode, environment.mainQueue)
         let getHistory = getHistoryEffect(environment.api.getHistory(pk, deID, environment.date()), environment.mainQueue)
         let combinedEffects: [Effect<AppAction, Never>] = [
           effects,
@@ -1087,9 +1166,10 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
             .startTracking()
             .fireAndForget(),
           getOrders,
+          getPlaces,
           getHistory
         ]
-        state.flow = .main(v, sv, h, s, pk, drID, deID, .running, p, .all, .dialogSplash(.shown), .regular)
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, .running, p, .all, .dialogSplash(.shown), .regular)
         return .merge(combinedEffects)
       default: return effects
       }
@@ -1166,7 +1246,7 @@ extension Order {
       location: apiOrder.order.centroid,
       geotagSent: .notSent,
       noteFieldFocused: false,
-      address: nil,
+      address: .none,
       orderNote: nil,
       metadata: rewrapDictionary(apiOrder.order.metadata)
     )
@@ -1182,7 +1262,7 @@ func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagg
 }
 
 func orderCoordinatesWithoutAddress(_ orders: Set<Order>) -> Set<Coordinate> {
-  Set(orders.compactMap { $0.address == nil ? $0.location : nil })
+  Set(orders.compactMap { $0.address == .none ? $0.location : nil })
 }
 
 func updateAddress(for orders: Set<Order>, with geocodedResults: [GeocodedResult]) -> Set<Order> {

@@ -6,6 +6,7 @@ public extension APIEnvironment {
   static let live = Self(
     getHistory: getHistory(_:_:_:),
     getOrders: getOrders(_:_:),
+    getPlaces: getPlaces(_:_:),
     resendVerificationCode: resendVerification(email:),
     reverseGeocode: reverseGeocode(_:),
     signIn: signIn(_:_:),

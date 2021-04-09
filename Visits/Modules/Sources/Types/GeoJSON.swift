@@ -163,3 +163,7 @@ extension UnkeyedDecodingContainer {
     _ = try decode(Empty.self)
   }
 }
+
+// MARK: - Codable
+
+extension LinearRing: Codable {}

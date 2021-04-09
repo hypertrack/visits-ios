@@ -6,6 +6,7 @@ import MapKit
 import MapScreen
 import OrderScreen
 import OrdersScreen
+import PlacesScreen
 import ProfileScreen
 import SignInScreen
 import SignUpFormScreen
@@ -39,7 +40,7 @@ public struct AppScreen: View {
     case signUpVerification(SignUpVerificationScreen.State)
     case driverID(DriverIDScreen.State)
     case blocker(Blocker.State)
-    case main(OrderOrOrders, History?, [MapOrder], DriverID, DeviceID, TabSelection)
+    case main(OrderOrOrders, Set<Place>, History?, [MapOrder], DriverID, DeviceID, TabSelection)
   }
   
   public enum Action {
@@ -88,9 +89,9 @@ public struct AppScreen: View {
         Blocker(state: s) {
           viewStore.send(.blocker($0))
         }
-      case let .main(s, h, mv, drID, deID, sel):
+      case let .main(s, p, h, mv, drID, deID, sel):
         MainBlock(
-          state: (s, h, mv, drID, deID, sel),
+          state: (s, p, h, mv, drID, deID, sel),
           sendMap: { viewStore.send(.map($0)) },
           sendOrder: { viewStore.send(.order($0)) },
           sendOrders: { viewStore.send(.orders($0)) },
@@ -104,6 +105,7 @@ public struct AppScreen: View {
 struct MainBlock: View {
   let state: (
     orderScreenState: OrderOrOrders,
+    places: Set<Place>,
     history: History?,
     orders: [MapOrder],
     driverID: DriverID,
@@ -172,6 +174,13 @@ struct MainBlock: View {
         .tag(TabSelection.orders)
       }
       
+      PlacesScreen(state: .init(places: state.places))
+        .tabItem {
+          Image(systemName: "mappin.and.ellipse")
+          Text("Places")
+        }
+        .tag(TabSelection.places)
+      
       SummaryScreen(
         state: .init(
           trackedDuration: state.history?.trackedDuration ?? 0,
@@ -231,6 +240,7 @@ struct AppScreen_Previews: PreviewProvider {
               publishableKey: "PublishableKey"
             )
           ),
+          [],
           .init(
             coordinates: []
           ),

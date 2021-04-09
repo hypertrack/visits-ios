@@ -10,8 +10,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   ) -> Bool {
     viewStore.send(.finishedLaunching)
     
-    setupUIAppearance()
-    
     HyperTrack.registerForRemoteNotifications()
     return true
   }

@@ -108,7 +108,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .driverID(.some(drID), _):
     return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
   case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .main(v, sv, h, s, pk, drID, deID, us, p, r, ps, _):
+  case let .main(v, sv, pl, h, s, pk, drID, deID, us, p, r, ps, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
     case (_, _, .disabled, _, _):                            return .blocker(.locationDisabled)
     case (_, _, .denied, _, _):                              return .blocker(.locationDenied)
@@ -129,10 +129,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       let mapOrdersList = mapOrders(from: v)
       
       if let sv = sv {
-        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), h, mapOrdersList, drID, deID, s)
+        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, h, mapOrdersList, drID, deID, s)
       } else {
         let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
-        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), h, mapOrdersList, drID, deID, s)
+        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, h, mapOrdersList, drID, deID, s)
       }
     }
   }
@@ -352,20 +352,15 @@ func visitedString(_ visited: Order.Geotag.Visited) -> String {
 }
 
 func orderTitle(from v: Order) -> String {
-  switch v.address {
-  case .none: return "Order @ \(DateFormatter.stringDate(v.createdAt))"
-  case let .some(.both(s, _)),
-       let .some(.this(s)): return s.rawValue.rawValue
-  case let .some(.that(f)): return f.rawValue.rawValue
-  }}
+  switch v.address.anyAddress {
+  case     .none:    return "Order @ \(DateFormatter.stringDate(v.createdAt))"
+  case let .some(a): return a.rawValue
+  }
+}
+
 
 func assignedVisitFullAddress(from a: Order) -> String {
-  switch a.address {
-  case .none: return ""
-  case let .some(.both(_, f)): return f.rawValue.rawValue
-  case let .some(.this(s)): return s.rawValue.rawValue
-  case let .some(.that(f)): return f.rawValue.rawValue
-  }
+  a.address.anyAddress?.rawValue ?? ""
 }
 
 func assignedVisitMetadata(from a: Order) -> [OrderScreen.State.Metadata] {

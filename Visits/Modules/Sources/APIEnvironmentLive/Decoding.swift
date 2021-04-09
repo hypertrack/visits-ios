@@ -24,6 +24,37 @@ struct DynamicKey: CodingKey {
   }
 }
 
+func decodeGeofenceShape<CodingKey>(
+  radius: UInt?,
+  decoder: Decoder,
+  container: KeyedDecodingContainer<CodingKey>,
+  key: CodingKey
+) throws -> GeofenceShape {
+  let geometryGeoJSON = try container.decode(GeoJSON.self, forKey: key)
+  switch geometryGeoJSON {
+  case let .point(coordinate):
+    if let radius = radius {
+      return .circle(.init(center: coordinate, radius: radius))
+    } else {
+      throw DecodingError.dataCorrupted(
+        DecodingError.Context(
+          codingPath: decoder.codingPath,
+          debugDescription: "No radius for a circular geofence"
+        )
+      )
+    }
+  case let .polygon(polygon):
+    return .polygon(.init(centroid: centroid(from: polygon), polygon: polygon))
+  case .lineString:
+    throw DecodingError.dataCorrupted(
+      DecodingError.Context(
+        codingPath: decoder.codingPath,
+        debugDescription: "Expected Polygon or Point, but got LineString"
+      )
+    )
+  }
+}
+
 func decodeGeofenceCentroid<CodingKey>(
   decoder: Decoder,
   container: KeyedDecodingContainer<CodingKey>,

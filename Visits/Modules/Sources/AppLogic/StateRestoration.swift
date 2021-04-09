@@ -47,7 +47,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                   return Effect(value: AppAction.restoredState(.left(.signIn(email)), network))
                 case let .some(.driverID(driverID, publishableKey)):
                   return Effect(value: AppAction.restoredState(.left(.driverID(driverID, publishableKey)), network))
-                case let .some(.main(orders, tabSelection, publishableKey, driverID, pushStatus, experience)):
+                case let .some(.main(orders, places, tabSelection, publishableKey, driverID, pushStatus, experience)):
                   return environment
                     .hyperTrack
                     .makeSDK(publishableKey)
@@ -57,7 +57,7 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
                         return AppAction.restoredState(.right(.motionActivityServicesUnavalible), network)
                       case let .unlocked(deviceID, unlockedStatus):
                         
-                        return AppAction.restoredState(.left(.main(orders, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions, experience)), network)
+                        return AppAction.restoredState(.left(.main(orders, places, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, result.permissions, experience)), network)
                       }
                     }
                 }
@@ -86,9 +86,9 @@ let stateRestorationReducer: Reducer<AppState, AppAction, SystemEnvironment<AppE
         state.flow = .signIn(.editingCredentials(nil, nil, nil, nil))
       case let .signIn(.some(email)):
         state.flow = .signIn(.editingCredentials(email, nil, nil, nil))
-      case let .main(orders, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
+      case let .main(orders, places, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, pushStatus, permissions, experience):
         let fvs = filterOutOldOrders(environment.date())
-        state.flow = .main(fvs(orders), nil, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
+        state.flow = .main(fvs(orders), nil, places, nil, tabSelection, publishableKey, driverID, deviceID, unlockedStatus, permissions, .none, pushStatus, experience)
         return .merge(
           stateRestored,
           environment

@@ -57,8 +57,9 @@ public enum VerificationResponse: Equatable {
 public struct APIEnvironment {
   public var getHistory: (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>
   public var getOrders: (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never>
+  public var getPlaces: (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError>, Never>
   public var resendVerificationCode: (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>
-  public var reverseGeocode: ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>
+  public var reverseGeocode: (Coordinate) -> Effect<Address, Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>
   public var signUp: (BusinessName, Email, Password, BusinessManages, ManagesFor) -> Effect<Result<SignUpError?, APIError>, Never>
   public var verifyEmail: (Email, VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never>
@@ -66,14 +67,16 @@ public struct APIEnvironment {
   public init(
     getHistory: @escaping (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError>, Never>,
     getOrders: @escaping (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never>,
+    getPlaces: @escaping (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError>, Never>,
     resendVerificationCode: @escaping (Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never>,
-    reverseGeocode: @escaping ([Coordinate]) -> Effect<[(Coordinate, These<Order.Street, Order.FullAddress>?)], Never>,
+    reverseGeocode: @escaping (Coordinate) -> Effect<Address, Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError>, Never>,
     signUp: @escaping (BusinessName, Email, Password, BusinessManages, ManagesFor) -> Effect<Result<SignUpError?, APIError>, Never>,
     verifyEmail: @escaping (Email, VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never>
   ) {
     self.getHistory = getHistory
     self.getOrders = getOrders
+    self.getPlaces = getPlaces
     self.resendVerificationCode = resendVerificationCode
     self.reverseGeocode = reverseGeocode
     self.signIn = signIn

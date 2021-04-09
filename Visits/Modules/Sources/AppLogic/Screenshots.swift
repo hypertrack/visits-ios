@@ -9,6 +9,7 @@ extension AppState {
     flow: .main(
       orders,
       nil,
+      [],
       nil,
       .orders,
       publishableKey,
@@ -27,6 +28,7 @@ extension AppState {
     flow: .main(
       [],
       notSent,
+      [],
       nil,
       .orders,
       publishableKey,
@@ -45,6 +47,7 @@ extension AppState {
     flow: .main(
       orders,
       nil,
+      [],
       History(
         coordinates: [
           Coordinate(latitude: 37.76477793772538, longitude: -122.41957068443297)!,
@@ -97,6 +100,7 @@ extension AppState {
     flow: .main(
       [],
       nil,
+      [],
       History(
         coordinates: [],
         trackedDuration: 20100,
@@ -123,6 +127,7 @@ extension AppState {
     flow: .main(
       [],
       nil,
+      [],
       nil,
       .profile,
       publishableKey,
@@ -145,9 +150,9 @@ let notSent = Order(
   location: Coordinate(latitude: 37.780592, longitude: -122.413322)!,
   geotagSent: .pickedUp,
   noteFieldFocused: false,
-  address: .both(
-    Order.Street(rawValue: "87 McAllister St"),
-    Order.FullAddress(rawValue: "87 McAllister St, San Francisco, CA  94102, United States")
+  address: .init(
+    street: Street(rawValue: "87 McAllister St"),
+    fullAddress: FullAddress(rawValue: "87 McAllister St, San Francisco, CA  94102, United States")
   ),
   metadata: [
     "Customer Notes": "Please deliver before 10 AM",
@@ -162,9 +167,9 @@ let entered = Order(
   location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
   geotagSent: .entered(Date()),
   noteFieldFocused: false,
-  address: .both(
-    Order.Street(rawValue: "333 Fulton St"),
-    Order.FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
+  address: .init(
+    street: Street(rawValue: "333 Fulton St"),
+    fullAddress: FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
   )
 )
 
@@ -175,9 +180,9 @@ let checkedOut1 = Order(
   location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
-  address: .both(
-    Order.Street(rawValue: "1301 Market St"),
-    Order.FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
+  address: .init(
+    street: Street(rawValue: "1301 Market St"),
+    fullAddress: FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
   )
 )
 
@@ -188,9 +193,9 @@ let checkedOut2 = Order(
   location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
-  address: .both(
-    Order.Street(rawValue: "275 Hayes St"),
-    Order.FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
+  address: .init(
+    street: Street(rawValue: "275 Hayes St"),
+    fullAddress: FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
   )
 )
 
@@ -201,9 +206,9 @@ let checkedOut3 = Order(
   location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
   geotagSent: .checkedOut(.none, Date()),
   noteFieldFocused: false,
-  address: .both(
-    Order.Street(rawValue: "601 Eddy St"),
-    Order.FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
+  address: .init(
+    street: Street(rawValue: "601 Eddy St"),
+    fullAddress: FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
   )
 )
 

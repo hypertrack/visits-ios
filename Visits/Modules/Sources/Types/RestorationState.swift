@@ -2,7 +2,7 @@ public enum StorageState: Equatable {
   case signIn(Email?)
   case signUp(Email?)
   case driverID(DriverID?, PublishableKey)
-  case main(Set<Order>, TabSelection, PublishableKey, DriverID, PushStatus, Experience)
+  case main(Set<Order>, Set<Place>, TabSelection, PublishableKey, DriverID, PushStatus, Experience)
 }
 
 public enum RestoredState: Equatable {
@@ -10,5 +10,5 @@ public enum RestoredState: Equatable {
   case signIn(Email?)
   case signUp(Email?)
   case driverID(DriverID?, PublishableKey)
-  case main(Set<Order>, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, PushStatus, Permissions, Experience)
+  case main(Set<Order>, Set<Place>, TabSelection, PublishableKey, DriverID, DeviceID, SDKUnlockedStatus, PushStatus, Permissions, Experience)
 }

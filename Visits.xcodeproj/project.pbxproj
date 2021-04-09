@@ -15,7 +15,6 @@
 		3161D12E2512A2B700AAFCCD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3161D12D2512A2B700AAFCCD /* Preview Assets.xcassets */; };
 		3161D1312512A2B700AAFCCD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3161D12F2512A2B700AAFCCD /* LaunchScreen.storyboard */; };
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
-		316E08EC2587F6B600CE8FA4 /* UIAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */; };
 		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
 /* End PBXBuildFile section */
 
@@ -43,7 +42,6 @@
 		3161D1302512A2B700AAFCCD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3161D1322512A2B700AAFCCD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3161D16C2512A65100AAFCCD /* Visits.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Visits.entitlements; sourceTree = "<group>"; };
-		316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAppearance.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,7 +81,6 @@
 				31245E1A25F6788800AF8548 /* Modules */,
 				3161D16C2512A65100AAFCCD /* Visits.entitlements */,
 				3161D1242512A2B500AAFCCD /* AppDelegate.swift */,
-				316E08EB2587F6B600CE8FA4 /* UIAppearance.swift */,
 				3161D1262512A2B500AAFCCD /* SceneDelegate.swift */,
 				31072BA52549F8F900ECBA34 /* Store.swift */,
 				3161D12A2512A2B700AAFCCD /* Assets.xcassets */,
@@ -189,7 +186,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				316E08EC2587F6B600CE8FA4 /* UIAppearance.swift in Sources */,
 				31072BA62549F8F900ECBA34 /* Store.swift in Sources */,
 				3161D1252512A2B500AAFCCD /* AppDelegate.swift in Sources */,
 				3161D1272512A2B500AAFCCD /* SceneDelegate.swift in Sources */,
