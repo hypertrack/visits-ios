@@ -66,7 +66,7 @@ public struct ContentCell: View {
   public init(
     title: String,
     subTitle: String = "",
-    leadingPadding: CGFloat = 50.0,
+    leadingPadding: CGFloat = 24.0,
     isCopyButtonEnabled: Bool = true,
     _ onCopyAction: @escaping (String) -> Void = { _ in }
   ) {
@@ -81,12 +81,12 @@ public struct ContentCell: View {
     HStack {
       VStack(alignment: .leading) {
         Text(title)
-          .font(.normalHighBold)
-          .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
+          .font(.headline)
+          .foregroundColor(Color(.label))
         if subTitle.isEmpty == false {
           Text(subTitle)
-            .font(.tinyMedium)
-            .foregroundColor(colorScheme == .dark ? .titanWhite : .greySuit)
+            .font(.subheadline)
+            .foregroundColor(Color(.secondaryLabel))
             .padding(.top, 4)
         }
       }
@@ -97,11 +97,11 @@ public struct ContentCell: View {
         Button {
           onCopyAction(subTitle)
         } label: {
-          Text("Copy")
-            .font(.normalHighBold)
-            .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
+            Image(systemName: "doc.on.doc")
+              .font(.system(size: 24, weight: .light))
+              .foregroundColor(Color(.secondaryLabel))
         }
-        .padding(.trailing, 16)
+        .padding(.trailing, leadingPadding)
       }
     }
   }

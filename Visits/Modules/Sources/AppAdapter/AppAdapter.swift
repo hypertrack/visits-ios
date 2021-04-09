@@ -129,10 +129,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       let mapOrdersList = mapOrders(from: v)
       
       if let sv = sv {
-        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, h, mapOrdersList, drID, deID, s)
+        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
       } else {
         let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
-        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, h, mapOrdersList, drID, deID, s)
+        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
       }
     }
   }
@@ -223,6 +223,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.profile): return .switchToProfile
   case let .map(id): return .selectOrder(id)
   case .tab(.places): return .switchToPlaces
+  case .places(.refresh): return .updatePlaces
   }
 }
 
@@ -352,7 +353,7 @@ func visitedString(_ visited: Order.Geotag.Visited) -> String {
 }
 
 func orderTitle(from v: Order) -> String {
-  switch v.address.anyAddress {
+  switch v.address.anyAddressStreetBias {
   case     .none:    return "Order @ \(DateFormatter.stringDate(v.createdAt))"
   case let .some(a): return a.rawValue
   }
@@ -360,7 +361,7 @@ func orderTitle(from v: Order) -> String {
 
 
 func assignedVisitFullAddress(from a: Order) -> String {
-  a.address.anyAddress?.rawValue ?? ""
+  a.address.anyAddressStreetBias?.rawValue ?? ""
 }
 
 func assignedVisitMetadata(from a: Order) -> [OrderScreen.State.Metadata] {

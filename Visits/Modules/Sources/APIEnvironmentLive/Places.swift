@@ -97,6 +97,7 @@ extension Place {
       case let .visited(en, ex):
         return .left(
           .init(
+            id: wrap(marker.id),
             entry: wrap(en),
             exit: wrap(ex),
             duration: wrap(marker.duration),
@@ -218,6 +219,7 @@ extension GeofenceMarkerContainer: Decodable {
 }
 
 struct GeofenceMarker {
+  let id: NonEmptyString
   let createdAt: Date
   let visitStatus: VisitStatus
   let routeTo: RouteTo?
@@ -232,6 +234,7 @@ struct RouteTo {
 
 extension RouteTo: Decodable {
   enum CodingKeys: String, CodingKey {
+    case markerID = "marker_id"
     case distance
     case duration
     case idleTime = "idle_time"
@@ -248,6 +251,7 @@ extension RouteTo: Decodable {
 
 extension GeofenceMarker: Decodable {
   enum CodingKeys: String, CodingKey {
+    case id = "marker_id"
     case createdAt = "created_at"
     case arrival
     case duration
@@ -257,6 +261,8 @@ extension GeofenceMarker: Decodable {
   
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    id = try values.decode(NonEmptyString.self, forKey: .id)
     
     createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     

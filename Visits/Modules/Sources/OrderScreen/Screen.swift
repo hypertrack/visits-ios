@@ -135,7 +135,6 @@ public struct OrderScreen: View {
         .padding(.bottom, -10)
       }
       .modifier(AppBackground())
-      .edgesIgnoringSafeArea(.bottom)
       .onTapGesture {
         if state.noteFieldFocused {
           send(.tappedOutsideFocusedTextField)

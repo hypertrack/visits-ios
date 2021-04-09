@@ -1,3 +1,4 @@
+import MapKit
 import Prelude
 import SwiftUI
 import Types
@@ -7,6 +8,7 @@ import Views
 public struct PlacesScreen: View {
   public struct State {
     let places: Set<Place>
+    let refreshing: Bool
     
     var placesToDisplay: [Section] {
       var notVisited: [Place] = []
@@ -76,73 +78,52 @@ public struct PlacesScreen: View {
       let places: [PlaceAndTime]
     }
     
-    public init(places: Set<Place>) {
+    public init(places: Set<Place>, refreshing: Bool) {
       self.places = places
+      self.refreshing = refreshing
     }
   }
-  
-  //"Place created @ \(DateFormatter.stringTime(createdAt.rawValue))"
-  @Environment(\.colorScheme) var colorScheme
+  public enum Action {
+    case refresh
+  }
   
   let state: State
+  let send: (Action) -> Void
   
-  public init(state: State) {
+  public init(
+    state: State,
+    send: @escaping (Action) -> Void
+  ) {
     self.state = state
+    self.send = send
   }
   
   public var body: some View {
     NavigationView {
-      List {
-        ForEach(state.placesToDisplay, id: \.header) { section in
-          Section(header: Text(section.header).font(.subheadline)) {
-            
-            ForEach(section.places, id: \.place.id) { placeAndTime in
-              HStack {
-                Image(systemName: "mappin.circle")
-                  .font(.title)
-                  .foregroundColor(.accentColor)
-                  .padding(.trailing, 10)
-                VStack {
-                  if placeAndTime.time != nil || placeAndTime.place.numberOfVisits != 0 {
-                    HStack {
-                      if let time = placeAndTime.time {
-                        Text(time)
-                          .font(.caption)
-                          .foregroundColor(Color(.secondaryLabel))
-                      }
-                      Spacer()
-                      if case let count = placeAndTime.place.numberOfVisits, count != 0 {
-                        HStack {
-                          Spacer()
-                          Text("Visited \(count) \(count == 1 ? "time" : "times")")
-                            .font(.caption)
-                            .foregroundColor(Color(.secondaryLabel))
-                        }
-                      }
-                    }
-                  }
-                  if let place = placeAndTime.place.name,
-                     let address = placeAndTime.place.address.anyAddress?.rawValue {
-                    PrimaryRow(place)
-                      .padding(.bottom, -3)
-                    SecondaryRow(address)
-                  } else {
-                    PrimaryRow(
-                      placeAndTime.place.name ??
-                        (placeAndTime.place.address.anyAddress?.rawValue ??
-                          placeAndTime.place.fallbackTitle)
-                    )
-                  }
+      ZStack {
+        List {
+          ForEach(state.placesToDisplay, id: \.header) { section in
+            Section(header: Text(section.header).font(.subheadline)) {
+              ForEach(section.places, id: \.place.id) { placeAndTime in
+                NavigationLink(
+                  destination: PlaceScreen(state: .init(place: placeAndTime.place))
+                ) {
+                  PlaceView(placeAndTime: placeAndTime)
                 }
-                
               }
-              .padding(.vertical, 10)
             }
           }
         }
+        .listStyle(GroupedListStyle())
+        .navigationBarTitle(Text("Places"), displayMode: .automatic)
+        if state.places.isEmpty {
+          Text("No places yet")
+            .font(.title)
+            .foregroundColor(Color(.secondaryLabel))
+            .fontWeight(.bold)
+            .navigationBarTitle(Text("Places"), displayMode: .automatic)
+        }
       }
-      .listStyle(GroupedListStyle())
-      .navigationBarTitle(Text("Places"), displayMode: .automatic)
     }
     .navigationViewStyle(StackNavigationViewStyle())
   }
@@ -240,6 +221,7 @@ extension DateFormatter {
 
 struct PlacesScreen_Previews: PreviewProvider {
   static var previews: some View {
+    PlacesScreen(state: .init(places: [], refreshing: false), send: {_ in })
     PlacesScreen(
       state: .init(
         places: [
@@ -336,13 +318,331 @@ struct PlacesScreen_Previews: PreviewProvider {
               )
             ),
             visits: [
-              .init(entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0)),
-              .init(entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
+              .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0)),
+              .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
             ]
           )
-        ]
-      )
+        ], refreshing: false
+      ), send: {_ in }
     )
     .preferredColorScheme(.light)
+  }
+}
+
+struct PlaceView: View {
+  let placeAndTime: PlacesScreen.State.Section.PlaceAndTime
+  
+  var body: some View {
+    HStack {
+      Image(systemName: "mappin.circle")
+        .font(.title)
+        .foregroundColor(.accentColor)
+        .padding(.trailing, 10)
+      VStack {
+        if placeAndTime.time != nil || placeAndTime.place.numberOfVisits != 0 {
+          HStack {
+            if let time = placeAndTime.time {
+              Text(time)
+                .font(.caption)
+                .foregroundColor(Color(.secondaryLabel))
+            }
+            Spacer()
+            if case let count = placeAndTime.place.numberOfVisits, count != 0 {
+              HStack {
+                Spacer()
+                Text("Visited \(count) \(count == 1 ? "time" : "times")")
+                  .font(.caption)
+                  .foregroundColor(Color(.secondaryLabel))
+              }
+            }
+          }
+        }
+        if let place = placeAndTime.place.name,
+           let address = placeAndTime.place.address.anyAddressStreetBias?.rawValue {
+          PrimaryRow(place)
+            .padding(.bottom, -3)
+          SecondaryRow(address)
+        } else {
+          PrimaryRow(
+            placeAndTime.place.name ??
+              (placeAndTime.place.address.anyAddressStreetBias?.rawValue ??
+                placeAndTime.place.fallbackTitle)
+          )
+        }
+      }
+    }
+    .padding(.vertical, 10)
+  }
+}
+
+public struct PlaceScreen: View {
+  public struct State {
+    let place: Place
+    
+    public init(place: Place) {
+      self.place = place
+    }
+  }
+  
+  let state: State
+  
+  public init(state: State) {
+    self.state = state
+  }
+  
+  public var body: some View {
+    ScrollView {
+      VStack(spacing: 0) {
+        AppleMapView(coordinate: state.place.shape.centerCoordinate.coordinate2D, span: 150)
+          .frame(height: 250)
+          .onTapGesture(perform: {})
+        ContentCell(
+          title: "ID",
+          subTitle: state.place.id.rawValue.rawValue,
+          leadingPadding: 24,
+          isCopyButtonEnabled: true,
+          { str in }
+        )
+        .padding(.top, 8)
+        if let address = state.place.address.anyAddressFullBias?.rawValue {
+          ContentCell(
+            title: "Location",
+            subTitle: address,
+            leadingPadding: 24,
+            isCopyButtonEnabled: true,
+            { str in }
+          )
+          .padding(.top, 8)
+        }
+        ForEach(state.place.metadata.sorted(by: { $0.0 < $1.0 }), id: \.key) { name, contents in
+          ContentCell(
+            title: name.rawValue.rawValue
+              .capitalized
+              .replacingOccurrences(of: "_", with: " "),
+            subTitle: contents.rawValue.rawValue,
+            leadingPadding: 24,
+            isCopyButtonEnabled: true,
+            { str in }
+          )
+        }
+        .padding(.top, 8)
+        if let entry = state.place.currentlyInside {
+          VisitView(
+            entry: entry.entry.rawValue,
+            exit: nil,
+            duration: entry.duration.rawValue
+          )
+          .padding(.horizontal)
+          .padding(.top)
+          if let route = entry.route {
+            RouteView(
+              distance: route.distance.rawValue,
+              duration: route.duration.rawValue,
+              idleTime: route.idleTime.rawValue
+            )
+            .padding(.horizontal)
+            .padding(.top)
+          }
+        }
+        ForEach(state.place.visits) { visit in
+          VisitView(
+            entry: visit.entry.rawValue,
+            exit: visit.exit.rawValue,
+            duration: visit.duration.rawValue
+          )
+          .padding(.horizontal)
+          .padding(.top)
+          if let route = visit.route {
+            RouteView(
+              distance: route.distance.rawValue,
+              duration: route.duration.rawValue,
+              idleTime: route.idleTime.rawValue
+            )
+            .padding(.horizontal)
+            .padding(.top)
+          }
+        }
+        
+        Spacer()
+      }
+    }
+    .navigationBarTitle(Text(state.place.name ?? state.place.fallbackTitle), displayMode: .inline)
+  }
+}
+
+struct PlaceScreen_Previews: PreviewProvider {
+  static var previews: some View {
+    PlaceScreen(
+      state: .init(
+        place: Place(
+          id: "a4bde564-bc91-45b5-8a8c-19deb695bc4d",
+          address: .init(
+            street: "1301 Market St",
+            fullAddress: "Market Square, 1301 Market St, San Francisco, CA  94103, United States"
+          ),
+          createdAt: .init(rawValue: Date()),
+          currentlyInside: nil,
+          metadata: ["stop_name":"One", "title": "something"],
+          shape: .circle(
+            .init(
+              center: .init(
+                latitude: 37.789784,
+                longitude: -122.396867
+              )!,
+              radius: 100
+            )
+          ),
+          visits: [
+            .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0)),
+            .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
+          ]
+        )
+      )
+    )
+    .preferredColorScheme(.dark)
+  }
+}
+
+struct TimelinePieceView<Content: View>: View {
+  private let content: () -> Content
+  
+  init(@ViewBuilder content: @escaping () -> Content) {
+    self.content = content
+  }
+  
+  var body: some View {
+    ZStack(alignment: .leading) {
+      Color(.secondarySystemBackground)
+      content()
+        .padding()
+    }
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+  }
+}
+
+struct VisitView: View {
+  let entry: Date
+  let exit: Date?
+  let duration: UInt
+  
+  var body: some View {
+    TimelinePieceView {
+      HStack {
+        Image(systemName: "mappin")
+          .font(.system(size: 24, weight: .regular))
+          .foregroundColor(.accentColor)
+          .frame(width: 25, height: 25, alignment: .center)
+        VStack(alignment: .leading) {
+          Text(entryExitTime(entry: entry, exit: exit))
+            .font(.callout)
+            .foregroundColor(Color(.label))
+          if duration != 0 {
+            Text(localizedTime(duration, style: .full))
+              .font(.subheadline)
+              .foregroundColor(Color(.secondaryLabel))
+          }
+        }
+      }
+    }
+  }
+}
+
+func today(_ date: Date) -> Bool {
+  Calendar.current.isDate(date, equalTo: Date(), toGranularity: .day)
+}
+
+struct RouteView: View {
+  let distance: UInt
+  let duration: UInt
+  let idleTime: UInt
+  
+  var body: some View {
+    TimelinePieceView {
+      HStack {
+        Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
+          .font(.system(size: 24, weight: .regular))
+          .foregroundColor(.accentColor)
+          .frame(width: 25, height: 25, alignment: .center)
+        
+        VStack(alignment: .leading) {
+          Text("Traveled\(distance == 0 ? "" : " " + localizedDistance(distance) + " for") \(localizedTime(duration))")
+            .font(.callout)
+            .foregroundColor(Color(.label))
+          if idleTime != 0 {
+            Text("Idle for \(localizedTime(idleTime))")
+              .font(.callout)
+              .foregroundColor(Color(.label))
+          }
+        }
+      }
+    }
+  }
+}
+
+func localizedDistance(_ distanceMeters: UInt) -> String {
+  let formatter = MKDistanceFormatter()
+  formatter.unitStyle = .default
+  return formatter.string(fromDistance: CLLocationDistance(distanceMeters))
+}
+
+func localizedTime(_ time: UInt, style: DateComponentsFormatter.UnitsStyle = .short) -> String {
+  let formatter = DateComponentsFormatter()
+  if time > 60 {
+    formatter.allowedUnits = [.hour, .minute]
+  } else {
+    formatter.allowedUnits = [.second]
+  }
+  formatter.unitsStyle = style
+  return formatter.string(from: TimeInterval(time))!
+}
+
+func entryExitTime(entry: Date, exit: Date?) -> String {
+  let enteredToday = today(entry)
+  let entryDate = DateFormatter.stringDate(entry)
+  let entryTime = DateFormatter.stringTime(entry)
+  let todayString = "Today"
+  let entryOrToday = enteredToday ? todayString : entryDate
+  if let exit = exit {
+    let exitedToday = today(exit)
+    let exitDate = DateFormatter.stringDate(exit)
+    let exitTime = DateFormatter.stringTime(exit)
+    let exitOrToday = exitedToday ? todayString : exitDate
+    let sameDayVisit = Calendar.current.isDate(entry, equalTo: exit, toGranularity: .day)
+    return entryOrToday + ", " + entryTime + " - " + (sameDayVisit ? "" : exitOrToday + ", ") + exitTime
+  } else {
+    return entryOrToday + ", " + entryTime + " - " + "Now"
+  }
+}
+
+func visitDateTimestamp(entry: Date, exit: Date?) -> String {
+  let isTodayEntry = Calendar.current.isDate(entry, equalTo: Date(), toGranularity: .day)
+  let stringDateEntry = DateFormatter.stringDate(entry)
+  let today = "TODAY"
+  let entryOrToday = isTodayEntry ? today : stringDateEntry
+  if let exit = exit {
+    let isTodayExit = Calendar.current.isDate(exit, equalTo: Date(), toGranularity: .day)
+    let stringDateExit = DateFormatter.stringDate(entry)
+    let exitOrToday = isTodayExit ? today : stringDateExit
+    if isTodayEntry, isTodayExit {
+      return today
+    } else {
+      if Calendar.current.isDate(entry, equalTo:exit, toGranularity: .day) {
+        return entryOrToday
+      } else {
+        return entryOrToday + " - " + exitOrToday
+      }
+    }
+  } else {
+    return entryOrToday
+  }
+}
+
+struct VisitView_Previews: PreviewProvider {
+  static var previews: some View {
+    VisitView(
+      entry: Date() + (-200000),
+      exit: Date(),
+      duration: 20000
+    )
   }
 }

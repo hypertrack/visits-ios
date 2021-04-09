@@ -110,6 +110,7 @@ public enum AppAction: Equatable {
   case ordersUpdated(Result<[APIOrderID: APIOrder], APIError>)
   // Places
   case placesUpdated(Result<Set<Place>, APIError>)
+  case updatePlaces
   // TabView
   case switchToOrders
   case switchToPlaces
@@ -1040,13 +1041,16 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         
         state.flow = .main(nv, nsv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
         if let reverseGeocodingCoordinates = NonEmptySet(rawValue: orderCoordinatesWithoutAddress(freshVs)) {
-//          return environment.api
-//            .reverseGeocode(reverseGeocodingCoordinates.map(identity))
-//            .map { $0.map { GeocodedResult(coordinate: $0.0, address: $0.1) } }
-//            .receive(on: environment.mainQueue)
-//            .eraseToEffect()
-//            .map(AppAction.reverseGeocoded)
-          return .none
+          return reverseGeocodingCoordinates.publisher
+            .flatMap { coordinate in
+              
+              return environment.api.reverseGeocode(coordinate)
+                .map { GeocodedResult(coordinate: coordinate, address: $0) }
+            }
+            .collect()
+            .receive(on: environment.mainQueue)
+            .eraseToEffect()
+            .map(AppAction.reverseGeocoded)
         } else {
           return .none
         }
@@ -1069,6 +1073,12 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
     case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(.failure)):
       state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
       return .none
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .updatePlaces):
+      if r.places == .refreshingPlaces {
+        return .none
+      }
+      state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.places *< .refreshingPlaces, ps, e)
+      return getPlacesEffect(environment.api.getPlaces(pk, deID), environment.api.reverseGeocode, environment.mainQueue)
     default:
       return .none
     }

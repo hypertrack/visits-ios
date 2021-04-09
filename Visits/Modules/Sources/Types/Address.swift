@@ -34,8 +34,12 @@ public extension Address {
     fullAddress = string |> NonEmptyString.init(rawValue:) <¡> FullAddress.init(rawValue:)
   }
   
-  var anyAddress: NonEmptyString? {
+  var anyAddressStreetBias: NonEmptyString? {
     street?.rawValue ?? fullAddress?.rawValue
+  }
+  
+  var anyAddressFullBias: NonEmptyString? {
+    fullAddress?.rawValue ?? street?.rawValue 
   }
 }
 
