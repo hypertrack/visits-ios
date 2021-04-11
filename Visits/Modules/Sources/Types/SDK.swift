@@ -33,6 +33,10 @@ public struct Permissions: Equatable {
   }
 }
 
+public extension Permissions {
+  static let granted = Self(locationAccuracy: .full, locationPermissions: .authorized, motionPermissions: .authorized)
+}
+
 public enum UntrackableReason: Equatable {
   case motionActivityServicesUnavalible
 }
