@@ -6,77 +6,10 @@ import Views
 
 
 public struct PlacesScreen: View {
+   
   public struct State {
     let places: Set<Place>
     let refreshing: Bool
-    
-    var placesToDisplay: [Section] {
-      var notVisited: [Place] = []
-      var visited: [(Place, Date)] = []
-      for place in places {
-        if let visit = place.currentlyInside?.entry.rawValue ?? place.visits.first?.exit.rawValue {
-          visited += [(place, visit)]
-        } else {
-          notVisited.append(place)
-        }
-      }
-      
-      var sections: [Section] = []
-      
-      let keysAndValues = visited.sorted(by: \.1).reversed()
-      
-      var newDict: [String: [(Place, Date)]] = [:]
-      
-      for (place, date) in keysAndValues {
-        let dateString = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .day) ? "TODAY" : DateFormatter.stringDate(date)
-        let places = newDict[dateString] ?? []
-        newDict[dateString] = places + [(place, date)]
-      }
-      
-      let new = newDict.sorted { one, two in
-        one.value.first!.1 > two.value.first!.1
-      }
-      
-      for (time, places) in new {
-        
-        let placesSorted = places.sorted(by: \.1).reversed()
-        
-        sections.append(
-          .init(
-            header: time,
-            places: placesSorted
-              .map{ ($0.0, DateFormatter.stringTime($0.1)) }
-              .map { .init(place: $0.0, time: $0.1) }
-          )
-        )
-      }
-      
-      let notVisitedSorted = notVisited.sorted(by: \.createdAt.rawValue)
-      let notVisitedReversed = notVisitedSorted.reversed()
-      
-      if !notVisitedReversed.isEmpty {
-        sections.append(
-          .init(
-            header: "Not visited",
-            places: notVisitedReversed.map{ .init(place: $0, time: nil) }
-          )
-        )
-      }
-      
-      
-      return sections
-      
-    }
-    
-    struct Section {
-      struct PlaceAndTime {
-        let place: Place
-        let time: String?
-      }
-      
-      let header: String
-      let places: [PlaceAndTime]
-    }
     
     public init(places: Set<Place>, refreshing: Bool) {
       self.places = places
@@ -86,6 +19,8 @@ public struct PlacesScreen: View {
   public enum Action {
     case refresh
   }
+  
+  
   
   let state: State
   let send: (Action) -> Void
@@ -100,32 +35,59 @@ public struct PlacesScreen: View {
   
   public var body: some View {
     NavigationView {
-      ZStack {
-        List {
-          ForEach(state.placesToDisplay, id: \.header) { section in
-            Section(header: Text(section.header).font(.subheadline)) {
-              ForEach(section.places, id: \.place.id) { placeAndTime in
-                NavigationLink(
-                  destination: PlaceScreen(state: .init(place: placeAndTime.place))
-                ) {
-                  PlaceView(placeAndTime: placeAndTime)
-                }
+      if #available(iOS 14.0, *) {
+        PlacesList(placesToDisplay: state.placesToDisplay)
+          .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
+                send(.refresh)
+              }
+            }
+          }
+      } else {
+        PlacesList(placesToDisplay: state.placesToDisplay)
+      }
+    }
+  }
+}
+
+struct PlacesSection {
+  struct PlaceAndTime {
+    let place: Place
+    let time: String?
+  }
+  
+  let header: String
+  let places: [PlaceAndTime]
+}
+
+struct PlacesList: View {
+  let placesToDisplay: [PlacesSection]
+  
+  var body: some View {
+    ZStack {
+      List {
+        ForEach(placesToDisplay, id: \.header) { section in
+          Section(header: Text(section.header).font(.subheadline)) {
+            ForEach(section.places, id: \.place.id) { placeAndTime in
+              NavigationLink(
+                destination: PlaceScreen(state: .init(place: placeAndTime.place))
+              ) {
+                PlaceView(placeAndTime: placeAndTime)
               }
             }
           }
         }
-        .listStyle(GroupedListStyle())
-        .navigationBarTitle(Text("Places"), displayMode: .automatic)
-        if state.places.isEmpty {
-          Text("No places yet")
-            .font(.title)
-            .foregroundColor(Color(.secondaryLabel))
-            .fontWeight(.bold)
-            .navigationBarTitle(Text("Places"), displayMode: .automatic)
-        }
+      }
+      .listStyle(GroupedListStyle())
+      if placesToDisplay.isEmpty {
+        Text("No places yet")
+          .font(.title)
+          .foregroundColor(Color(.secondaryLabel))
+          .fontWeight(.bold)
       }
     }
-    .navigationViewStyle(StackNavigationViewStyle())
+    .navigationBarTitle(Text("Places"), displayMode: .automatic)
   }
 }
 
@@ -168,7 +130,61 @@ struct SecondaryRow: View {
   }
 }
 
-
+extension PlacesScreen.State {
+  var placesToDisplay: [PlacesSection] {
+    var notVisited: [Place] = []
+    var visited: [(Place, Date)] = []
+    for place in places {
+      if let visit = place.currentlyInside?.entry.rawValue ?? place.visits.first?.exit.rawValue {
+        visited += [(place, visit)]
+      } else {
+        notVisited.append(place)
+      }
+    }
+    
+    var sections: [PlacesSection] = []
+    
+    let keysAndValues = visited.sorted(by: \.1).reversed()
+    
+    var newDict: [String: [(Place, Date)]] = [:]
+    
+    for (place, date) in keysAndValues {
+      let dateString = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .day) ? "TODAY" : DateFormatter.stringDate(date)
+      let places = newDict[dateString] ?? []
+      newDict[dateString] = places + [(place, date)]
+    }
+    
+    let new = newDict.sorted { one, two in
+      one.value.first!.1 > two.value.first!.1
+    }
+    
+    for (time, places) in new {
+      let placesSorted = places.sorted(by: \.1).reversed()
+      
+      sections.append(
+        .init(
+          header: time,
+          places: placesSorted
+            .map{ ($0.0, DateFormatter.stringTime($0.1)) }
+            .map { .init(place: $0.0, time: $0.1) }
+        )
+      )
+    }
+    
+    let notVisitedSorted = notVisited.sorted(by: \.createdAt.rawValue)
+    let notVisitedReversed = notVisitedSorted.reversed()
+    
+    if !notVisitedReversed.isEmpty {
+      sections.append(
+        .init(
+          header: "Not visited",
+          places: notVisitedReversed.map{ .init(place: $0, time: nil) }
+        )
+      )
+    }
+    return sections
+  }
+}
 
 extension Place {
   var name: String? {
@@ -330,7 +346,7 @@ struct PlacesScreen_Previews: PreviewProvider {
 }
 
 struct PlaceView: View {
-  let placeAndTime: PlacesScreen.State.Section.PlaceAndTime
+  let placeAndTime: PlacesSection.PlaceAndTime
   
   var body: some View {
     HStack {
