@@ -38,7 +38,7 @@ public struct PlacesScreen: View {
       if #available(iOS 14.0, *) {
         PlacesList(placesToDisplay: state.placesToDisplay)
           .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .navigationBarLeading) {
               RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
                 send(.refresh)
               }

@@ -86,8 +86,6 @@ public struct OrdersScreen: View {
         Button("Clock Out") {
           send(.clockOutButtonTapped)
         }
-        .font(.normalHighBold)
-        .foregroundColor(colorScheme == .dark ? .white : .black)
         .frame(width: 110, height: 44, alignment: .leading)
       },
       trailing: {

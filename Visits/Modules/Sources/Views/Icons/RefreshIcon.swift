@@ -61,19 +61,20 @@ private struct ArrowSecondShape: Shape {
 }
 
 public struct RefreshIcon: View {
-  @Environment(\.colorScheme) var colorScheme
-  
   public init() { }
   
   public var body: some View {
-    let fillColor = colorScheme == .dark ? Color.white : .black
-    return ZStack {
-      ArrowFirstShape()
-        .fill(fillColor)
-      ArrowSecondShape()
-        .fill(fillColor)
+    if #available(iOS 14.0, *) {
+      Image(systemName: "arrow.triangle.2.circlepath")
+    } else {
+      ZStack {
+        ArrowFirstShape()
+          .fill(Color.accentColor)
+        ArrowSecondShape()
+          .fill(Color.accentColor)
+      }
+      .frame(width: 28, height: 25, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
     }
-    .frame(width: 28, height: 25, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
   }
 }
 
