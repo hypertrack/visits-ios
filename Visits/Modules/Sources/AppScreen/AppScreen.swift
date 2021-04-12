@@ -209,7 +209,7 @@ struct MainBlock: View {
           name: "",
           deviceID: state.deviceID.rawValue.rawValue,
           metadata: [:],
-          appVersion: "2.5.0"
+          appVersion: "2.5.0 (43)"
         )
       )
       .tabItem {
