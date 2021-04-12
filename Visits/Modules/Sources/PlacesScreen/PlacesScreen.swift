@@ -135,7 +135,8 @@ extension PlacesScreen.State {
     var notVisited: [Place] = []
     var visited: [(Place, Date)] = []
     for place in places {
-      if let visit = place.currentlyInside?.entry.rawValue ?? place.visits.first?.exit.rawValue {
+      let currentlyInside = place.currentlyInside != nil ? Date() : nil
+      if let visit = currentlyInside ?? place.visits.first?.exit.rawValue {
         visited += [(place, visit)]
       } else {
         notVisited.append(place)
@@ -165,7 +166,7 @@ extension PlacesScreen.State {
         .init(
           header: time,
           places: placesSorted
-            .map{ ($0.0, DateFormatter.stringTime($0.1)) }
+            .map{ ($0.0, Calendar.current.isDate($0.1, equalTo: Date(), toGranularity: .minute) ? "Now" : DateFormatter.stringTime($0.1)) }
             .map { .init(place: $0.0, time: $0.1) }
         )
       )
