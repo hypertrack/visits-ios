@@ -6,36 +6,42 @@ import Prelude
 import Types
 
 
-func verifyEmail(email: Email, code: VerificationCode) -> Effect<Result<VerificationResponse, APIError>, Never> {
-  session.dataTaskPublisher(for: verifyEmailRequest(email: email, code: code))
-    .map(\.data)
-    .decode(type: VerificationJSONResponse.self, decoder: snakeCaseDecoder)
-    .map { response in
-      let code = NonEmptyString(rawValue: response.statusCode)
-      let message = NonEmptyString(rawValue: response.message)
-      let publishableKey = response.publishableKey >>- NonEmptyString.init(rawValue:)
-      switch (code, message, publishableKey) {
-      case (.some("NotAuthorizedException"), .some("User cannot be confirmed. Current status is CONFIRMED"), _):
-        return .success(.alreadyVerified)
-      case let (_, _, .some(publishableKey)):
-        return .success(.success(PublishableKey(rawValue: publishableKey)))
-      case let (.some(code), .none, _):
-        return .success(.error(SignUpError(rawValue: code)))
-      case let (_, .some(message), _):
-        return .success(.error(SignUpError(rawValue: message)))
-      case (.none, .none, .none):
-        return .failure(.unknown)
-      }
-    }
-    .mapError { _ in .unknown }
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
+func verifyEmail(email: Email, code: VerificationCode) -> Effect<Result<PublishableKey, APIError<VerificationError>>, Never> {
+  callAPI(
+    session: session,
+    request: verifyEmailRequest(email: email, code: code),
+    success: VerificationSuccess.self,
+    failure: VerificationError.self,
+    decoder: snakeCaseDecoder
+  )
+  .map(\.publishableKey)
+  .catchToEffect()
 }
 
-struct VerificationJSONResponse: Decodable {
-  let statusCode: String
-  let message: String
-  let publishableKey: String?
+extension VerificationError: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case message
+    case statusCode
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    let message = try values.decode(CognitoError.self, forKey: .message)
+    let statusCode = try values.decode(NonEmptyString.self, forKey: .statusCode)
+    
+    if message.rawValue.rawValue == "User cannot be confirmed. Current status is CONFIRMED",
+       statusCode.rawValue == "NotAuthorizedException" {
+       self = .alreadyVerified
+    } else {
+      self = .error(message)
+    }
+  }
+}
+
+
+struct VerificationSuccess: Decodable {
+  let publishableKey: PublishableKey
 }
 
 func verifyEmailRequest(email: Email, code: VerificationCode) -> URLRequest {

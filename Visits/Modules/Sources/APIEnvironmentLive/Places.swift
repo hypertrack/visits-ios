@@ -9,39 +9,29 @@ import Tagged
 import Types
 
 
-func getPlaces(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError>, Never> {
+func getPlaces(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never> {
   logEffect("getPlaces", failureType: APIError.self)
     .flatMap { getToken(auth: pk, deviceID: deID) }
-    .flatMap { t in
-      getGeofences(auth: t, deviceID: deID)
+    .flatMap {
+      getGeofences(auth: $0, deviceID: deID)
         .map { Set($0.compactMap(Place.init(geofence:))) }
     }
-    .map(Result.success)
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
+    .catchToEffect()
 }
 
-func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError> {
+func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError<Never>> {
   paginate(
     getPage: { pagination in
-      getGeofencesPage(auth: token, deviceID: deviceID, paginationToken: pagination)
+      callAPI(
+        request: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: pagination),
+        success: GeofencePage.self
+      )
     },
     valuesFromPage: \.geofences,
     paginationFromPage: \.paginationToken
   )
   
   .eraseToAnyPublisher()
-}
-
-func getGeofencesPage(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> AnyPublisher<GeofencePage, APIError> {
-  URLSession.shared.dataTaskPublisher(for: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
-    .map(\.data)
-    .decode(type: GeofencePage.self, decoder: JSONDecoder())
-    .mapError { error in
-      print(error)
-      return .unknown
-    }
-    .eraseToAnyPublisher()
 }
 
 func geofencesRequest(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {

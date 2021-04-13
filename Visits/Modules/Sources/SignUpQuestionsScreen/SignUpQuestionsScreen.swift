@@ -10,7 +10,7 @@ public struct SignUpQuestionsScreen: View {
   
   public enum QuestionsStatus: Equatable {
     case signingUp(BusinessManages, ManagesFor, SignUpRequest)
-    case answering(Either<BusinessManages, ManagesFor>?, Either<SignUpQuestionsFocus, SignUpError>?)
+    case answering(Either<BusinessManages, ManagesFor>?, Either<SignUpQuestionsFocus, CognitoError>?)
   }
   
   public struct State: Equatable {
@@ -54,7 +54,7 @@ public struct SignUpQuestionsScreen: View {
       }
     }
     
-    var error: SignUpError? {
+    var error: CognitoError? {
       switch questionsStatus {
       case let .signingUp(_, _, .notSent(_, .some(er))),
            let .answering(_, .right(er)):

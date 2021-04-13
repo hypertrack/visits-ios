@@ -9,12 +9,9 @@ import Types
 typealias Token = Tagged<TokenTag, NonEmptyString>
 enum TokenTag {}
 
-func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPublisher<Token, APIError> {
-  URLSession.shared.dataTaskPublisher(for: authorizationRequest(auth: publishableKey, deviceID: deviceID))
-    .map(\.data)
-    .decode(type: Authentication.self, decoder: JSONDecoder())
+func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPublisher<Token, APIError<Never>> {
+  callAPI(request: authorizationRequest(auth: publishableKey, deviceID: deviceID), success: Authentication.self)
     .map(\.accessToken)
-    .mapError { _ in .unknown }
     .eraseToAnyPublisher()
 }
 

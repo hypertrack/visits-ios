@@ -11,23 +11,14 @@ func getHistory(
   _ pk: PublishableKey,
   _ dID: DeviceID,
   _ date: Date
-) -> Effect<Result<History, APIError>, Never> {
-  logEffect("getHistory", failureType: APIError.self)
-    .flatMap { getToken(auth: pk, deviceID: dID) }
-    .flatMap { getHistoryFromAPI(auth: $0, deviceID: dID, date: date) }
-    .map(Result.success)
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
-}
-
-func getHistoryFromAPI(auth token: Token, deviceID: DeviceID, date: Date) -> AnyPublisher<History, APIError> {
-  URLSession.shared.dataTaskPublisher(
-    for: historyRequest(auth: token, deviceID: deviceID, date: date)
-  )
-  .map(\.data)
-  .decode(type: History.self, decoder: JSONDecoder())
-  .mapError { _ in .unknown }
-  .eraseToAnyPublisher()
+) -> Effect<Result<History, APIError<Never>>, Never> {
+  logEffect("getHistory", failureType: APIError<Never>.self)
+    .flatMap {
+      callAPIWithAuth(publishableKey: pk, deviceID: dID, success: History.self) { token in
+        historyRequest(auth: token, deviceID: dID, date: date)
+      }
+    }
+    .catchToEffect()
 }
 
 func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLRequest {

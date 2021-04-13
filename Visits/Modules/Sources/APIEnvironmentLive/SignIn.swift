@@ -6,18 +6,24 @@ import Prelude
 import Types
 
 
-func signIn(_ email: Email, _ password: Password) -> Effect<Result<PublishableKey, APIError>, Never> {
-  URLSession.shared.dataTaskPublisher(for: signInRequest(email: email, password: password))
-    .map { data, _ in data }
-    .decode(type: SignIn.self, decoder: snakeCaseDecoder)
-    .map(\.publishableKey >>> Result.success)
-    .mapError { _ in .unknown }
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
+func signIn(_ email: Email, _ password: Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never> {
+  callAPI(
+    request: signInRequest(email: email, password: password),
+    success: SignIn.self,
+    failure: SignInError.self,
+    decoder: snakeCaseDecoder
+  )
+  .map(\.publishableKey)
+  .mapError { $0.map(\.message) }
+  .catchToEffect()
 }
 
 struct SignIn: Decodable {
   let publishableKey: PublishableKey
+}
+
+struct SignInError: Equatable, Decodable {
+  let message: CognitoError
 }
 
 func signInRequest(email: Email, password: Password) -> URLRequest {

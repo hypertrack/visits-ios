@@ -11,37 +11,53 @@ func signUp(
   password: Password,
   businessManages: BusinessManages,
   managesFor: ManagesFor
-) -> Effect<Result<SignUpError?, APIError>, Never> {
-  session.dataTaskPublisher(
-    for: signUpRequest(
+) -> Effect<Result<SignUpSuccess, APIError<CognitoError>>, Never> {
+  callAPI(
+    request: signUpRequest(
       name: name,
       email: email,
       password: password,
       businessManages: businessManages,
       managesFor: managesFor
-    )
+    ),
+    success: AccountCallSuccess.self,
+    failure: SignUpJSONError.self,
+    decoder: snakeCaseDecoder
   )
-  .map { data, response in
-    guard let httpResponse = response as? HTTPURLResponse else { return .failure(.unknown) }
-    
-    switch httpResponse.statusCode {
-    case (200..<300): return .success(nil)
-    case 400:
-      if let signUpResponse = try? JSONDecoder().decode(SignUpJSONResponse.self, from: data) {
-        return .success(.init(rawValue: signUpResponse.message))
-      } else {
-        return .failure(.unknown)
-      }
-    default: return .failure(.unknown)
-    }
-  }
-  .mapError { _ in .unknown }
-  .catch(Result.failure >>> Just.init(_:))
-  .eraseToEffect()
+  .map(constant(SignUpSuccess()))
+  .mapError { $0.map(\.message) }
+  .catchToEffect()
 }
 
-struct SignUpJSONResponse: Decodable {
-  let message: NonEmptyString
+
+struct AccountCallSuccess: Decodable {
+  init() {}
+  
+  enum CodingKeys: String, CodingKey {
+    case message
+    case statusCode
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    let message = try? values.decode(String.self, forKey: .message)
+    let statusCode = try? values.decode(String.self, forKey: .statusCode)
+    if let message = message, let statusCode = statusCode, message.isEmpty, statusCode.isEmpty {
+      self.init()
+    } else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: "Account call failed"
+        )
+      )
+    }
+  }
+}
+
+struct SignUpJSONError: Equatable, Decodable {
+  let message: CognitoError
 }
 
 func signUpRequest(

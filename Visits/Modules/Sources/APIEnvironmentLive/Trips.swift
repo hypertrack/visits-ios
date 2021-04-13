@@ -6,22 +6,17 @@ import Tagged
 import Types
 
 
-func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError> {
+func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError<Never>> {
   paginate(
     getPage: { pagination in
-      getTripsPage(auth: token, deviceID: deviceID, paginationToken: pagination)
+      callAPI(
+        request: tripsRequest(auth: token, deviceID: deviceID, paginationToken: pagination),
+        success: TripsPage.self
+      )
     },
     valuesFromPage: \.trips,
     paginationFromPage: \.paginationToken
   )
-}
-
-func getTripsPage(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> AnyPublisher<TripsPage, APIError> {
-  URLSession.shared.dataTaskPublisher(for: tripsRequest(auth: token, deviceID: deviceID, paginationToken: paginationToken))
-    .map(\.data)
-    .decode(type: TripsPage.self, decoder: JSONDecoder())
-    .mapError { _ in .unknown }
-    .eraseToAnyPublisher()
 }
 
 func tripsRequest(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {

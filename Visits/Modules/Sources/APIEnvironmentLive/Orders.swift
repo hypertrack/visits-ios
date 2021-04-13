@@ -7,19 +7,17 @@ import Prelude
 import Types
 
 
-func getOrders(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError>, Never> {
-  logEffect("getOrders", failureType: APIError.self)
+func getOrders(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError<Never>>, Never> {
+  logEffect("getOrders", failureType: APIError<Never>.self)
     .flatMap { getToken(auth: pk, deviceID: deID) }
-    .flatMap { t in
-      getTrips(auth: t, deviceID: deID)
+    .flatMap {
+      getTrips(auth: $0, deviceID: deID)
         .map { trips in
           trips.flatMap(apiOrder(fromTrip:))
         }
     }
     .map { Dictionary(uniqueKeysWithValues: ($0)) }
-    .map(Result.success)
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
+    .catchToEffect()
 }
 
 func apiOrder(fromTrip trip: Trip) -> [(APIOrderID, APIOrder)] {

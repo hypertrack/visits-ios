@@ -5,8 +5,7 @@ import Tagged
 
 public enum SignIn: Equatable {
   case signingIn(Email, Password)
-  case editingCredentials(Email?, Password?, Focus?, Error?)
+  case editingCredentials(Email?, Password?, Focus?, CognitoError?)
   
   public enum Focus: Equatable { case email, password }
-  public typealias Error = Tagged<SignIn, NonEmptyString>
 }

@@ -6,32 +6,37 @@ import Prelude
 import Types
 
 
-func resendVerification(email: Email) -> Effect<Result<ResendVerificationResponse, APIError>, Never> {
-  session.dataTaskPublisher(for: resendVerificationRequest(email: email))
-    .map(\.data)
-    .decode(type: ResendVerificationJSONResponse.self, decoder: snakeCaseDecoder)
-    .map { response in
-      let code = NonEmptyString(rawValue: response.statusCode)
-      let message = NonEmptyString(rawValue: response.message)
-      switch (code, message) {
-      case (.some("InvalidParameterException"), .some("User is already confirmed.")):
-        return .success(.alreadyVerified)
-      case (.none, .none):
-        return .success(.success)
-      case let (.some(code), .none):
-        return .success(.error(code))
-      case let (_, .some(message)):
-        return .success(.error(message))
-      }
-    }
-    .mapError { _ in .unknown }
-    .catch(Result.failure >>> Just.init(_:))
-    .eraseToEffect()
+func resendVerification(email: Email) -> Effect<Result<ResendVerificationSuccess, APIError<ResendVerificationError>>, Never> {
+  callAPI(
+    session: session,
+    request: resendVerificationRequest(email: email),
+    success: AccountCallSuccess.self,
+    failure: ResendVerificationError.self,
+    decoder: snakeCaseDecoder
+  )
+  .map(constant(ResendVerificationSuccess()))
+  .catchToEffect()
 }
 
-struct ResendVerificationJSONResponse: Decodable {
-  let statusCode: String
-  let message: String
+extension ResendVerificationError: Decodable {
+  enum CodingKeys: String, CodingKey {
+    case message
+    case statusCode
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    
+    let message = try values.decode(CognitoError.self, forKey: .message)
+    let statusCode = try values.decode(NonEmptyString.self, forKey: .statusCode)
+    
+    if message.rawValue.rawValue == "User is already confirmed.",
+       statusCode.rawValue == "InvalidParameterException" {
+       self = .alreadyVerified
+    } else {
+      self = .error(message)
+    }
+  }
 }
 
 func resendVerificationRequest(email: Email) -> URLRequest {

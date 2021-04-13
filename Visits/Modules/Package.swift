@@ -36,7 +36,7 @@ let targets: [Target] = [
   
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
-  .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Prelude", "Tagged", "Types"]),
+  .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Tagged", "Types"]),
   .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
   .target(name: "BranchEnvironment",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "BranchEnvironmentLive",         dependencies: ["Branch", "BranchEnvironment", "LogEnvironment"]),

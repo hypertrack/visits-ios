@@ -68,7 +68,7 @@ public enum AppAction: Equatable {
   case businessManagesChanged(BusinessManages?)
   case managesForChanged(ManagesFor?)
   case signUp
-  case signedUp(Result<SignUpError?, APIError>)
+  case signedUp(Result<SignUpSuccess, APIError<CognitoError>>)
   case cancelSignUp
   //   Verification
   case firstVerificationFieldChanged(String)
@@ -82,7 +82,7 @@ public enum AppAction: Equatable {
   case resendVerificationCode
   case verificationExtractedFromPasteboard(VerificationCode)
   case verificationPasteboardChanged
-  case autoSignInFailed(SignUpError)
+  case autoSignInFailed(APIError<CognitoError>)
   // Sign In
   case goToSignUp
   case cancelSignIn
@@ -91,7 +91,7 @@ public enum AppAction: Equatable {
   case focusPassword
   case passwordChanged(Password?)
   case signIn
-  case signedIn(Result<PublishableKey, APIError>)
+  case signedIn(Result<PublishableKey, APIError<CognitoError>>)
   // DriverID
   case driverIDChanged(DriverID?)
   case setDriverID
@@ -107,9 +107,9 @@ public enum AppAction: Equatable {
   case openAppleMaps
   case pickUpOrder
   case reverseGeocoded([GeocodedResult])
-  case ordersUpdated(Result<[APIOrderID: APIOrder], APIError>)
+  case ordersUpdated(Result<[APIOrderID: APIOrder], APIError<Never>>)
   // Places
-  case placesUpdated(Result<Set<Place>, APIError>)
+  case placesUpdated(Result<Set<Place>, APIError<Never>>)
   case updatePlaces
   // TabView
   case switchToOrders
@@ -118,7 +118,7 @@ public enum AppAction: Equatable {
   case switchToSummary
   case switchToProfile
   // History
-  case historyUpdated(Result<History, APIError>)
+  case historyUpdated(Result<History, APIError<Never>>)
   // Generic UI
   case dismissFocus
   // Deeplink
@@ -199,7 +199,7 @@ let getOrdersEffect = { (
 }
 
 func getPlacesEffect(
-  _ getPlaces: Effect<Result<Set<Place>, APIError>, Never>,
+  _ getPlaces: Effect<Result<Set<Place>, APIError<Never>>, Never>,
   _ reverseGeocode: @escaping (Coordinate) -> Effect<Address, Never>,
   _ mainQueue: AnySchedulerOf<DispatchQueue>
 ) -> Effect<AppAction, Never> {
@@ -207,7 +207,7 @@ func getPlacesEffect(
     .receive(on: mainQueue)
     .eraseToEffect()
     .cancellable(id: RefreshingPlacesID())
-    .flatMap { (result: Result<Set<Place>, APIError>) -> Effect<AppAction, Never> in
+    .flatMap { (result: Result<Set<Place>, APIError<Never>>) -> Effect<AppAction, Never> in
       switch result {
       case let .success(places):
         return reverseGeocodePlaces(
@@ -357,31 +357,33 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       environment.api
         .verifyEmail(email, code)
         .receive(on: environment.mainQueue)
-        .flatMap { (result: Result<VerificationResponse, APIError>) -> Effect<AppAction, Never> in
+        .flatMap { (result: Result<PublishableKey, APIError<VerificationError>>) -> Effect<AppAction, Never> in
                     
           let makeSDKBaked = makeSDK(DriverID(rawValue: email.rawValue))
           
           switch result {
-          case let .success(.success(pk)):
+          case let .success(pk):
             return makeSDKBaked(pk)
-          case .success(.alreadyVerified):
+          case .failure(.error(.alreadyVerified)):
             return environment.api
               .signIn(email, password)
               .receive(on: environment.mainQueue)
               .eraseToEffect()
-              .flatMap { (result: Result<PublishableKey, APIError>) -> Effect<AppAction, Never> in
+              .flatMap { (result: Result<PublishableKey, APIError<CognitoError>>) -> Effect<AppAction, Never> in
                 switch result {
                 case let .success(pk):
                   return makeSDKBaked(pk)
                 case let .failure(error):
-                  return Effect(value: AppAction.autoSignInFailed(SignUpError(rawValue: "Unknown error")))
+                  return Effect(value: AppAction.autoSignInFailed(error))
                 }
               }
               .eraseToEffect()
-          case let .success(.error(error)):
-            return Effect(value: AppAction.autoSignInFailed(error))
-          case let .failure(error):
-            return Effect(value: AppAction.autoSignInFailed(SignUpError(rawValue: "Unknown error")))
+          case let .failure(.error(.error(cognitoError))):
+            return Effect(value: AppAction.autoSignInFailed(.error(cognitoError)))
+          case let .failure(.network(network)):
+            return Effect(value: AppAction.autoSignInFailed(.network(network)))
+          case let .failure(.unknown(urlError)):
+            return Effect(value: AppAction.autoSignInFailed(.unknown(urlError)))
           }
         }
         .eraseToEffect()
@@ -518,7 +520,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         .eraseToEffect()
         .map(AppAction.signedUp)
         .cancellable(id: SignUpID(), cancelInFlight: true)
-    case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.success(.none))):
+    case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.success)):
       state.flow = .signUp(.verification(.entering(nil, .focused, nil), e, p))
       return .merge(
         Effect.timer(  // Impossible without a timer because of an iOS bug: https://twitter.com/steipete/status/787985965432369152
@@ -530,11 +532,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         .flatMap(constant(checkVerificationCode))
         .eraseToEffect()
       )
-    case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.success(.some(err)))):
-      state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(nil, err))))
-      return .none
-    case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.failure)):
-      state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(nil, "Unknown error"))))
+    case let (.signUp(.questions(n, e, p, .signingUp(bm, mf, .inFlight))), .signedUp(.failure(failure))):
+      state.flow = .signUp(.questions(n, e, p, .signingUp(bm, mf, .notSent(nil, failure *^? /APIError<CognitoError>.error))))
       return .none
     case let (.signUp(.questions(n, e, p, .answering(ebmmf, _))), .businessManagesSelected):
       state.flow = .signUp(.questions(n, e, p, .answering(ebmmf, .left(.businessManages))))
@@ -581,8 +580,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
          let (.signUp(.verification(.entered(_, .notSent), e, p)), .verificationExtractedFromPasteboard(c)):
       state.flow = .signUp(.verification(.entered(c, .inFlight), e, p))
       return verify(email: e, password: p, code: c)
-    case let (.signUp(.verification(.entered(c, .inFlight), e, p)), .autoSignInFailed(error)):
-      state.flow = .signUp(.verification(.entering(nil, .unfocused, error), e, p))
+    case let (.signUp(.verification(_, e, p)), .autoSignInFailed(failure)):
+      state.flow = .signUp(.verification(.entering(nil, .unfocused, failure *^? /APIError<CognitoError>.error), e, p))
       return .none
     case let (.signUp(.verification(.entered(c, .notSent(.unfocused, error)), e, p)), .focusVerification):
       state.flow = .signUp(.verification(.entered(c, .notSent(.focused, error)), e, p))
@@ -655,31 +654,33 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
       return .merge(
         environment.api
           .resendVerificationCode(e)
-          .flatMap { (result: Result<ResendVerificationResponse, APIError>) -> Effect<AppAction, Never> in
+          .flatMap { (result: Result<ResendVerificationSuccess, APIError<ResendVerificationError>>) -> Effect<AppAction, Never> in
             
             let makeSDKBaked = makeSDK(DriverID(rawValue: e.rawValue))
             
             switch result {
-            case .success(.success):
+            case .success:
               return .none
-            case .success(.alreadyVerified):
+            case .failure(.error(.alreadyVerified)):
               return environment.api
                 .signIn(e, p)
                 .receive(on: environment.mainQueue)
                 .eraseToEffect()
-                .flatMap { (result: Result<PublishableKey, APIError>) -> Effect<AppAction, Never> in
+                .flatMap { (result: Result<PublishableKey, APIError<CognitoError>>) -> Effect<AppAction, Never> in
                   switch result {
                   case let .success(pk):
                     return makeSDKBaked(pk)
                   case let .failure(error):
-                    return Effect(value: AppAction.autoSignInFailed(SignUpError(rawValue: "Unknown error")))
+                    return Effect(value: AppAction.autoSignInFailed(error))
                   }
                 }
                 .eraseToEffect()
-            case let .success(.error(error)):
-              return Effect(value: AppAction.autoSignInFailed(SignUpError(rawValue: error)))
-            case let .failure(error):
-              return Effect(value: AppAction.autoSignInFailed(SignUpError(rawValue: "Unknown error")))
+            case let .failure(.error(.error(error))):
+              return Effect(value: AppAction.autoSignInFailed(.error(error)))
+            case let .failure(.network(error)):
+              return Effect(value: AppAction.autoSignInFailed(.network(error)))
+            case let .failure(.unknown(response)):
+              return Effect(value: AppAction.autoSignInFailed(.unknown(response)))
             }
             
           }
@@ -770,8 +771,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         return .cancel(id: SignInID())
       case let .signedIn(.success(pk)):
         return makeSDK(DriverID(rawValue: e.rawValue))(pk)
-      case let .signedIn(.failure(error)):
-        state.flow = .signIn(.editingCredentials(e, p, nil, "Unknown error"))
+      case let .signedIn(.failure(failure)):
+        state.flow = .signIn(.editingCredentials(e, p, nil, failure *^? /APIError<CognitoError>.error))
         return .none
       default:
         return .none
@@ -1022,40 +1023,51 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.orders == .refreshingOrders {
           effects += [.cancel(id: RefreshingOrdersID())]
         }
+        if r.places == .refreshingPlaces {
+          effects += [.cancel(id: RefreshingPlacesID())]
+        }
         state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, .none, ps, e)
         return .merge(effects)
       case let .reverseGeocoded(g):
         state.flow = .main(updateAddress(for: v, with: g), sv <¡> updateAddress(with: g), places, h, s, pk, drID, deID, us, p, r, ps, e)
         return .none
-      case let .ordersUpdated(vs):
-        let allVs = sv.map { Set.insert($0)(v) } ?? v
-        let updatedVs = (resultSuccess(vs) <¡> update(allVs)) ?? allVs
-        let freshVs = updatedVs |> filterOutOldOrders(environment.date())
-        
-        let (nv, nsv): (Set<Order>, Order?)
-        if let id = sv?.id.rawValue.rawValue {
-          (nv, nsv) = selectOrder(o: freshVs, so: nil, id: id)
-        } else {
-          (nv, nsv) = (freshVs, nil)
-        }
-        
-        state.flow = .main(nv, nsv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
-        if let reverseGeocodingCoordinates = NonEmptySet(rawValue: orderCoordinatesWithoutAddress(freshVs)) {
-          return reverseGeocodingCoordinates.publisher
-            .flatMap { coordinate in
-              
-              return environment.api.reverseGeocode(coordinate)
-                .map { GeocodedResult(coordinate: coordinate, address: $0) }
-            }
-            .collect()
-            .receive(on: environment.mainQueue)
-            .eraseToEffect()
-            .map(AppAction.reverseGeocoded)
-        } else {
+      case let .ordersUpdated(.success(vs)):
+        if vs.isEmpty {
+          state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
           return .none
+        } else {
+          let allVs = sv.map { Set.insert($0)(v) } ?? v
+          let updatedVs = vs |> update(allVs)
+          let freshVs = updatedVs |> filterOutOldOrders(environment.date())
+          
+          let (nv, nsv): (Set<Order>, Order?)
+          if let id = sv?.id.rawValue.rawValue {
+            (nv, nsv) = selectOrder(o: freshVs, so: nil, id: id)
+          } else {
+            (nv, nsv) = (freshVs, nil)
+          }
+          
+          state.flow = .main(nv, nsv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
+          if let reverseGeocodingCoordinates = NonEmptySet(rawValue: orderCoordinatesWithoutAddress(freshVs)) {
+            return reverseGeocodingCoordinates.publisher
+              .flatMap { coordinate in
+                
+                return environment.api.reverseGeocode(coordinate)
+                  .map { GeocodedResult(coordinate: coordinate, address: $0) }
+              }
+              .collect()
+              .receive(on: environment.mainQueue)
+              .eraseToEffect()
+              .map(AppAction.reverseGeocoded)
+          } else {
+            return .none
+          }
         }
-      case let .historyUpdated(h):
-        state.flow = .main(v, sv, places, resultSuccess(h), s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e)
+      case .ordersUpdated(.failure):
+        state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.orders *< .notRefreshingOrders, ps, e)
+        return .none
+      case let .historyUpdated(newH):
+        state.flow = .main(v, sv, places, resultSuccess(newH) ?? h, s, pk, drID, deID, us, p, r |> \.history *< .notRefreshingHistory, ps, e)
         return .none
       default:
         return .none
@@ -1067,11 +1079,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   // Places
   Reducer { state, action, environment in
     switch (state.flow, action) {
-    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(.success(newPlaces))):
-      state.flow = .main(v, sv, newPlaces, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
-      return .none
-    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(.failure)):
-      state.flow = .main(v, sv, places, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
+    case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .placesUpdated(newPlaces)):
+      state.flow = .main(v, sv, resultSuccess(newPlaces) ?? places, h, s, pk, drID, deID, us, p, r |> \.places *< .notRefreshingPlaces, ps, e)
       return .none
     case let (.main(v, sv, places, h, s, pk, drID, deID, us, p, r, ps, e), .updatePlaces):
       if r.places == .refreshingPlaces {
