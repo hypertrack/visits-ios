@@ -4,6 +4,7 @@ import BranchEnvironment
 import Combine
 import ComposableArchitecture
 import DeepLinkLogic
+import ErrorAlertLogic
 import HapticFeedbackEnvironment
 import HyperTrackEnvironment
 import MapEnvironment
@@ -19,11 +20,13 @@ import UIKit
 
 // MARK: - State
 
+
 public struct AppState: Equatable {
   public var network: Network
   public var flow: AppFlow
+  public var alert: AlertState<ErrorAlertAction>?
   
-  public static let initialState = AppState(network: .offline, flow: .created)
+  public static let initialState = AppState(network: .offline, flow: .created, alert: nil)
 }
 
 public enum AppFlow: Equatable {
@@ -141,6 +144,8 @@ public enum AppAction: Equatable {
   // State
   case restoredState(Either<RestoredState, UntrackableReason>, Network)
   case stateRestored
+  // Alert
+  case errorAlert(ErrorAlertAction)
 }
 
 // MARK: - Environment
@@ -270,6 +275,7 @@ func view13<A, B, C, D, E, F, G, H, I, J, K, L, M>(_ t: (A, B, C, D, E, F, G, H,
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
   networkReducer.pullback(state: \.network, action: .self, environment: constant(())),
   deepLinkReducer.pullback(state: deepLinkStateAffine, action: deepLinkActionAffine, environment: toDeepLinkEnvironment),
+  errorAlertReducer.pullback(state: errorAlertStateLens.toAffine(), action: errorAlertActionPrism.toAffine(), environment: constant(())),
   stateRestorationReducer,
   Reducer { state, action, environment in
     switch action {

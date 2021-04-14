@@ -56,7 +56,8 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Prelude", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "BranchEnvironment", "DeepLinkLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "BranchEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
+  .target(name: "ErrorAlertLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "DeepLinkLogic",                   dependencies: [architecture, "AppArchitecture", "Prelude", "Types"]),
   // Ties everything together
   .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Prelude", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "Types"]),

@@ -32,7 +32,17 @@ public enum OrderOrOrders: Equatable {
 }
 
 public struct AppScreen: View {
-  public enum State {
+  public struct State {
+    public var screen: Screen
+    public var alert: AlertState<ErrorAlertAction>?
+    
+    
+    public init(screen: AppScreen.Screen, alert: AlertState<ErrorAlertAction>? = nil) {
+      self.screen = screen
+      self.alert = alert
+    }
+  }
+  public enum Screen {
     case loading
     case signIn(SignInScreen.State)
     case signUpForm(SignUpFormScreen.State)
@@ -55,6 +65,7 @@ public struct AppScreen: View {
     case places(PlacesScreen.Action)
     case tab(TabSelection)
     case map(String)
+    case errorAlert(ErrorAlertAction)
   }
   
   let store: Store<State, Action>
@@ -63,13 +74,14 @@ public struct AppScreen: View {
   
   public var body: some View {
     WithViewStore(store) { viewStore in
-      switch viewStore.state {
+      switch viewStore.state.screen {
       case .loading:
         LoadingScreen()
       case let .signUpForm(s):
         SignUpFormScreen(state: s) {
           viewStore.send(.signUpForm($0))
         }
+        
       case let .signUpQuestions(s):
         SignUpQuestionsScreen(state: s) {
           viewStore.send(.signUpQuestions($0))
@@ -101,6 +113,7 @@ public struct AppScreen: View {
         )
       }
     }
+    .alert(self.store.scope(state: \.alert, action: AppScreen.Action.errorAlert), dismiss: ErrorAlertAction.ok)
   }
 }
 
@@ -228,38 +241,4 @@ func localizedDistance(_ distanceMeters: UInt) -> String {
 }
 
 extension AppScreen.State: Equatable {}
-
-struct AppScreen_Previews: PreviewProvider {
-  static var previews: some View {
-    AppScreen(
-      store: .init(
-        initialState: .main(
-          .orders(
-            .init(
-              pending: [],
-              visited: [],
-              completed: [],
-              canceled: [],
-              isNetworkAvailable: true,
-              refreshing: false,
-              deviceID: "DeviceID",
-              publishableKey: "PublishableKey"
-            )
-          ),
-          [],
-          .none,
-          .init(
-            coordinates: []
-          ),
-          [
-          ],
-          "DriverID",
-          "DeviceID",
-          .map),
-        reducer: .empty,
-        environment: ()
-      )
-    )
-    .previewScheme(.dark)
-  }
-}
+extension AppScreen.Screen: Equatable {}

@@ -61,11 +61,12 @@ public extension Store where State == AppScreen.State, Action == AppScreen.Actio
 }
 
 func fromAppState(_ appState: AppState) -> AppScreen.State {
+  let screen: AppScreen.Screen
   switch appState.flow {
-  case .created, .appLaunching, .firstRun: return .loading
-  case .noMotionServices: return .blocker(.noMotionServices)
+  case .created, .appLaunching, .firstRun: screen = .loading
+  case .noMotionServices: screen = .blocker(.noMotionServices)
   case let .signUp(.formFilled(n, e, p, focus, err)):
-    return .signUpForm(
+    screen = .signUpForm(
       .init(
         name: n.rawValue.rawValue,
         email: e.rawValue.rawValue,
@@ -77,7 +78,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       )
     )
   case let .signUp(.formFilling(n, e, p, focus, err)):
-    return .signUpForm(
+    screen = .signUpForm(
       .init(
         name: n?.rawValue.rawValue ?? "",
         email: e?.rawValue.rawValue ?? "",
@@ -89,13 +90,13 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       )
     )
   case let .signUp(.questions(_, _, _, .signingUp(bm, mf, rs))):
-    return .signUpQuestions(.init(questionsStatus: .signingUp(bm, mf, rs)))
+    screen = .signUpQuestions(.init(questionsStatus: .signingUp(bm, mf, rs)))
   case let .signUp(.questions(_, _, _, .answering(ebmmf, efe))):
-    return .signUpQuestions(.init(questionsStatus: .answering(ebmmf, efe)))
-  case let .signUp(.verification(ver, _, _)): return .signUpVerification(verificationState(ver))
+    screen = .signUpQuestions(.init(questionsStatus: .answering(ebmmf, efe)))
+  case let .signUp(.verification(ver, _, _)): screen = .signUpVerification(verificationState(ver))
   
   case let .signIn(s):
-    return .signIn(
+    screen = .signIn(
       .init(
         buttonState: buttonState(from: s),
         email: email(from: s),
@@ -106,36 +107,37 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       )
     )
   case let .driverID(.some(drID), _):
-    return .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
-  case .driverID: return .driverID(.init(driverID: "", buttonDisabled: true))
+    screen = .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
+  case .driverID: screen = .driverID(.init(driverID: "", buttonDisabled: true))
   case let .main(v, sv, pl, h, s, pk, drID, deID, us, p, r, ps, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
-    case (_, _, .disabled, _, _):                            return .blocker(.locationDisabled)
-    case (_, _, .denied, _, _):                              return .blocker(.locationDenied)
-    case (_, _, .restricted, _, _):                          return .blocker(.locationRestricted)
-    case (_, _, .notDetermined, _, _):                       return .blocker(.locationNotDetermined)
-    case (_, .reduced, _, _, _):                             return .blocker(.locationReduced)
-    case (_, _, _, .disabled, _):                            return .blocker(.motionDisabled)
-    case (_, _, _, .denied, _):                              return .blocker(.motionDenied)
-    case (_, _, _, .notDetermined, _):                       return .blocker(.motionNotDetermined)
+    case (_, _, .disabled, _, _):                            screen = .blocker(.locationDisabled)
+    case (_, _, .denied, _, _):                              screen = .blocker(.locationDenied)
+    case (_, _, .restricted, _, _):                          screen = .blocker(.locationRestricted)
+    case (_, _, .notDetermined, _, _):                       screen = .blocker(.locationNotDetermined)
+    case (_, .reduced, _, _, _):                             screen = .blocker(.locationReduced)
+    case (_, _, _, .disabled, _):                            screen = .blocker(.motionDisabled)
+    case (_, _, _, .denied, _):                              screen = .blocker(.motionDenied)
+    case (_, _, _, .notDetermined, _):                       screen = .blocker(.motionNotDetermined)
     case (_, _, _, _, .dialogSplash(.notShown)),
-         (_, _, _, _, .dialogSplash(.waitingForUserAction)): return .blocker(.pushNotShown)
-    case (.deleted, _, _, _, _):                             return .blocker(.deleted(deID.rawValue.rawValue))
-    case (.invalidPublishableKey, _, _, _, _):               return .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
-    case (.stopped, _, _, _, _):                             return .blocker(.stopped)
+         (_, _, _, _, .dialogSplash(.waitingForUserAction)): screen = .blocker(.pushNotShown)
+    case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.rawValue.rawValue))
+    case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
+    case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
     case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
       let refreshingOrders = r.orders == .refreshingOrders
       let mapOrdersList = mapOrders(from: v)
       
       if let sv = sv {
-        return .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
+        screen = .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
       } else {
         let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
-        return .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
+        screen = .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
       }
     }
   }
+  return .init(screen: screen, alert: appState.alert)
 }
 
 
@@ -224,6 +226,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .map(id): return .selectOrder(id)
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
+  case let .errorAlert(ea):
+    return .errorAlert(ea)
   }
 }
 
