@@ -22,6 +22,12 @@ func callAPI<Success: Decodable, Failure: Decodable>(
       } else if let failure = try? decoder.decode(Failure.self, from: data) {
         return Fail(error: .error(failure))
           .eraseToAnyPublisher()
+      } else if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
+        return Fail(error: .api(failure))
+          .eraseToAnyPublisher()
+      } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
+        return Fail(error: .server(failure))
+          .eraseToAnyPublisher()
       } else {
         return Fail(error: .unknown(response as! HTTPURLResponse))
           .eraseToAnyPublisher()
@@ -42,6 +48,12 @@ func callAPI<Success: Decodable>(
       if let success = try? decoder.decode(Success.self, from: data) {
         return Just(success)
           .setFailureType(to: APIError<Never>.self)
+          .eraseToAnyPublisher()
+      } else if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
+        return Fail(error: .api(failure))
+          .eraseToAnyPublisher()
+      } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
+        return Fail(error: .server(failure))
           .eraseToAnyPublisher()
       } else {
         return Fail(error: .unknown(response as! HTTPURLResponse))

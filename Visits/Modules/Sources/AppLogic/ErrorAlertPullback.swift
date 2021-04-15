@@ -1,6 +1,7 @@
 import AppArchitecture
 import ErrorAlertLogic
 import Prelude
+import Types
 
 
 let errorAlertStateLens: Lens<AppState, ErrorAlertState> = .init(
@@ -22,19 +23,15 @@ let errorAlertStateLens: Lens<AppState, ErrorAlertState> = .init(
 
 let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .init(
   extract: { appAction in
+    let displayError = flip(curry(ErrorAlertLogicAction.displayError))
+    
     switch appAction {
-    case let .signedUp(.failure(.network(urlError))):
-      return .displayError(.network(urlError), .signUp)
-    case let .signedUp(.failure(.unknown(urlResponse))):
-      return .displayError(.unknown(urlResponse), .signUp)
-    case let .autoSignInFailed(.network(urlError)):
-      return .displayError(.network(urlError), .emailVerification)
-    case let .autoSignInFailed(.unknown(urlResponse)):
-      return .displayError(.unknown(urlResponse), .emailVerification)
-    case let .signedIn(.failure(.network(urlError))):
-      return .displayError(.network(urlError), .signIn)
-    case let .signedIn(.failure(.unknown(urlResponse))):
-      return .displayError(.unknown(urlResponse), .signIn)
+    case let .signedUp(.failure(e)):
+     return e |> toNever <¡> displayError(.signUp)
+    case let .autoSignInFailed(e):
+      return e |> toNever <¡> displayError(.verification)
+    case let .signedIn(.failure(e)):
+      return e |> toNever <¡> displayError(.signIn)
     case let .ordersUpdated(.failure(apiError)):
       return .displayError(apiError, .orders)
     case let .placesUpdated(.failure(apiError)):
@@ -49,20 +46,12 @@ let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .init(
   },
   embed: { errorAlertAction in
     switch errorAlertAction {
-    case let .displayError(.network(urlError), .signUp):
-      return .signedUp(.failure(.network(urlError)))
-    case let .displayError(.unknown(urlResponse), .signUp):
-      return .signedUp(.failure(.unknown(urlResponse)))
-    case let .displayError(.network(urlError), .emailVerification),
-         let .displayError(.network(urlError), .resendVerification):
-      return .autoSignInFailed(.network(urlError))
-    case let .displayError(.unknown(urlResponse), .emailVerification),
-         let .displayError(.unknown(urlResponse), .resendVerification):
-      return .autoSignInFailed(.unknown(urlResponse))
-    case let .displayError(.network(urlError), .signIn):
-      return .signedIn(.failure(.network(urlError)))
-    case let .displayError(.unknown(urlResponse), .signIn):
-      return .signedIn(.failure(.unknown(urlResponse)))
+    case let .displayError(e, .signUp):
+    return .signedUp(.failure(fromNever(e)))
+    case let .displayError(e, .verification):
+      return .autoSignInFailed(fromNever(e))
+    case let .displayError(e, .signIn):
+      return .signedIn(.failure(fromNever(e)))
     case let .displayError(apiError, .orders):
       return .ordersUpdated(.failure(apiError))
     case let .displayError(apiError, .places):

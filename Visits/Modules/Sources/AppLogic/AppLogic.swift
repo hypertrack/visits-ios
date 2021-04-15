@@ -390,6 +390,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             return Effect(value: AppAction.autoSignInFailed(.network(network)))
           case let .failure(.unknown(urlError)):
             return Effect(value: AppAction.autoSignInFailed(.unknown(urlError)))
+          case let .failure(.api(e)):
+            return Effect(value: AppAction.autoSignInFailed(.api(e)))
+          case let .failure(.server(e)):
+            return Effect(value: AppAction.autoSignInFailed(.server(e)))
           }
         }
         .eraseToEffect()
@@ -687,6 +691,10 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
               return Effect(value: AppAction.autoSignInFailed(.network(error)))
             case let .failure(.unknown(response)):
               return Effect(value: AppAction.autoSignInFailed(.unknown(response)))
+            case let .failure(.api(e)):
+              return Effect(value: AppAction.autoSignInFailed(.api(e)))
+            case let .failure(.server(e)):
+              return Effect(value: AppAction.autoSignInFailed(.server(e)))
             }
             
           }

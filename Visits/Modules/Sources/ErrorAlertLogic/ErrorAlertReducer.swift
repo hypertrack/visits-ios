@@ -18,11 +18,10 @@ public enum ErrorAlertLogicAction: Equatable {
 }
 
 public enum ErrorAlertSource: Equatable {
-  case emailVerification
+  case verification
   case history
   case orders
   case places
-  case resendVerification
   case signIn
   case signUp
 }
@@ -30,6 +29,7 @@ public enum ErrorAlertSource: Equatable {
 // MARK: - Reducer
 
 public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, Void> { state, action, environment in
+  let tryAgain = "\nPlease try again."
   switch action {
   case .dismissAlert:
     state = .dismissed
@@ -38,7 +38,25 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     state = .shown(
       .init(
         title: TextState("Network Issue"),
-        message: TextState(errorCodeToURLErrorDescription(urlError.code) + "\nPlease try again."),
+        message: TextState(errorCodeToURLErrorDescription(urlError.code) + tryAgain),
+        dismissButton: .default(TextState("OK"), send: .ok)
+      )
+    )
+    return .none
+  case let .displayError(.api(error), _):
+    state = .shown(
+      .init(
+        title: TextState(error.title.string),
+        message: TextState(error.detail.string),
+        dismissButton: .default(TextState("OK"), send: .ok)
+      )
+    )
+    return .none
+  case let .displayError(.server(error), _):
+    state = .shown(
+      .init(
+        title: TextState("Server Error"),
+        message: TextState(error.message.rawValue + tryAgain),
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
@@ -47,7 +65,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     state = .shown(
       .init(
         title: TextState("Network Issue"),
-        message: TextState("Our server sent a response that the app can't understand. Please update the app to the latest version."),
+        message: TextState("Please update the app to the latest version"),
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
