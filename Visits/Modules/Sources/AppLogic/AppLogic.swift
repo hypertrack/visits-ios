@@ -1020,6 +1020,9 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         if r.orders == .notRefreshingOrders {
           effects += [getOrders]
         }
+        if r.places == .notRefreshingPlaces {
+          effects += [getPlaces]
+        }
         state.flow = .main(fvs, fv, places, h, s, pk, drID, deID, us, p, .all, ps, e)
         return .merge(effects)
       case .stopTracking:
