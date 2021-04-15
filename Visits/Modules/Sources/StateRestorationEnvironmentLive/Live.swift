@@ -55,21 +55,21 @@ public extension StateRestorationEnvironment {
           switch s {
           case let .signUp(e):
             ud.set(Screen.signUp.rawValue, forKey: RestorationKey.screen.rawValue)
-            ud.set(e <¡> \.rawValue.rawValue, forKey: RestorationKey.email.rawValue)
+            ud.set(e <¡> \.string, forKey: RestorationKey.email.rawValue)
           case let .signIn(e):
             ud.set(Screen.signIn.rawValue, forKey: RestorationKey.screen.rawValue)
-            ud.set(e <¡> \.rawValue.rawValue, forKey: RestorationKey.email.rawValue)
+            ud.set(e <¡> \.string, forKey: RestorationKey.email.rawValue)
           case let .driverID(dID, pk):
             ud.set(Screen.driverID.rawValue, forKey: RestorationKey.screen.rawValue)
-            ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
-            ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
+            ud.set(dID <¡> \.string, forKey: RestorationKey.driverID.rawValue)
+            ud.set(pk <¡> \.string, forKey: RestorationKey.publishableKey.rawValue)
           case let .main(o, p, s, pk, dID, ps, e):
             ud.set(Screen.main.rawValue, forKey: RestorationKey.screen.rawValue)
             ud.set(try? JSONEncoder().encode(o), forKey: RestorationKey.orders.rawValue)
             ud.set(try? JSONEncoder().encode(p), forKey: RestorationKey.places.rawValue)
             ud.set(s.rawValue, forKey: RestorationKey.tabSelection.rawValue)
-            ud.set(pk <¡> \.rawValue.rawValue, forKey: RestorationKey.publishableKey.rawValue)
-            ud.set(dID <¡> \.rawValue.rawValue, forKey: RestorationKey.driverID.rawValue)
+            ud.set(pk <¡> \.string, forKey: RestorationKey.publishableKey.rawValue)
+            ud.set(dID <¡> \.string, forKey: RestorationKey.driverID.rawValue)
             ud.set(pushStatus(from: ps).rawValue, forKey: RestorationKey.pushStatus.rawValue)
             ud.set(e.store(), forKey: RestorationKey.experience.rawValue)
           }

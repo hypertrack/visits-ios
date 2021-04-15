@@ -31,8 +31,8 @@ func signInRequest(email: Email, password: Password) -> URLRequest {
   var request = URLRequest(url: url)
   request.httpBody = try! JSONSerialization.data(
     withJSONObject: [
-      "username": email.rawValue.rawValue,
-      "password": password.rawValue.rawValue
+      "username": email.string,
+      "password": password.string
     ],
     options: JSONSerialization.WritingOptions(rawValue: 0)
   )

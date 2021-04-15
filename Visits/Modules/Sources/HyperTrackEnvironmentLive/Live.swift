@@ -20,16 +20,16 @@ public extension HyperTrackEnvironment {
         case let .cancel(id, source, orderNote):
           metadata =
             [
-              fromAssignedSource(source): id.rawValue.rawValue,
+              fromAssignedSource(source): id.string,
               C.type.rawValue: C.cancel.rawValue,
-              C.orderNote.rawValue: orderNote?.rawValue.rawValue ?? ""
+              C.orderNote.rawValue: orderNote?.string ?? ""
             ]
         case let .checkOut(id, source, orderNote):
           metadata =
             [
-              fromAssignedSource(source): id.rawValue.rawValue,
+              fromAssignedSource(source): id.string,
               C.type.rawValue: C.checkOut.rawValue,
-              C.orderNote.rawValue: orderNote?.rawValue.rawValue ?? ""
+              C.orderNote.rawValue: orderNote?.string ?? ""
             ]
         case .clockIn:
           metadata = [C.type.rawValue: C.clockIn.rawValue]
@@ -38,7 +38,7 @@ public extension HyperTrackEnvironment {
         case let .pickUp(id, s):
           metadata =
             [
-              fromAssignedSource(s): id.rawValue.rawValue,
+              fromAssignedSource(s): id.string,
               C.type.rawValue: C.pickUp.rawValue,
             ]
         }
@@ -71,8 +71,8 @@ public extension HyperTrackEnvironment {
     },
     makeSDK: { pk in
       Effect.result {
-        logEffect("makeSDK: \(pk.rawValue.rawValue)")
-        ht = try! HyperTrack(publishableKey: HyperTrack.PublishableKey(pk.rawValue.rawValue)!)
+        logEffect("makeSDK: \(pk.string)")
+        ht = try! HyperTrack(publishableKey: HyperTrack.PublishableKey(pk.string)!)
         return .success(statusUpdate())
       }
     },
@@ -107,13 +107,13 @@ public extension HyperTrackEnvironment {
     },
     setDriverID: { dID in
       .fireAndForget {
-        logEffect("setDriverID: \(dID.rawValue.rawValue)")
+        logEffect("setDriverID: \(dID.string)")
         ht?.setDeviceMetadata(
           HyperTrack.Metadata(
-            dictionary: [C.driverID.rawValue: dID.rawValue.rawValue]
+            dictionary: [C.driverID.rawValue: dID.string]
           )!
         )
-        ht?.setDeviceName(dID.rawValue.rawValue)
+        ht?.setDeviceName(dID.string)
       }
     },
     startTracking: {

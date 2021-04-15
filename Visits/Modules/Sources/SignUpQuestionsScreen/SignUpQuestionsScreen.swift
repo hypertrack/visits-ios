@@ -199,7 +199,7 @@ public struct SignUpQuestionsScreen: View {
         }
         if let error = state.error {
           HStack {
-            Text(error.rawValue.rawValue)
+            Text(error.string)
               .lineLimit(3)
               .font(.smallMedium)
               .foregroundColor(.radicalRed)

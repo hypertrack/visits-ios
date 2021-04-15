@@ -30,7 +30,7 @@ extension ResendVerificationError: Decodable {
     let message = try values.decode(CognitoError.self, forKey: .message)
     let statusCode = try values.decode(NonEmptyString.self, forKey: .statusCode)
     
-    if message.rawValue.rawValue == "User is already confirmed.",
+    if message.string == "User is already confirmed.",
        statusCode.rawValue == "InvalidParameterException" {
        self = .alreadyVerified
     } else {
@@ -44,7 +44,7 @@ func resendVerificationRequest(email: Email) -> URLRequest {
   var request = URLRequest(url: url)
   
   request.httpBody = try! JSONSerialization.data(
-    withJSONObject: ["email": email.rawValue.rawValue],
+    withJSONObject: ["email": email.string],
     options: JSONSerialization.WritingOptions(rawValue: 0)
   )
   request.httpMethod = "POST"

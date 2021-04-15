@@ -8,7 +8,7 @@ public enum EmailTag {}
 public extension Email {
   func cleanup() -> Email? {
     NonEmptyString(
-      rawValue: self.rawValue.rawValue
+      rawValue: self.string
         .trimmingCharacters(in: .whitespacesAndNewlines)
         .lowercased()
     )
@@ -19,9 +19,9 @@ public extension Email {
     (
       try! NSRegularExpression(pattern: "[^@]+@([^@]+)"))
       .firstMatch(
-        in: self.rawValue.rawValue,
+        in: self.string,
         options: [],
-        range: NSRange(location: 0, length: self.rawValue.rawValue.utf16.count)
+        range: NSRange(location: 0, length: self.string.utf16.count)
       ) != nil
   }
 }

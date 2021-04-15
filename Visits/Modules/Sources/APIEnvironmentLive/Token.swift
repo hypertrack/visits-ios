@@ -18,9 +18,9 @@ func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPub
 func authorizationRequest(auth publishableKey: PublishableKey, deviceID: DeviceID) -> URLRequest {
   let url = URL(string: "\(internalAPIURL)/authenticate")!
   var request = URLRequest(url: url)
-  request.setValue("Basic \(Data(publishableKey.rawValue.rawValue.utf8).base64EncodedString(options: []))", forHTTPHeaderField: "Authorization")
+  request.setValue("Basic \(Data(publishableKey.string.utf8).base64EncodedString(options: []))", forHTTPHeaderField: "Authorization")
   request.httpBody = try! JSONSerialization.data(
-    withJSONObject: ["device_id" : deviceID.rawValue.rawValue],
+    withJSONObject: ["device_id" : deviceID.string],
     options: JSONSerialization.WritingOptions(rawValue: 0)
   )
   request.httpMethod = "POST"

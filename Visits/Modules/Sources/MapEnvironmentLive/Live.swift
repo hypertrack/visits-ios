@@ -33,7 +33,7 @@ public extension MapEnvironment {
 func addressString(from a: Either<FullAddress, Street>?) -> String? {
   switch a {
   case .none: return nil
-  case let .some(.left(full)): return full.rawValue.rawValue
-  case let .some(.right(street)): return street.rawValue.rawValue
+  case let .some(.left(full)): return full.string
+  case let .some(.right(street)): return street.string
   }
 }

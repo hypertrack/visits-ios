@@ -71,15 +71,15 @@ func signUpRequest(
   var request = URLRequest(url: url)
   var userAttributes: [[String: String]] = []
   userAttributes += [
-    cognitoValue(name: "custom:company", value: name.rawValue.rawValue),
+    cognitoValue(name: "custom:company", value: name.string),
     cognitoValue(name: "custom:use_case", value: businessManages.rawValue),
     cognitoValue(name: "custom:state", value: managesFor.rawValue)
   ]
   
   request.httpBody = try! JSONSerialization.data(
     withJSONObject: [
-      "email": email.rawValue.rawValue,
-      "password": password.rawValue.rawValue,
+      "email": email.string,
+      "password": password.string,
       "user_attributes": userAttributes
     ],
     options: JSONSerialization.WritingOptions(rawValue: 0)

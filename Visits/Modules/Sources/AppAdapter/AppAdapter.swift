@@ -68,25 +68,25 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
   case let .signUp(.formFilled(n, e, p, focus, err)):
     screen = .signUpForm(
       .init(
-        name: n.rawValue.rawValue,
-        email: e.rawValue.rawValue,
-        password: p.rawValue.rawValue,
+        name: n.string,
+        email: e.string,
+        password: p.string,
         fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
         formIsValid: true,
         questionsAnswered: false,
-        errorMessage: err?.rawValue.rawValue ?? ""
+        errorMessage: err?.string ?? ""
       )
     )
   case let .signUp(.formFilling(n, e, p, focus, err)):
     screen = .signUpForm(
       .init(
-        name: n?.rawValue.rawValue ?? "",
-        email: e?.rawValue.rawValue ?? "",
-        password: p?.rawValue.rawValue ?? "",
+        name: n?.string ?? "",
+        email: e?.string ?? "",
+        password: p?.string ?? "",
         fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
         formIsValid: false,
         questionsAnswered: false,
-        errorMessage: err?.rawValue.rawValue ?? ""
+        errorMessage: err?.string ?? ""
       )
     )
   case let .signUp(.questions(_, _, _, .signingUp(bm, mf, rs))):
@@ -107,7 +107,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       )
     )
   case let .driverID(.some(drID), _):
-    screen = .driverID(.init(driverID: drID.rawValue.rawValue, buttonDisabled: false))
+    screen = .driverID(.init(driverID: drID.string, buttonDisabled: false))
   case .driverID: screen = .driverID(.init(driverID: "", buttonDisabled: true))
   case let .main(v, sv, pl, h, s, pk, drID, deID, us, p, r, ps, _):
     switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
@@ -121,8 +121,8 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     case (_, _, _, .notDetermined, _):                       screen = .blocker(.motionNotDetermined)
     case (_, _, _, _, .dialogSplash(.notShown)),
          (_, _, _, _, .dialogSplash(.waitingForUserAction)): screen = .blocker(.pushNotShown)
-    case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.rawValue.rawValue))
-    case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.rawValue.rawValue))
+    case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.string))
+    case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
     case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
     case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
       let networkAvailable = appState.network == .online
@@ -130,10 +130,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       let mapOrdersList = mapOrders(from: v)
       
       if let sv = sv {
-        screen = .main(.order(orderScreen(from: sv, pk: pk.rawValue.rawValue, dID: deID.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
+        screen = .main(.order(orderScreen(from: sv, pk: pk.string, dID: deID.string)), pl, r, h, mapOrdersList, drID, deID, s)
       } else {
         let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
-        screen = .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.rawValue.rawValue, publishableKey: pk.rawValue.rawValue)), pl, r, h, mapOrdersList, drID, deID, s)
+        screen = .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.string, publishableKey: pk.string)), pl, r, h, mapOrdersList, drID, deID, s)
       }
     }
   }
@@ -235,7 +235,7 @@ func email(from s: SignIn) -> String {
   switch s {
   case let .signingIn(e, _),
        let .editingCredentials(.some(e), _, _, _):
-    return e.rawValue.rawValue
+    return e.string
   default: return ""
   }
 }
@@ -244,7 +244,7 @@ func password(from s: SignIn) -> String {
   switch s {
   case let .signingIn(_, p),
        let .editingCredentials(_, .some(p), _, _):
-    return p.rawValue.rawValue
+    return p.string
   default: return ""
   }
 }
@@ -260,7 +260,7 @@ func buttonState(from s: SignIn) -> SignInScreen.State.ButtonState {
 func errorMessage(from s: SignIn) -> String {
   switch s {
   case let .editingCredentials(_, _, _, .some(e)):
-    return e.rawValue.rawValue
+    return e.string
   default: return ""
   }
 }
@@ -291,7 +291,7 @@ func orderHeaders(from vs: [Order]) -> ([OrderHeader], [OrderHeader], [OrderHead
   for v in vs {
     let t = orderTitle(from: v)
     
-    let h = OrderHeader(id: v.id.rawValue.rawValue, title: t)
+    let h = OrderHeader(id: v.id.string, title: t)
     switch v.geotagSent {
     case .notSent, .pickedUp: pending.append((v.createdAt, h))
     case .entered, .visited:  visited.append((v.createdAt, h))
@@ -318,7 +318,7 @@ func orderScreen(from v: Order, pk: String, dID: String) -> OrderScreen.State {
   let coordinate =  v.location
   let address = assignedVisitFullAddress(from: v)
   let metadata = assignedVisitMetadata(from: v)
-  orderNote = v.orderNote?.rawValue.rawValue ?? ""
+  orderNote = v.orderNote?.string ?? ""
   noteFieldFocused = v.noteFieldFocused
   let status: OrderScreen.State.OrderStatus
   switch v.geotagSent {
@@ -395,7 +395,7 @@ extension DateFormatter {
 }
 
 func mapOrders(from orders: Set<Order>) -> [MapOrder] {
-  orders.map { MapOrder(id: $0.id.rawValue.rawValue, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
+  orders.map { MapOrder(id: $0.id.string, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
 }
 
 func mapVisitStatus(from geotagSent: Order.Geotag) -> MapOrder.Status {
@@ -528,7 +528,7 @@ func verificationState(_ verification: SignUpState.Verification) -> SignUpVerifi
     switch verification {
     case let .entered(_, .notSent(_, .some(e))),
          let .entering(_, _, .some(e)):
-      return e.rawValue.rawValue
+      return e.string
     case .entered(_, .inFlight),
          .entered(_, .notSent(_, .none)),
          .entering(_, _, .none):

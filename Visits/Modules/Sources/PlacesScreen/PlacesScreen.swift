@@ -190,11 +190,11 @@ extension PlacesScreen.State {
 extension Place {
   var name: String? {
     if let name = metadata["name"] {
-      return name.rawValue.rawValue
+      return name.string
     }
-    if let nameKey = metadata.keys.first(where: { $0.rawValue.rawValue.contains("name") }),
+    if let nameKey = metadata.keys.first(where: { $0.string.contains("name") }),
        let name = metadata[nameKey]  {
-      return name.rawValue.rawValue
+      return name.string
     }
     return nil
   }
@@ -415,7 +415,7 @@ public struct PlaceScreen: View {
           .onTapGesture(perform: {})
         ContentCell(
           title: "ID",
-          subTitle: state.place.id.rawValue.rawValue,
+          subTitle: state.place.id.string,
           leadingPadding: 24,
           isCopyButtonEnabled: true,
           { str in }
@@ -433,10 +433,10 @@ public struct PlaceScreen: View {
         }
         ForEach(state.place.metadata.sorted(by: { $0.0 < $1.0 }), id: \.key) { name, contents in
           ContentCell(
-            title: name.rawValue.rawValue
+            title: name.string
               .capitalized
               .replacingOccurrences(of: "_", with: " "),
-            subTitle: contents.rawValue.rawValue,
+            subTitle: contents.string,
             leadingPadding: 24,
             isCopyButtonEnabled: true,
             { str in }

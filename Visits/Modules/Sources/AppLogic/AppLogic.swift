@@ -1047,7 +1047,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
           let freshVs = updatedVs |> filterOutOldOrders(environment.date())
           
           let (nv, nsv): (Set<Order>, Order?)
-          if let id = sv?.id.rawValue.rawValue {
+          if let id = sv?.id.string {
             (nv, nsv) = selectOrder(o: freshVs, so: nil, id: id)
           } else {
             (nv, nsv) = (freshVs, nil)
@@ -1208,8 +1208,8 @@ public func resultSuccess<Success, Failure>(_ r: Result<Success, Failure>) -> Su
 
 func selectOrder(o: Set<Order>, so: Order?, id: String) -> (Set<Order>, Order?) {
   let v = combine(o, so)
-  let sv: Order? = v.firstIndex(where: { $0.id.rawValue.rawValue == id }).map { v[$0] }
-  return (v.filter { $0.id.rawValue.rawValue != id }, sv)
+  let sv: Order? = v.firstIndex(where: { $0.id.string == id }).map { v[$0] }
+  return (v.filter { $0.id.string != id }, sv)
 }
 
 func update(_ vs: Set<Order>) -> ([APIOrderID: APIOrder]) -> Set<Order> {

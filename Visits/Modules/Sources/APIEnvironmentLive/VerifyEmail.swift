@@ -30,7 +30,7 @@ extension VerificationError: Decodable {
     let message = try values.decode(CognitoError.self, forKey: .message)
     let statusCode = try values.decode(NonEmptyString.self, forKey: .statusCode)
     
-    if message.rawValue.rawValue == "User cannot be confirmed. Current status is CONFIRMED",
+    if message.string == "User cannot be confirmed. Current status is CONFIRMED",
        statusCode.rawValue == "NotAuthorizedException" {
        self = .alreadyVerified
     } else {
@@ -50,7 +50,7 @@ func verifyEmailRequest(email: Email, code: VerificationCode) -> URLRequest {
   
   request.httpBody = try! JSONSerialization.data(
     withJSONObject: [
-      "email": email.rawValue.rawValue,
+      "email": email.string,
       "code": code.string
     ],
     options: JSONSerialization.WritingOptions(rawValue: 0)

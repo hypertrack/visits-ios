@@ -218,9 +218,9 @@ struct MainBlock: View {
       
       ProfileScreen(
         state: .init(
-          id: state.driverID.rawValue.rawValue,
+          id: state.driverID.string,
           name: "",
-          deviceID: state.deviceID.rawValue.rawValue,
+          deviceID: state.deviceID.string,
           metadata: [:],
           appVersion: "2.5.0 (43)"
         )
