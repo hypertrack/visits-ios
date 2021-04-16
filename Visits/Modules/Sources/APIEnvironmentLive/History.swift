@@ -45,21 +45,21 @@ extension History: Decodable {
     case stopDuration = "stop_duration"
     case walkDuration = "walk_duration"
     case steps
-    case driveDuration = "drive_duration"
+    case driveDuration = "duration"
     case distance
   }
   
   public init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
-    let activeDuration = (try? values.decode(UInt.self, forKey: .activeDuration)) ?? 0
-    let inactiveDuration = (try? values.decode(UInt.self, forKey: .inactiveDuration)) ?? 0
+    let activeDuration = try values.decode(UInt.self, forKey: .activeDuration)
+    let inactiveDuration = try values.decode(UInt.self, forKey: .inactiveDuration)
     let trackingDuration = activeDuration + inactiveDuration
-    let driveDistance = (try? values.decode(UInt.self, forKey: .distance)) ?? 0
-    let driveDuration = (try? values.decode(UInt.self, forKey: .driveDuration)) ?? 0
-    let steps = (try? values.decode(UInt.self, forKey: .steps)) ?? 0
-    let walkDuration = (try? values.decode(UInt.self, forKey: .walkDuration)) ?? 0
-    let stopDuration = (try? values.decode(UInt.self, forKey: .stopDuration)) ?? 0
+    let driveDistance = try values.decode(UInt.self, forKey: .distance)
+    let driveDuration = try values.decode(UInt.self, forKey: .driveDuration)
+    let steps = try values.decode(UInt.self, forKey: .steps)
+    let walkDuration = try values.decode(UInt.self, forKey: .walkDuration)
+    let stopDuration = try values.decode(UInt.self, forKey: .stopDuration)
     
     let locationsGeoJSON = try? values.decode(GeoJSON.self, forKey: .locations)
     let coordinates: [Coordinate]
