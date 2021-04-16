@@ -7,14 +7,14 @@ import Types
 let errorAlertStateLens: Lens<AppState, ErrorAlertState> = .init(
   get: { appState in
     switch appState.alert {
-    case let .some(alertState): return .shown(alertState)
-    case     .none:             return .dismissed
+    case let .some(.left(alertState)): return .shown(alertState)
+    case .some(.right), .none:         return .dismissed
     }
   },
   set: { errorAlertState in
     { appState in
       switch errorAlertState {
-      case let .shown(alertState): return appState |> \AppState.alert *< alertState
+      case let .shown(alertState): return appState |> \AppState.alert *< .left(alertState)
       case     .dismissed:         return appState |> \AppState.alert *< nil
       }
     }

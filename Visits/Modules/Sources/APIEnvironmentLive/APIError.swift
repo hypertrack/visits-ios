@@ -29,7 +29,7 @@ func callAPI<Success: Decodable, Failure: Decodable>(
         return Fail(error: .server(failure))
           .eraseToAnyPublisher()
       } else {
-        return Fail(error: .unknown(response as! HTTPURLResponse))
+        return Fail(error: .unknown(data, response as! HTTPURLResponse))
           .eraseToAnyPublisher()
       }
     }
@@ -56,7 +56,7 @@ func callAPI<Success: Decodable>(
         return Fail(error: .server(failure))
           .eraseToAnyPublisher()
       } else {
-        return Fail(error: .unknown(response as! HTTPURLResponse))
+        return Fail(error: .unknown(data, response as! HTTPURLResponse))
           .eraseToAnyPublisher()
       }
     }

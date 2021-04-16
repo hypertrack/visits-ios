@@ -1,7 +1,6 @@
 import ComposableArchitecture
+import Types
 
-
-public enum Network { case online, offline }
 
 public struct NetworkEnvironment {
   public var networkStatus: () -> Effect<Network, Never>

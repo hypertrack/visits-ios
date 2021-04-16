@@ -22,6 +22,7 @@ public enum LifeCycleAction {
   case finishedLaunching
   case deepLinkOpened(NSUserActivity)
   case receivedPushNotification
+  case shakeDetected
   case willEnterForeground
 }
 
@@ -35,6 +36,7 @@ public extension ViewStore where State == Prelude.Unit, Action == LifeCycleActio
           case let .deepLinkOpened(a):    return .deepLinkOpened(a)
           case .finishedLaunching:        return .osFinishedLaunching
           case .receivedPushNotification: return .receivedPushNotification
+          case .shakeDetected:            return .shakeDetected
           case .willEnterForeground:      return .willEnterForeground
           }
         }
@@ -137,7 +139,11 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
       }
     }
   }
-  return .init(screen: screen, alert: appState.alert)
+  return .init(
+    screen: screen,
+    errorAlert: appState.alert >>- eitherLeft,
+    errorReportingAlert: appState.alert >>- eitherRight
+  )
 }
 
 
@@ -228,6 +234,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .places(.refresh): return .updatePlaces
   case let .errorAlert(ea):
     return .errorAlert(ea)
+  case let .errorReportingAlert(era):
+    return .errorReportingAlert(era)
   }
 }
 

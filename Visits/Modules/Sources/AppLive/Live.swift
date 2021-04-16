@@ -3,6 +3,7 @@ import Types
 
 import APIEnvironmentLive
 import BranchEnvironmentLive
+import ErrorReportingEnvironmentLive
 import HapticFeedbackEnvironmentLive
 import HyperTrackEnvironmentLive
 import MapEnvironmentLive
@@ -16,6 +17,7 @@ public extension AppEnvironment {
   static let live = Self(
     api: .live,
     deepLink: .live,
+    errorReporting: .live,
     hapticFeedback: .live,
     hyperTrack: .live,
     maps: .live,
@@ -29,6 +31,7 @@ public extension AppEnvironment {
     Self(
       api: .live,
       deepLink: .live,
+      errorReporting: .printing,
       hapticFeedback: .live,
       hyperTrack: .simulator(deviceID: deviceID, publishableKey: publishableKey),
       maps: .live,

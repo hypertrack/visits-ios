@@ -3,6 +3,7 @@ import AppArchitecture
 import BranchEnvironment
 import Combine
 import ComposableArchitecture
+import ErrorReportingEnvironment
 import DeepLinkLogic
 import ErrorAlertLogic
 import HapticFeedbackEnvironment
@@ -20,11 +21,10 @@ import UIKit
 
 // MARK: - State
 
-
 public struct AppState: Equatable {
   public var network: Network
   public var flow: AppFlow
-  public var alert: AlertState<ErrorAlertAction>?
+  public var alert: Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?
   
   public static let initialState = AppState(network: .offline, flow: .created, alert: nil)
 }
@@ -58,6 +58,7 @@ public enum AppAction: Equatable {
   // OS
   case copyToPasteboard(NonEmptyString)
   case osFinishedLaunching
+  case shakeDetected
   case willEnterForeground
   // Sign Up
   //   Form
@@ -146,6 +147,7 @@ public enum AppAction: Equatable {
   case stateRestored
   // Alert
   case errorAlert(ErrorAlertAction)
+  case errorReportingAlert(ErrorReportingAlertAction)
 }
 
 // MARK: - Environment
@@ -153,6 +155,7 @@ public enum AppAction: Equatable {
 public struct AppEnvironment {
   public var api: APIEnvironment
   public var deepLink: BranchEnvironment
+  public var errorReporting: ErrorReportingEnvironment
   public var hapticFeedback: HapticFeedbackEnvironment
   public var hyperTrack: HyperTrackEnvironment
   public var maps: MapEnvironment
@@ -164,6 +167,7 @@ public struct AppEnvironment {
   public init(
     api: APIEnvironment,
     deepLink: BranchEnvironment,
+    errorReporting: ErrorReportingEnvironment,
     hapticFeedback: HapticFeedbackEnvironment,
     hyperTrack: HyperTrackEnvironment,
     maps: MapEnvironment,
@@ -174,6 +178,7 @@ public struct AppEnvironment {
   ) {
     self.api = api
     self.deepLink = deepLink
+    self.errorReporting = errorReporting
     self.hapticFeedback = hapticFeedback
     self.hyperTrack = hyperTrack
     self.maps = maps
@@ -388,8 +393,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
             return Effect(value: AppAction.autoSignInFailed(.error(cognitoError)))
           case let .failure(.network(network)):
             return Effect(value: AppAction.autoSignInFailed(.network(network)))
-          case let .failure(.unknown(urlError)):
-            return Effect(value: AppAction.autoSignInFailed(.unknown(urlError)))
+          case let .failure(.unknown(d, r)):
+            return Effect(value: AppAction.autoSignInFailed(.unknown(d, r)))
           case let .failure(.api(e)):
             return Effect(value: AppAction.autoSignInFailed(.api(e)))
           case let .failure(.server(e)):
@@ -689,8 +694,8 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
               return Effect(value: AppAction.autoSignInFailed(.error(error)))
             case let .failure(.network(error)):
               return Effect(value: AppAction.autoSignInFailed(.network(error)))
-            case let .failure(.unknown(response)):
-              return Effect(value: AppAction.autoSignInFailed(.unknown(response)))
+            case let .failure(.unknown(d, r)):
+              return Effect(value: AppAction.autoSignInFailed(.unknown(d, r)))
             case let .failure(.api(e)):
               return Effect(value: AppAction.autoSignInFailed(.api(e)))
             case let .failure(.server(e)):
@@ -1148,6 +1153,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
 .autosave()
 .refreshVisitsAndHistoryOnVisitsTransition()
 .startTrackingOnFirstRunExperience()
+.reportErrors()
 
 extension Reducer where State == AppState, Action == AppAction, Environment == SystemEnvironment<AppEnvironment> {
   func refreshVisitsAndHistoryOnVisitsTransition() -> Reducer {

@@ -8,7 +8,7 @@ public enum APIError<KnownError: Equatable>: Equatable, Error {
   case api(HyperTrackAPIError)
   case server(HyperTrackCriticalAPIError)
   case network(URLError)
-  case unknown(HTTPURLResponse)
+  case unknown(Data, HTTPURLResponse)
   
   public func map<T>(_ f: (KnownError) -> T) -> APIError<T> {
     switch self {
@@ -16,7 +16,7 @@ public enum APIError<KnownError: Equatable>: Equatable, Error {
     case let .api(api):          return .api(api)
     case let .server(server):    return .server(server)
     case let .network(error):    return .network(error)
-    case let .unknown(response): return .unknown(response)
+    case let .unknown(data, response): return .unknown(data, response)
     }
   }
 }
@@ -27,7 +27,7 @@ public func toNever<KnownError>(_ e: APIError<KnownError>) -> APIError<Never>? {
   case let .api(e):     return .api(e)
   case let .server(e):  return .server(e)
   case let .network(e): return .network(e)
-  case let .unknown(e): return .unknown(e)
+  case let .unknown(d, r): return .unknown(d, r)
   }
 }
 
@@ -36,7 +36,7 @@ public func fromNever<KnownError>(_ e: APIError<Never>) -> APIError<KnownError> 
   case let .api(e):     return .api(e)
   case let .server(e):  return .server(e)
   case let .network(e): return .network(e)
-  case let .unknown(e): return .unknown(e)
+  case let .unknown(d, r): return .unknown(d, r)
   }
 }
 

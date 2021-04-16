@@ -3,6 +3,7 @@ import ComposableArchitecture
 import Prelude
 import Types
 
+
 public enum DeepLinkState: Equatable {
   case firstRun
   case firstScreen

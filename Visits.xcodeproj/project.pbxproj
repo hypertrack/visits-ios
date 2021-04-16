@@ -15,6 +15,7 @@
 		3161D12E2512A2B700AAFCCD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3161D12D2512A2B700AAFCCD /* Preview Assets.xcassets */; };
 		3161D1312512A2B700AAFCCD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3161D12F2512A2B700AAFCCD /* LaunchScreen.storyboard */; };
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
+		31790D102628B31100281337 /* ShakeDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31790D0F2628B31100281337 /* ShakeDetection.swift */; };
 		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		3161D1302512A2B700AAFCCD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3161D1322512A2B700AAFCCD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3161D16C2512A65100AAFCCD /* Visits.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Visits.entitlements; sourceTree = "<group>"; };
+		31790D0F2628B31100281337 /* ShakeDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeDetection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				3161D16C2512A65100AAFCCD /* Visits.entitlements */,
 				3161D1242512A2B500AAFCCD /* AppDelegate.swift */,
 				3161D1262512A2B500AAFCCD /* SceneDelegate.swift */,
+				31790D0F2628B31100281337 /* ShakeDetection.swift */,
 				31072BA52549F8F900ECBA34 /* Store.swift */,
 				3161D12A2512A2B700AAFCCD /* Assets.xcassets */,
 				3161D12F2512A2B700AAFCCD /* LaunchScreen.storyboard */,
@@ -188,6 +191,7 @@
 			files = (
 				31072BA62549F8F900ECBA34 /* Store.swift in Sources */,
 				3161D1252512A2B500AAFCCD /* AppDelegate.swift in Sources */,
+				31790D102628B31100281337 /* ShakeDetection.swift in Sources */,
 				3161D1272512A2B500AAFCCD /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

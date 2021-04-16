@@ -34,12 +34,18 @@ public enum OrderOrOrders: Equatable {
 public struct AppScreen: View {
   public struct State {
     public var screen: Screen
-    public var alert: AlertState<ErrorAlertAction>?
+    public var errorAlert: AlertState<ErrorAlertAction>?
+    public var errorReportingAlert: AlertState<ErrorReportingAlertAction>?
     
     
-    public init(screen: AppScreen.Screen, alert: AlertState<ErrorAlertAction>? = nil) {
+    public init(
+      screen: AppScreen.Screen,
+      errorAlert: AlertState<ErrorAlertAction>? = nil,
+      errorReportingAlert: AlertState<ErrorReportingAlertAction>? = nil
+    ) {
       self.screen = screen
-      self.alert = alert
+      self.errorAlert = errorAlert
+      self.errorReportingAlert = errorReportingAlert
     }
   }
   public enum Screen {
@@ -66,6 +72,7 @@ public struct AppScreen: View {
     case tab(TabSelection)
     case map(String)
     case errorAlert(ErrorAlertAction)
+    case errorReportingAlert(ErrorReportingAlertAction)
   }
   
   let store: Store<State, Action>
@@ -74,46 +81,53 @@ public struct AppScreen: View {
   
   public var body: some View {
     WithViewStore(store) { viewStore in
-      switch viewStore.state.screen {
-      case .loading:
-        LoadingScreen()
-      case let .signUpForm(s):
-        SignUpFormScreen(state: s) {
-          viewStore.send(.signUpForm($0))
+      Group {
+        switch viewStore.state.screen {
+        case .loading:
+          LoadingScreen()
+        case let .signUpForm(s):
+          SignUpFormScreen(state: s) {
+            viewStore.send(.signUpForm($0))
+          }
+          
+        case let .signUpQuestions(s):
+          SignUpQuestionsScreen(state: s) {
+            viewStore.send(.signUpQuestions($0))
+          }
+        case let .signUpVerification(s):
+          SignUpVerificationScreen(state: s) {
+            viewStore.send(.signUpVerification($0))
+          }
+        case let .signIn(s):
+          SignInScreen(state: s) {
+            viewStore.send(.signIn($0))
+          }
+        case let .driverID(s):
+          DriverIDScreen(state: s) {
+            viewStore.send(.driverID($0))
+          }
+        case let .blocker(s):
+          Blocker(state: s) {
+            viewStore.send(.blocker($0))
+          }
+        case let .main(s, p, r, h, mv, drID, deID, sel):
+          MainBlock(
+            state: (s, p, r, h, mv, drID, deID, sel),
+            sendMap: { viewStore.send(.map($0)) },
+            sendOrder: { viewStore.send(.order($0)) },
+            sendOrders: { viewStore.send(.orders($0)) },
+            sendPlaces: { viewStore.send(.places($0)) },
+            sendTab: { viewStore.send(.tab($0)) }
+          )
         }
-        
-      case let .signUpQuestions(s):
-        SignUpQuestionsScreen(state: s) {
-          viewStore.send(.signUpQuestions($0))
-        }
-      case let .signUpVerification(s):
-        SignUpVerificationScreen(state: s) {
-          viewStore.send(.signUpVerification($0))
-        }
-      case let .signIn(s):
-        SignInScreen(state: s) {
-          viewStore.send(.signIn($0))
-        }
-      case let .driverID(s):
-        DriverIDScreen(state: s) {
-          viewStore.send(.driverID($0))
-        }
-      case let .blocker(s):
-        Blocker(state: s) {
-          viewStore.send(.blocker($0))
-        }
-      case let .main(s, p, r, h, mv, drID, deID, sel):
-        MainBlock(
-          state: (s, p, r, h, mv, drID, deID, sel),
-          sendMap: { viewStore.send(.map($0)) },
-          sendOrder: { viewStore.send(.order($0)) },
-          sendOrders: { viewStore.send(.orders($0)) },
-          sendPlaces: { viewStore.send(.places($0)) },
-          sendTab: { viewStore.send(.tab($0)) }
-        )
+      }
+      .modifier(let: viewStore.errorAlert) { view, _ in
+        view.alert(self.store.scope(state: \.errorAlert, action: AppScreen.Action.errorAlert), dismiss: ErrorAlertAction.ok)
+      }
+      .modifier(let: viewStore.errorReportingAlert) { view, _ in
+        view.alert(self.store.scope(state: \.errorReportingAlert, action: AppScreen.Action.errorReportingAlert), dismiss: ErrorReportingAlertAction.no)
       }
     }
-    .alert(self.store.scope(state: \.alert, action: AppScreen.Action.errorAlert), dismiss: ErrorAlertAction.ok)
   }
 }
 

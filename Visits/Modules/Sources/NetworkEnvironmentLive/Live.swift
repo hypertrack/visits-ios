@@ -3,6 +3,7 @@ import ComposableArchitecture
 import LogEnvironment
 import NetworkEnvironment
 import Network
+import Types
 
 
 public extension NetworkEnvironment {

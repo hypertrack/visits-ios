@@ -35,11 +35,14 @@ let targets: [Target] = [
   .target(name: "Views"),
   
   // Environment
-  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
+  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, nonEmpty, "Tagged", "Types"]),
   .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
-  .target(name: "BranchEnvironment",             dependencies: [architecture, nonEmpty, "Types"]),
-  .target(name: "BranchEnvironmentLive",         dependencies: ["Branch", "BranchEnvironment", "LogEnvironment"]),
+  .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types"]),
+  .target(name: "BranchEnvironmentLive",           dependencies: ["Branch", "BranchEnvironment", "LogEnvironment"]),
+  .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
+  .target(name: "ErrorReportingEnvironment",       dependencies: [architecture, nonEmpty, "Tagged", "Types"]),
+  .target(name: "ErrorReportingEnvironmentLive",   dependencies: ["ErrorReportingEnvironment", "LogEnvironment", "Sentry"]),
   .target(name: "HapticFeedbackEnvironment",       dependencies: [architecture]),
   .target(name: "HapticFeedbackEnvironmentLive",   dependencies: ["HapticFeedbackEnvironment", "LogEnvironment"]),
   .target(name: "HyperTrackEnvironment",           dependencies: [architecture, "Prelude", "Types"]),
@@ -47,16 +50,15 @@ let targets: [Target] = [
   .target(name: "LogEnvironment",                  dependencies: [architecture]),
   .target(name: "MapEnvironment",                  dependencies: [architecture, "Prelude", "Types"]),
   .target(name: "MapEnvironmentLive",              dependencies: ["LogEnvironment", "MapEnvironment"]),
-  .target(name: "NetworkEnvironment",              dependencies: [architecture]),
-  .target(name: "NetworkEnvironmentLive",          dependencies: ["LogEnvironment", "NetworkEnvironment"]),
+  .target(name: "NetworkEnvironment",              dependencies: [architecture, "Types"]),
+  .target(name: "NetworkEnvironmentLive",          dependencies: ["LogEnvironment", "NetworkEnvironment", "Types"]),
   .target(name: "PasteboardEnvironment",           dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "PasteboardEnvironmentLive",       dependencies: ["LogEnvironment", "PasteboardEnvironment"]),
   .target(name: "PushEnvironment",                 dependencies: [architecture]),
-  .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Prelude", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "BranchEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", architecture, "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "MapEnvironment", "NetworkEnvironment", nonEmpty, "PasteboardEnvironment", "Prelude", "PushEnvironment", "StateRestorationEnvironment", "Tagged", "Types"]),
   .target(name: "ErrorAlertLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "DeepLinkLogic",                   dependencies: [architecture, "AppArchitecture", "Prelude", "Types"]),
   // Ties everything together
@@ -81,8 +83,9 @@ let package = Package(
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.16.0")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0-rc.1")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",
-                                                                                                              .revision("b4f37767336e4bb98bffa3e05fad579d91c2b2d4")),
+                                                                                                              .exact("0.3.1")),
     .package(name: "Prelude",    url: "https://github.com/hypertrack/prelude-swift",                          .exact("0.0.12")),
+    .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
     .package(name: "Tagged",     url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.5.0"))
   ],
   targets: targets + testTargets
