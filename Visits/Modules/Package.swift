@@ -26,7 +26,7 @@ let targets: [Target] = [
   .target(name: "OrderScreen",                     dependencies: [architecture, nonEmpty, "Types", "Views"]),
   .target(name: "OrdersScreen",                    dependencies: [architecture, "Views"]),
   .target(name: "PlacesScreen",                    dependencies: [architecture, "Types", "Views"]),
-  .target(name: "ProfileScreen",                   dependencies: ["Views"]),
+  .target(name: "ProfileScreen",                   dependencies: [nonEmpty, "Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Views"]),
   .target(name: "SignUpFormScreen",                dependencies: ["Views"]),
   .target(name: "SignUpQuestionsScreen",           dependencies: [nonEmpty, "Prelude", "Tagged", "Types", "Views"]),

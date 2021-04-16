@@ -236,6 +236,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
     return .errorAlert(ea)
   case let .errorReportingAlert(era):
     return .errorReportingAlert(era)
+  case let .profile(.copyTextPressed(t)): return .copyToPasteboard(t)
   }
 }
 

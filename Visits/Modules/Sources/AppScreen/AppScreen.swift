@@ -69,6 +69,7 @@ public struct AppScreen: View {
     case orders(OrdersScreen.Action)
     case order(OrderScreen.Action)
     case places(PlacesScreen.Action)
+    case profile(ProfileScreen.Action)
     case tab(TabSelection)
     case map(String)
     case errorAlert(ErrorAlertAction)
@@ -117,6 +118,7 @@ public struct AppScreen: View {
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
             sendPlaces: { viewStore.send(.places($0)) },
+            sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) }
           )
         }
@@ -146,6 +148,7 @@ struct MainBlock: View {
   let sendOrder: (OrderScreen.Action) -> Void
   let sendOrders: (OrdersScreen.Action) -> Void
   let sendPlaces: (PlacesScreen.Action) -> Void
+  let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
   
   var body: some View {
@@ -232,13 +235,15 @@ struct MainBlock: View {
       
       ProfileScreen(
         state: .init(
-          id: state.driverID.string,
-          name: "",
-          deviceID: state.deviceID.string,
+          id: state.driverID.rawValue,
+          name: nil,
+          deviceID: state.deviceID.rawValue,
           metadata: [:],
           appVersion: "2.5.0 (43)"
         )
-      )
+      ) {
+        sendProfile($0)
+      }
       .tabItem {
         Image(systemName: "person")
         Text("Profile")
