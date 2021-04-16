@@ -253,7 +253,7 @@ struct PlacesScreen_Previews: PreviewProvider {
             metadata: ["stop_name":"One"],
             shape: .circle(
               .init(
-                center: .init(
+                center: Coordinate(
                   latitude: 35.54,
                   longitude: 42.654
                 )!,
@@ -270,7 +270,7 @@ struct PlacesScreen_Previews: PreviewProvider {
             metadata: [:],
             shape: .circle(
               .init(
-                center: .init(
+                center: Coordinate(
                   latitude: 35.54,
                   longitude: 42.654
                 )!,
@@ -290,7 +290,7 @@ struct PlacesScreen_Previews: PreviewProvider {
             metadata: [:],
             shape: .circle(
               .init(
-                center: .init(
+                center: Coordinate(
                   latitude: 35.54,
                   longitude: 42.654
                 )!,
@@ -310,7 +310,7 @@ struct PlacesScreen_Previews: PreviewProvider {
             metadata: ["name":"Home"],
             shape: .circle(
               .init(
-                center: .init(
+                center: Coordinate(
                   latitude: 35.54,
                   longitude: 42.654
                 )!,
@@ -327,7 +327,7 @@ struct PlacesScreen_Previews: PreviewProvider {
             metadata: [:],
             shape: .circle(
               .init(
-                center: .init(
+                center: Coordinate(
                   latitude: 35.54,
                   longitude: 42.654
                 )!,
@@ -502,7 +502,7 @@ struct PlaceScreen_Previews: PreviewProvider {
           metadata: ["stop_name":"One", "title": "something"],
           shape: .circle(
             .init(
-              center: .init(
+              center: Coordinate(
                 latitude: 37.789784,
                 longitude: -122.396867
               )!,
