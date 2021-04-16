@@ -239,7 +239,7 @@ struct MainBlock: View {
           name: nil,
           deviceID: state.deviceID.rawValue,
           metadata: [:],
-          appVersion: "2.5.0 (43)"
+          appVersion: "2.5.0 (44)"
         )
       ) {
         sendProfile($0)
