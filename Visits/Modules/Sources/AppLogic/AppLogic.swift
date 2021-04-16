@@ -1014,9 +1014,6 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         var effects: [Effect<AppAction, Never>] = [
           environment.hyperTrack
             .startTracking()
-            .fireAndForget(),
-          environment.hyperTrack
-            .addGeotag(.clockIn)
             .fireAndForget()
         ]
         if r.history == .notRefreshingHistory {
@@ -1034,9 +1031,6 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
         var effects: [Effect<AppAction, Never>] = [
           environment.hyperTrack
             .stopTracking()
-            .fireAndForget(),
-          environment.hyperTrack
-            .addGeotag(.clockOut)
             .fireAndForget()
         ]
         if r.history == .refreshingHistory {

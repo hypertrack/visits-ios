@@ -31,10 +31,6 @@ public extension HyperTrackEnvironment {
               C.type.rawValue: C.checkOut.rawValue,
               C.orderNote.rawValue: orderNote?.string ?? ""
             ]
-        case .clockIn:
-          metadata = [C.type.rawValue: C.clockIn.rawValue]
-        case .clockOut:
-          metadata = [C.type.rawValue: C.clockOut.rawValue]
         case let .pickUp(id, s):
           metadata =
             [
@@ -185,8 +181,6 @@ enum C: String {
   case cancel = "VISIT_MARKED_CANCELED"
   case checkIn = "VISIT_ADDED"
   case checkOut = "VISIT_MARKED_COMPLETE"
-  case clockIn = "CLOCK_IN"
-  case clockOut = "CLOCK_OUT"
   case driverID = "driver_id"
   case geofenceID = "geofence_id"
   case orderID = "order_id"
