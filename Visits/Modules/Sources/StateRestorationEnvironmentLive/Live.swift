@@ -117,8 +117,8 @@ func restoredStateFrom(
     return .driverID(driverID, publishableKey)
   
   // Main screen
-  case let (.main, _, .some(publishableKey), .some(driverID), .some(orders), places, tabSelection, pushStatus, experience):
-    return .main(orders, places ?? [], tabSelection ?? .defaultTab, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown), experience ?? .regular)
+  case let (.main, _, .some(publishableKey), .some(driverID), orders, places, tabSelection, pushStatus, experience):
+    return .main(orders ?? [], places ?? [], tabSelection ?? .defaultTab, publishableKey, driverID, pushStatus ?? .dialogSplash(.notShown), experience ?? .regular)
   
   // State restoration failed, back to the starting screen
   default: return nil
