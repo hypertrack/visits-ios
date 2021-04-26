@@ -79,7 +79,7 @@ let package = Package(
     .library(name: $0.name, targets: [$0.name])
   },
   dependencies: [
-    .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.38.0")),
+    .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.39.2")),
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.16.0")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",
