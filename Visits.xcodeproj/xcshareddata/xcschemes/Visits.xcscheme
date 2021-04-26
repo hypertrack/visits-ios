@@ -41,14 +41,12 @@
             </BuildableReference>
          </TestableReference>
          <TestableReference
-            skipped = "NO"
-            parallelizable = "YES"
-            testExecutionOrdering = "random">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "GeoJSONTests"
-               BuildableName = "GeoJSONTests"
-               BlueprintName = "GeoJSONTests"
+               BlueprintIdentifier = "TypesTests"
+               BuildableName = "TypesTests"
+               BlueprintName = "TypesTests"
                ReferencedContainer = "container:Visits/Modules">
             </BuildableReference>
          </TestableReference>
