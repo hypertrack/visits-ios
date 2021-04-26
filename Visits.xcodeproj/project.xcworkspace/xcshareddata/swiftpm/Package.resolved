@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "f6edb8ec6f1a12114867164d36f2992372fb7e81",
-          "version": "4.8.0-rc.1"
+          "revision": "26bafa8382ad9ec6ee9a66edc3fff0e5c457b7bc",
+          "version": "4.8.0"
         }
       },
       {
