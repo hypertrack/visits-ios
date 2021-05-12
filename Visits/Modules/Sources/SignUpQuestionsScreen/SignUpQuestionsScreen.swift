@@ -7,67 +7,6 @@ import Views
 
 
 public struct SignUpQuestionsScreen: View {
-  
-  public enum QuestionsStatus: Equatable {
-    case signingUp(BusinessManages, ManagesFor, SignUpRequest)
-    case answering(Either<BusinessManages, ManagesFor>?, Either<SignUpQuestionsFocus, CognitoError>?)
-  }
-  
-  public struct State: Equatable {
-    let questionsStatus: QuestionsStatus
-    var questionsAnswered: Bool {
-      switch questionsStatus {
-      case .signingUp: return true
-      case .answering: return false
-      }
-    }
-    var questionSelected: SignUpQuestionsFocus? {
-      switch questionsStatus {
-      case let .answering(_, .some(.left(q))),
-           let .signingUp(_, _, .notSent(.some(q), _)): return q
-      default: return nil
-      }
-    }
-    var signingUp: Bool {
-      switch questionsStatus {
-      case .signingUp(_, _, .inFlight): return true
-      default: return false
-      }
-    }
-    
-    var businessManages: BusinessManages? {
-      switch questionsStatus {
-      case let .signingUp(bm, _, _),
-           let .answering(.left(bm), _): return bm
-      default:
-        return nil
-      }
-    }
-    
-    var managesFor: ManagesFor? {
-      switch questionsStatus {
-      case let .signingUp(_, mf, _),
-           let .answering(.right(mf), _):
-        return mf
-      default:
-        return nil
-      }
-    }
-    
-    var error: CognitoError? {
-      switch questionsStatus {
-      case let .signingUp(_, _, .notSent(_, .some(er))),
-           let .answering(_, .right(er)):
-        return er
-      default:
-        return nil
-      }
-    }
-    
-    public init(questionsStatus: QuestionsStatus) {
-      self.questionsStatus = questionsStatus
-    }
-  }
   public enum Action: Equatable {
     case businessManagesTapped
     case managesForTapped
@@ -79,12 +18,57 @@ public struct SignUpQuestionsScreen: View {
     case cancelSignUpTapped
   }
   
-  let state: State
+  let state: SignUpState.Questions.Status
   let send: (Action) -> Void
   @Environment(\.colorScheme) var colorScheme
   
+  var questionsAnswered: Bool {
+    switch state {
+    case     .signingUp:   return true
+    case let .answering(a):
+      switch (a.businessManages, a.managesFor) {
+      case (.some, .some): return true
+      default:             return false
+      }
+    }
+  }
+  
+  var questionSelected: SignUpState.Questions.Status.Answering.Focus? {
+    switch state {
+    case let .answering(a): return a.focus
+    case     .signingUp:    return nil
+    }
+  }
+  var signingUp: Bool {
+    switch state {
+    case .signingUp: return true
+    case .answering: return false
+    }
+  }
+  
+  var businessManages: BusinessManages? {
+    switch state {
+    case let .answering(a): return a.businessManages
+    case let .signingUp(s): return s.businessManages
+    }
+  }
+  
+  var managesFor: ManagesFor? {
+    switch state {
+    case let .answering(a): return a.managesFor
+    case let .signingUp(s): return s.managesFor
+    }
+  }
+  
+  var error: CognitoError? {
+    switch state {
+    case let .answering(a): return a.error
+    case     .signingUp:    return nil
+    }
+  }
+  
   public init(
-    state: State,
+    state: SignUpState.Questions.Status,
     send: @escaping (Action) -> Void
   ) {
     self.state = state
@@ -104,7 +88,7 @@ public struct SignUpQuestionsScreen: View {
             .cornerRadius(4)
           Rectangle()
             .frame(width: 24, height: 8)
-            .foregroundColor(state.questionsAnswered ? Color.dodgerBlue : .ghost)
+            .foregroundColor(questionsAnswered ? Color.dodgerBlue : .ghost)
             .animation(.default)
             .cornerRadius(4)
         }
@@ -114,8 +98,8 @@ public struct SignUpQuestionsScreen: View {
               Text("My business manages:")
                 .font(.normalMedium)
               Spacer()
-              Button((state.businessManages.map(toAnswer(_:)) ?? answerNotSet).rawValue) {
-                if state.questionSelected == .some(.businessManages) {
+              Button((businessManages.map(toAnswer(_:)) ?? answerNotSet).rawValue) {
+                if questionSelected == .some(.businessManages) {
                   send(.deselectQuestions)
                 } else {
                   send(.businessManagesTapped)
@@ -126,13 +110,13 @@ public struct SignUpQuestionsScreen: View {
               .lineLimit(1)
             }
             .padding(.top, 13)
-            .padding(.bottom, state.questionSelected == .some(.businessManages) ? 0 : CGFloat(13))
+            .padding(.bottom, questionSelected == .some(.businessManages) ? 0 : CGFloat(13))
             .padding(.horizontal, 16)
-            if state.questionSelected == .some(.businessManages) {
+            if questionSelected == .some(.businessManages) {
               HStack {
                 Picker(
                   selection: Binding<BusinessManagesQuestions>(
-                    get: { toQuestion(state.businessManages) },
+                    get: { toQuestion(businessManages) },
                     set: { send(.businessManagesChanged(fromQuestions($0))) }
                   ),
                   label: Text("")
@@ -159,8 +143,8 @@ public struct SignUpQuestionsScreen: View {
               Text("for")
                 .font(.normalMedium)
               Spacer()
-              Button((state.managesFor.map(toAnswer(_:)) ?? answerNotSet).rawValue) {
-                if state.questionSelected == .some(.managesFor) {
+              Button((managesFor.map(toAnswer(_:)) ?? answerNotSet).rawValue) {
+                if questionSelected == .some(.managesFor) {
                   send(.deselectQuestions)
                 } else {
                   send(.managesForTapped)
@@ -171,13 +155,13 @@ public struct SignUpQuestionsScreen: View {
               .lineLimit(1)
             }
             .padding(.top, 13)
-            .padding(.bottom, state.questionSelected == .some(.managesFor) ? 0 : CGFloat(13))
+            .padding(.bottom, questionSelected == .some(.managesFor) ? 0 : CGFloat(13))
             .padding(.horizontal, 16)
-            if state.questionSelected == .some(.managesFor) {
+            if questionSelected == .some(.managesFor) {
               HStack {
                 Picker(
                   selection: Binding<ManagesForQuestions>(
-                    get: { toQuestion(state.managesFor) },
+                    get: { toQuestion(managesFor) },
                     set: { send(.managesForChanged(fromQuestions($0))) }
                   ),
                   label: Text("")
@@ -197,7 +181,7 @@ public struct SignUpQuestionsScreen: View {
           .frame(width: geometry.size.width)
           .background(colorScheme == .dark ? Color.gunPowder : .white)
         }
-        if let error = state.error {
+        if let error = error {
           HStack {
             Text(error.string)
               .lineLimit(3)
@@ -214,13 +198,13 @@ public struct SignUpQuestionsScreen: View {
           .frame(width: 55)
           .padding(.trailing, 20)
           PrimaryButton(
-            variant: state.questionsAnswered ?
-              state.signingUp ? .destructive() : .normal(title: "Accept & Continue")
+            variant: questionsAnswered ?
+              signingUp ? .destructive() : .normal(title: "Accept & Continue")
               : .disabled(title: "Accept & Continue"),
-            showActivityIndicator: state.signingUp,
+            showActivityIndicator: signingUp,
             truncationMode: nil
           ) {
-            if state.signingUp {
+            if signingUp {
               send(.cancelSignUpTapped)
             } else {
               send(.acceptButtonTapped)
@@ -330,11 +314,8 @@ func toAnswer(_ mf: ManagesFor) -> NonEmptyString {
 struct SignUpQuestionsScreen_Previews: PreviewProvider {
   static var previews: some View {
     SignUpQuestionsScreen(
-      state: .init(
-        questionsStatus: .answering(
-          .right(.myCustomersFleet),
-          .left(.businessManages)
-        )
+      state: .answering(
+        .init(businessManages: .deliveries, managesFor: .myCustomersFleet)
       ),
       send: {_ in }
     )

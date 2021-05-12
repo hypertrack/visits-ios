@@ -13,7 +13,8 @@ public extension HyperTrackEnvironment {
     makeSDK: { _ in .none},
     openSettings: { .none },
     registerForRemoteNotifications: { .none },
-    requestLocationPermissions: { .none },
+    requestAlwaysLocationPermissions: { .none },
+    requestWhenInUseLocationPermissions: { .none },
     requestMotionPermissions: { .none },
     setDriverID: { _ in .none},
     startTracking: { .none },
@@ -23,10 +24,10 @@ public extension HyperTrackEnvironment {
   )
 
   static func simulator(deviceID: DeviceID, publishableKey: PublishableKey) -> Self {
-    let tracking = (SDKStatus.unlocked(deviceID, .running), Permissions.granted)
-    let notTracking = (SDKStatus.unlocked(deviceID, .stopped), Permissions.granted)
+    var p = Permissions(locationAccuracy: .full, locationPermissions: .notDetermined, motionPermissions: .notDetermined)
+    var s = SDKStatus.locked
     
-    let statusUpdateSubject = PassthroughSubject<(SDKStatus, Permissions), Never>()
+    let statusUpdateSubject = PassthroughSubject<SDKStatusUpdate, Never>()
 
     return Self(
       addGeotag: noop.addGeotag,
@@ -34,15 +35,48 @@ public extension HyperTrackEnvironment {
       didFailToRegisterForRemoteNotificationsWithError: noop.didFailToRegisterForRemoteNotificationsWithError,
       didReceiveRemoteNotification: noop.didReceiveRemoteNotification,
       didRegisterForRemoteNotificationsWithDeviceToken: noop.didRegisterForRemoteNotificationsWithDeviceToken,
-      makeSDK: { _ in Effect(value: notTracking) },
+      makeSDK: { _ in
+        s = .unlocked(deviceID, .stopped)
+        
+        return Effect(value: .init(permissions: p, status: s))
+      },
       openSettings: noop.openSettings,
       registerForRemoteNotifications: noop.registerForRemoteNotifications,
-      requestLocationPermissions: noop.requestLocationPermissions,
-      requestMotionPermissions: { Effect(value: notTracking) },
+      requestAlwaysLocationPermissions: {
+        p.locationPermissions = .authorizedAlways
+        statusUpdateSubject.send(.init(permissions: p, status: s))
+        
+        return .none
+      },
+      requestWhenInUseLocationPermissions: {
+        p.locationPermissions = .authorizedWhenInUse
+        statusUpdateSubject.send(.init(permissions: p, status: s))
+        
+        return .none
+      },
+      requestMotionPermissions: {
+        p.motionPermissions = .authorized
+        
+        return Effect(value: .init(permissions: p, status: s))
+      },
       setDriverID: noop.setDriverID,
-      startTracking: { statusUpdateSubject.send(tracking); return .none },
-      stopTracking: { statusUpdateSubject.send(notTracking); return .none },
-      subscribeToStatusUpdates: { statusUpdateSubject.eraseToEffect() },
+      startTracking: {
+        s = .unlocked(deviceID, .running)
+        statusUpdateSubject.send(.init(permissions: p, status: s))
+        
+        return .none
+      },
+      stopTracking: {
+        s = .unlocked(deviceID, .stopped)
+        statusUpdateSubject.send(.init(permissions: p, status: s))
+        
+        return .none
+      },
+      subscribeToStatusUpdates: {
+        .merge(
+          statusUpdateSubject.eraseToEffect(),
+          .fireAndForget { statusUpdateSubject.send(.init(permissions: p, status: s)) })
+      },
       syncDeviceSettings: noop.syncDeviceSettings
     )
   }

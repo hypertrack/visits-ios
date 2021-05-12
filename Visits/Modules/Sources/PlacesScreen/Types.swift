@@ -1,8 +1,11 @@
-//
-//  File.swift
-//  
-//
-//  Created by Eugene Tulushev on 12.04.2021.
-//
+import Types
 
-import Foundation
+struct PlacesSection {
+  struct PlaceAndTime {
+    let place: Place
+    let time: String?
+  }
+  
+  let header: String
+  let places: [PlaceAndTime]
+}

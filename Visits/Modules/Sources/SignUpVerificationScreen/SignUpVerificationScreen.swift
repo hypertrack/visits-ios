@@ -1,42 +1,9 @@
 import SwiftUI
+import Types
 import Views
 
 public struct SignUpVerificationScreen: View {
-  public struct State: Equatable {
-    let firstField: String
-    let secondField: String
-    let thirdField: String
-    let fourthField: String
-    let fifthField: String
-    let sixthField: String
-    let fieldInFocus: Focus
-    let verifying: Bool
-    let error: String
-    
-    public enum Focus { case none, first, second, third, fourth, fifth, sixth }
-    
-    public init(
-      firstField: String,
-      secondField: String,
-      thirdField: String,
-      fourthField: String,
-      fifthField: String,
-      sixthField: String,
-      fieldInFocus: SignUpVerificationScreen.State.Focus,
-      verifying: Bool,
-      error: String
-    ) {
-      self.firstField = firstField
-      self.secondField = secondField
-      self.thirdField = thirdField
-      self.fourthField = fourthField
-      self.fifthField = fifthField
-      self.sixthField = sixthField
-      self.fieldInFocus = fieldInFocus
-      self.verifying = verifying
-      self.error = error
-    }
-  }
+  private enum Focus { case none, first, second, third, fourth, fifth, sixth }
   
   public enum Action: Equatable {
     case firstFieldChanged(String)
@@ -52,16 +19,140 @@ public struct SignUpVerificationScreen: View {
     case signInTapped
   }
   
-  let state: State
+  let state: SignUpState.Verification.Status
   let send: (Action) -> Void
   @Environment(\.colorScheme) var colorScheme
   
   public init(
-    state: State,
+    state: SignUpState.Verification.Status,
     send: @escaping (Action) -> Void
   ) {
     self.state = state
     self.send = send
+  }
+  
+  var firstField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.first.rawValue)
+    case let .entering(eg):
+      switch eg.codeEntry {
+      case let .some(.one(d)),
+           let .some(.two(d, _)),
+           let .some(.three(d, _, _)),
+           let .some(.four(d, _, _, _)),
+           let .some(.five(d, _, _, _, _)):
+        return String(d.rawValue)
+      default:
+        return ""
+      }
+    }
+  }
+  
+  var secondField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.second.rawValue)
+    case let .entering(eg):
+      switch eg.codeEntry {
+      case let .some(.two(_, d)),
+           let .some(.three(_, d, _)),
+           let .some(.four(_, d, _, _)),
+           let .some(.five(_, d, _, _, _)):
+        return String(d.rawValue)
+      default:
+        return ""
+      }
+    }
+  }
+  
+  var thirdField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.third.rawValue)
+    case let .entering(eg):
+      switch eg.codeEntry {
+      case let .some(.three(_, _, d)),
+           let .some(.four(_, _, d, _)),
+           let .some(.five(_, _, d, _, _)):
+        return String(d.rawValue)
+      default:
+        return ""
+      }
+    }
+  }
+  
+  var fourthField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.fourth.rawValue)
+    case let .entering(eg):
+      switch eg.codeEntry {
+      case let .some(.four(_, _, _, d)),
+           let .some(.five(_, _, _, d, _)):
+        return String(d.rawValue)
+      default:
+        return ""
+      }
+    }
+  }
+  
+  var fifthField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.fifth.rawValue)
+    case let .entering(eg):
+      switch eg.codeEntry {
+      case let .some(.five(_, _, _, _, d)):
+        return String(d.rawValue)
+      default:
+        return ""
+      }
+    }
+  }
+  
+  var sixthField: String {
+    switch state {
+    case let .entered(ed):
+      return String(ed.verificationCode.sixth.rawValue)
+    default:
+      return ""
+    }
+  }
+  
+  private var fieldInFocus: Focus {
+    switch state {
+    case let .entering(eg):
+      switch (eg.codeEntry, eg.focus) {
+      case (.none,  .focused):   return .first
+      case (.one,   .focused):   return .second
+      case (.two,   .focused):   return .third
+      case (.three, .focused):   return .fourth
+      case (.four,  .focused):   return .fifth
+      case (.five,  .focused):   return .sixth
+      case (_,      .unfocused): return .none
+      }
+    case .entered:               return .none
+    }
+  }
+  
+  var verifying: Bool {
+    switch state {
+    case .entered:  return true
+    case let .entering(eg):
+      if eg.request != nil {
+        return true
+      } else {
+        return false
+      }
+    }
+  }
+  
+  var error: String {
+    switch state {
+    case let .entering(eg): return eg.error?.string ?? ""
+    case .entered:          return ""
+    }
   }
   
   public var body: some View {
@@ -77,56 +168,56 @@ public struct SignUpVerificationScreen: View {
       HStack {
         CodeDigitView(
           tag: "First Digit",
-          code: state.firstField,
+          code: firstField,
           codeChanged: { send(.firstFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .first,
+          inFocus: fieldInFocus == .first,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
         CodeDigitView(
           tag: "Second Digit",
-          code: state.secondField,
+          code: secondField,
           codeChanged: { send(.secondFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .second,
+          inFocus: fieldInFocus == .second,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
         CodeDigitView(
           tag: "Third Digit",
-          code: state.thirdField,
+          code: thirdField,
           codeChanged: { send(.thirdFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .third,
+          inFocus: fieldInFocus == .third,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
         .padding(.trailing, 8)
         CodeDigitView(
           tag: "Fourth Digit",
-          code: state.fourthField,
+          code: fourthField,
           codeChanged: { send(.fourthFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .fourth,
+          inFocus: fieldInFocus == .fourth,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
         CodeDigitView(
           tag: "Fifth Digit",
-          code: state.fifthField,
+          code: fifthField,
           codeChanged: { send(.fifthFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .fifth,
+          inFocus: fieldInFocus == .fifth,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
         CodeDigitView(
           tag: "Sixth Digit",
-          code: state.sixthField,
+          code: sixthField,
           codeChanged: { send(.sixthFieldChanged($0)) },
-          inFocus: state.fieldInFocus == .sixth,
+          inFocus: fieldInFocus == .sixth,
           tapped: { send(.fieldsTapped) },
           backspacePressed: { send(.backspacePressed) }
         )
       }
-      if !state.error.isEmpty {
-        Text(state.error)
+      if !error.isEmpty {
+        Text(error)
           .lineLimit(3)
           .font(.smallMedium)
           .foregroundColor(.radicalRed)
@@ -134,7 +225,7 @@ public struct SignUpVerificationScreen: View {
       }
       
       if #available(iOS 14.0, *) {
-        if state.verifying {
+        if verifying {
           ProgressView()
         }
       }
@@ -204,17 +295,7 @@ struct CodeDigitView: View {
 struct SignUpVerificationScreen_Previews: PreviewProvider {
   static var previews: some View {
     SignUpVerificationScreen(
-      state: .init(
-        firstField: "9",
-        secondField: "2",
-        thirdField: "4",
-        fourthField: "5",
-        fifthField: "1",
-        sixthField: "2",
-        fieldInFocus: .none,
-        verifying: false,
-        error: ""
-      ),
+      state: .entering(.init(codeEntry: .five(.four, .eight, .seven, .one, .five), focus: .focused)),
       send: { _ in }
     )
     .previewScheme(.dark)

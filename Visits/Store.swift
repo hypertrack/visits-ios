@@ -2,11 +2,12 @@ import AppLogic
 import AppLive
 import AppArchitecture
 import ComposableArchitecture
+import Types
 
 
 let store = Store<AppState, AppAction>(
-  initialState: .initialState,
   reducer: appReducer,
+  initialState: .waitingToFinishLaunching,
   environment: SystemEnvironment.live(environment: AppEnvironment.live)
 )
 

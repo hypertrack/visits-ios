@@ -7,13 +7,13 @@ import Types
 public struct ErrorReportingEnvironment {
   
   public var addBreadcrumb:         (BreadcrumbType, BreadcrumbMessage) -> Effect<Never, Never>
-  public var capture:               (Message)                           -> Effect<Never, Never>
+  public var capture:               (CaptureMessage)                    -> Effect<Never, Never>
   public var startErrorMonitoring:  ()                                  -> Effect<Never, Never>
   public var updateUser:            (DeviceID)                          -> Effect<Never, Never>
   
   public init(
     addBreadcrumb:        @escaping (BreadcrumbType, BreadcrumbMessage) -> Effect<Never, Never>,
-    capture:              @escaping (Message)                           -> Effect<Never, Never>,
+    capture:              @escaping (CaptureMessage)                    -> Effect<Never, Never>,
     startErrorMonitoring: @escaping ()                                  -> Effect<Never, Never>,
     updateUser:           @escaping (DeviceID)                          -> Effect<Never, Never>
   ) {
@@ -23,7 +23,3 @@ public struct ErrorReportingEnvironment {
     self.updateUser = updateUser
   }
 }
-
-public typealias BreadcrumbMessage = Tagged<(ErrorReportingEnvironment, addBreadcrumb: ()), NonEmptyString>
-public typealias Message           = Tagged<(ErrorReportingEnvironment, capture: ()),       NonEmptyString>
-public enum BreadcrumbType: String, Equatable { case state, action }

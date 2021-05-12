@@ -8,20 +8,23 @@ import Prelude
 import Types
 
 
-func reverseGeocode(_ coordinate: Coordinate) -> Effect<Address, Never> {
+func reverseGeocode(_ coordinate: Coordinate) -> Effect<GeocodedResult, Never> {
   .future { callback in
     let locaiton = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     CLGeocoder().reverseGeocodeLocation(locaiton) { placemarks, error in
       guard error == nil, let first = placemarks?.first else {
-        callback(.success(.none))
+        callback(.success(.init(coordinate: coordinate, address: .none)))
         return
       }
       callback(
         .success(
-          constructAddress(
-            fromSubThoroughfare: first.subThoroughfare,
-            thoroughfare: first.thoroughfare,
-            formattedAddress: first.formattedAddress
+          .init(
+            coordinate: coordinate,
+            address: constructAddress(
+              fromSubThoroughfare: first.subThoroughfare,
+              thoroughfare: first.thoroughfare,
+              formattedAddress: first.formattedAddress
+            )
           )
         )
       )

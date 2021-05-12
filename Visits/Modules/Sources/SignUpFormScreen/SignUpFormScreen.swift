@@ -1,36 +1,9 @@
 import SwiftUI
+import Types
 import Views
 
 public struct SignUpFormScreen: View {
-  public struct State: Equatable {
-    let name: String
-    let email: String
-    let password: String
-    let fieldInFocus: Focus
-    let formIsValid: Bool
-    let questionsAnswered: Bool
-    let errorMessage: String
-    
-    public enum Focus { case name, email, password, none }
-    
-    public init(
-      name: String,
-      email: String,
-      password: String,
-      fieldInFocus: Focus,
-      formIsValid: Bool,
-      questionsAnswered: Bool,
-      errorMessage: String
-    ) {
-      self.name = name
-      self.email = email
-      self.password = password
-      self.fieldInFocus = fieldInFocus
-      self.formIsValid = formIsValid
-      self.questionsAnswered = questionsAnswered
-      self.errorMessage = errorMessage
-    }
-  }
+  private enum Focus { case name, email, password, none }
   
   public enum Action: Equatable {
     case nameTapped
@@ -47,16 +20,65 @@ public struct SignUpFormScreen: View {
     case tappedOutsideFocus
   }
   
-  let state: State
+  let state: SignUpState.Form
   let send: (Action) -> Void
   @Environment(\.colorScheme) var colorScheme
   
   public init(
-    state: State,
+    state: SignUpState.Form,
     send: @escaping (Action) -> Void
   ) {
     self.state = state
     self.send = send
+  }
+  
+  var name: String {
+    switch state.status {
+    case let .filling(fg): return fg.businessName?.string ?? ""
+    case let .filled(fd):  return fd.businessName.string
+    }
+  }
+  
+  var email: String {
+    switch state.status {
+    case let .filling(fg): return fg.email?.string ?? ""
+    case let .filled(fd):  return fd.email.string
+    }
+  }
+  
+  var password: String {
+    switch state.status {
+    case let .filling(fg): return fg.password?.string ?? ""
+    case let .filled(fd):  return fd.password.string
+    }
+  }
+  
+  private var fieldInFocus: Focus {
+    switch state.focus {
+    case .name:     return .name
+    case .email:    return .email
+    case .password: return .password
+    case .none:     return .none
+    }
+  }
+  
+  var formIsValid: Bool {
+    switch state.status {
+    case let .filling(fg):
+      switch (fg.businessName, fg.email, fg.password) {
+      case let (.some, .some(e), .some(p)) where e.isValid() && p.isValid():
+        return true
+      default:
+        return false
+      }
+    case .filled: return true
+    }
+  }
+  
+  var questionsAnswered: Bool = false
+  
+  var errorMessage: String {
+    state.error?.string ?? ""
   }
   
   public var body: some View {
@@ -69,21 +91,21 @@ public struct SignUpFormScreen: View {
       HStack {
         Rectangle()
           .frame(width: 24, height: 8)
-          .foregroundColor(state.formIsValid ? Color.dodgerBlue : .ghost)
+          .foregroundColor(formIsValid ? Color.dodgerBlue : .ghost)
           .cornerRadius(4)
         Rectangle()
           .frame(width: 8, height: 8)
-          .foregroundColor(state.questionsAnswered ? Color.dodgerBlue : .ghost)
+          .foregroundColor(questionsAnswered ? Color.dodgerBlue : .ghost)
           .cornerRadius(4)
       }
       TextFieldBlock(
         text: Binding(
-          get: { state.name },
+          get: { name },
           set: { send(.nameChanged($0)) }
         ),
         name: "Business name",
         errorText: "",
-        focused: state.fieldInFocus == .name,
+        focused: fieldInFocus == .name,
         textContentType: .organizationName,
         keyboardType: .alphabet,
         returnKeyType: .next,
@@ -94,12 +116,12 @@ public struct SignUpFormScreen: View {
       .padding([.trailing, .leading], 16)
       TextFieldBlock(
         text: Binding(
-          get: { state.email },
+          get: { email },
           set: { send(.emailChanged($0)) }
         ),
         name: "Business email",
         errorText: "",
-        focused: state.fieldInFocus == .email,
+        focused: fieldInFocus == .email,
         textContentType: .emailAddress,
         keyboardType: .emailAddress,
         returnKeyType: .next,
@@ -109,12 +131,12 @@ public struct SignUpFormScreen: View {
       .padding([.trailing, .leading], 16)
       TextFieldBlock(
         text: Binding(
-          get: { state.password },
+          get: { password },
           set: { send(.passwordChanged($0)) }
         ),
         name: "Password",
-        errorText: state.errorMessage,
-        focused: state.fieldInFocus == .password,
+        errorText: errorMessage,
+        focused: fieldInFocus == .password,
         textContentType: .password,
         secure: true,
         keyboardType: .default,
@@ -153,15 +175,7 @@ public struct SignUpFormScreen: View {
 struct SignUpFormScreen_Previews: PreviewProvider {
   static var previews: some View {
     SignUpFormScreen(
-      state: .init(
-        name: "HyperTrack",
-        email: "help@hypertrack.com",
-        password: "StrongPassword!@#$",
-        fieldInFocus: .none,
-        formIsValid: false,
-        questionsAnswered: false,
-        errorMessage: ""
-      ),
+      state: .init(status: .filled(.init(businessName: "HyperTrack", email: "help@hypertrack.com", password: "StrongPassword!@#$"))),
       send: {_ in }
     )
     .previewScheme(.dark)

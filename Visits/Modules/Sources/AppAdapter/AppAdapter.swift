@@ -64,85 +64,69 @@ public extension Store where State == AppScreen.State, Action == AppScreen.Actio
 
 func fromAppState(_ appState: AppState) -> AppScreen.State {
   let screen: AppScreen.Screen
-  switch appState.flow {
-  case .created, .appLaunching, .firstRun: screen = .loading
-  case .noMotionServices: screen = .blocker(.noMotionServices)
-  case let .signUp(.formFilled(n, e, p, focus, err)):
-    screen = .signUpForm(
-      .init(
-        name: n.string,
-        email: e.string,
-        password: p.string,
-        fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
-        formIsValid: true,
-        questionsAnswered: false,
-        errorMessage: err?.string ?? ""
-      )
-    )
-  case let .signUp(.formFilling(n, e, p, focus, err)):
-    screen = .signUpForm(
-      .init(
-        name: n?.string ?? "",
-        email: e?.string ?? "",
-        password: p?.string ?? "",
-        fieldInFocus: (focus <¡> SignUpFormScreen.State.Focus.init(formFocus:)) ?? .none,
-        formIsValid: false,
-        questionsAnswered: false,
-        errorMessage: err?.string ?? ""
-      )
-    )
-  case let .signUp(.questions(_, _, _, .signingUp(bm, mf, rs))):
-    screen = .signUpQuestions(.init(questionsStatus: .signingUp(bm, mf, rs)))
-  case let .signUp(.questions(_, _, _, .answering(ebmmf, efe))):
-    screen = .signUpQuestions(.init(questionsStatus: .answering(ebmmf, efe)))
-  case let .signUp(.verification(ver, _, _)): screen = .signUpVerification(verificationState(ver))
-  
-  case let .signIn(s):
-    screen = .signIn(
-      .init(
-        buttonState: buttonState(from: s),
-        email: email(from: s),
-        errorMessage: errorMessage(from: s),
-        fieldInFocus: fieldInFocus(from: s),
-        password: password(from: s),
-        signingIn: signingIn(from: s)
-      )
-    )
-  case let .driverID(.some(drID), _):
-    screen = .driverID(.init(driverID: drID.string, buttonDisabled: false))
-  case .driverID: screen = .driverID(.init(driverID: "", buttonDisabled: true))
-  case let .main(v, sv, pl, h, s, pk, drID, deID, us, p, r, ps, _):
-    switch (us, p.locationAccuracy, p.locationPermissions, p.motionPermissions, ps) {
-    case (_, _, .disabled, _, _):                            screen = .blocker(.locationDisabled)
-    case (_, _, .denied, _, _):                              screen = .blocker(.locationDenied)
-    case (_, _, .restricted, _, _):                          screen = .blocker(.locationRestricted)
-    case (_, _, .notDetermined, _, _):                       screen = .blocker(.locationNotDetermined)
-    case (_, .reduced, _, _, _):                             screen = .blocker(.locationReduced)
-    case (_, _, _, .disabled, _):                            screen = .blocker(.motionDisabled)
-    case (_, _, _, .denied, _):                              screen = .blocker(.motionDenied)
-    case (_, _, _, .notDetermined, _):                       screen = .blocker(.motionNotDetermined)
-    case (_, _, _, _, .dialogSplash(.notShown)),
-         (_, _, _, _, .dialogSplash(.waitingForUserAction)): screen = .blocker(.pushNotShown)
-    case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.string))
-    case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
-    case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
-    case (.running, .full, .authorized, .authorized, .dialogSplash(.shown)):
-      let networkAvailable = appState.network == .online
-      let refreshingOrders = r.orders == .refreshingOrders
-      let mapOrdersList = mapOrders(from: v)
+  let alert: Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?
+  switch appState {
+  case let .operational(o):
+    alert = o.alert
+    
+    switch o.flow {
+    case .firstRun: screen = .loading
+    case let .signUp(.form(form)):
+      screen = .signUpForm(form)
+    case let .signUp(.questions(questions)):
+      screen = .signUpQuestions(questions.status)
+    case let .signUp(.verification(verification)):
+      screen = .signUpVerification(verification.status)
+    case let .signIn(s):
+      screen = .signIn(s)
+    case let .driverID(driverID):
+      screen = .driverID(driverID.status)
+    case let .main(m):
       
-      if let sv = sv {
-        screen = .main(.order(orderScreen(from: sv, pk: pk.string, dID: deID.string)), pl, r, h, mapOrdersList, drID, deID, s)
-      } else {
-        let (pending, visited, completed, canceled) = orderHeaders(from: Array(v))
-        screen = .main(.orders(.init(pending: pending, visited: visited, completed: completed, canceled: canceled, isNetworkAvailable: networkAvailable, refreshing: refreshingOrders, deviceID: deID.string, publishableKey: pk.string)), pl, r, h, mapOrdersList, drID, deID, s)
+      switch o.sdk.status {
+      case .locked: screen = .blocker(.noMotionServices)
+      case let .unlocked(deID, us):
+        
+        switch (us, o.sdk.permissions.locationAccuracy, o.sdk.permissions.locationPermissions, o.sdk.permissions.motionPermissions, o.pushStatus) {
+        case (_, _, .disabled, _, _):                            screen = .blocker(.locationDisabled)
+        case (_, _, .denied, _, _):                              screen = .blocker(.locationDenied)
+        case (_, _, .restricted, _, _):                          screen = .blocker(.locationRestricted)
+        case (_, _, .notDetermined, _, _):                       screen = .blocker(.locationNotDetermined)
+        case (_, _, .authorizedWhenInUse, _, _):
+          if o.locationAlways == .notRequested {
+            screen = .blocker(.locationWhenInUseFirstRequest)
+          } else {
+            screen = .blocker(.locationWhenInUse)
+          }
+        case (_, .reduced, _, _, _):                             screen = .blocker(.locationReduced)
+        case (_, _, _, .disabled, _):                            screen = .blocker(.motionDisabled)
+        case (_, _, _, .denied, _):                              screen = .blocker(.motionDenied)
+        case (_, _, _, .notDetermined, _):                       screen = .blocker(.motionNotDetermined)
+        case (_, _, _, _, .dialogSplash(.notShown)),
+             (_, _, _, _, .dialogSplash(.waitingForUserAction)): screen = .blocker(.pushNotShown)
+        case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.string))
+        case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
+        case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
+        case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
+          let ord: OrderOrOrders
+          switch m.selectedOrder {
+          case     .none:        ord = .orders(m.orders)
+          case let .some(order): ord = .order(order)
+          }
+          
+          screen = .main(ord, m.places, m.refreshing, m.history, mapOrders(from: m.orders), m.driverID, deID, m.tab)
+        }
       }
     }
+  default:
+    alert = nil
+    screen = .loading
   }
+  
   return .init(
     screen: screen,
-    errorAlert: appState.alert >>- eitherLeft,
-    errorReportingAlert: appState.alert >>- eitherRight
+    errorAlert: alert >>- eitherLeft,
+    errorReportingAlert: alert >>- eitherRight
   )
 }
 
@@ -202,9 +186,11 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.deletedButtonTapped): return .startTracking
   case .blocker(.invalidPublishableKeyButtonTapped): return .startTracking
   case .blocker(.stoppedButtonTapped): return .startTracking
+  case .blocker(.locationWhenInUseButtonTapped): return .openSettings
+  case .blocker(.locationWhenInUseFirstRequestButtonTapped): return .requestAlwaysLocationPermissions
   case .blocker(.locationDeniedButtonTapped): return .openSettings
   case .blocker(.locationDisabledButtonTapped): return .openSettings
-  case .blocker(.locationNotDeterminedButtonTapped): return .requestLocationPermissions
+  case .blocker(.locationNotDeterminedButtonTapped): return .requestWhenInUseLocationPermissions
   case .blocker(.locationRestrictedButtonTapped): return .openSettings
   case .blocker(.locationReducedButtonTapped): return .openSettings
   case .blocker(.motionDeniedButtonTapped): return .openSettings
@@ -240,169 +226,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   }
 }
 
-func email(from s: SignIn) -> String {
-  switch s {
-  case let .signingIn(e, _),
-       let .editingCredentials(.some(e), _, _, _):
-    return e.string
-  default: return ""
-  }
-}
-
-func password(from s: SignIn) -> String {
-  switch s {
-  case let .signingIn(_, p),
-       let .editingCredentials(_, .some(p), _, _):
-    return p.string
-  default: return ""
-  }
-}
-
-func buttonState(from s: SignIn) -> SignInScreen.State.ButtonState {
-  switch s {
-  case .signingIn:                              return .destructive
-  case .editingCredentials(.some, .some, _, _): return .normal
-  default:                                      return .disabled
-  }
-}
-
-func errorMessage(from s: SignIn) -> String {
-  switch s {
-  case let .editingCredentials(_, _, _, .some(e)):
-    return e.string
-  default: return ""
-  }
-}
-
-func fieldInFocus(from s: SignIn) -> SignInScreen.State.Focus {
-  switch s {
-  case .editingCredentials(_, _, .email, _):
-    return .email
-  case .editingCredentials(_, _, .password, _):
-    return .password
-  default: return .none
-  }
-}
-
-func signingIn(from s: SignIn) -> Bool {
-  switch s {
-  case .signingIn: return true
-  default: return false
-  }
-}
-
-func orderHeaders(from vs: [Order]) -> ([OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader]) {
-  var pending: [(Date, OrderHeader)] = []
-  var visited: [(Date, OrderHeader)] = []
-  var completed: [(Date, OrderHeader)] = []
-  var canceled: [(Date, OrderHeader)] = []
-  
-  for v in vs {
-    let t = orderTitle(from: v)
-    
-    let h = OrderHeader(id: v.id.string, title: t)
-    switch v.geotagSent {
-    case .notSent, .pickedUp: pending.append((v.createdAt, h))
-    case .entered, .visited:  visited.append((v.createdAt, h))
-    case .checkedOut:         completed.append((v.createdAt, h))
-    case .cancelled:          canceled.append((v.createdAt, h))
-    }
-  }
-  return (
-    pending.sorted(by: sortHeaders).map(\.1),
-    visited.sorted(by: sortHeaders).map(\.1),
-    completed.sorted(by: sortHeaders).map(\.1),
-    canceled.sorted(by: sortHeaders).map(\.1)
-  )
-}
-
-func sortHeaders(_ left: (date: Date, order: OrderHeader), _ right: (date: Date, order: OrderHeader)) -> Bool {
-  left.date > right.date
-}
-
-func orderScreen(from v: Order, pk: String, dID: String) -> OrderScreen.State {
-  let orderNote: String
-  let noteFieldFocused: Bool
-  
-  let coordinate =  v.location
-  let address = assignedVisitFullAddress(from: v)
-  let metadata = assignedVisitMetadata(from: v)
-  orderNote = v.orderNote?.string ?? ""
-  noteFieldFocused = v.noteFieldFocused
-  let status: OrderScreen.State.OrderStatus
-  switch v.geotagSent {
-  case .notSent:
-    status = .notSent
-  case .pickedUp:
-    status = .pickedUp
-  case let .entered(entry):
-    status = .entered(DateFormatter.stringDate(entry))
-  case let .visited(entry, exit):
-    status = .visited("\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))")
-  case let .checkedOut(visited, checkedOutDate):
-    status = .checkedOut(visited: visited.map(visitedString(_:)), completed: DateFormatter.stringDate(checkedOutDate))
-  case let .cancelled(visited, cancelledDate):
-    status = .canceled(visited: visited.map(visitedString(_:)), canceled: DateFormatter.stringDate(cancelledDate))
-  }
-  
-  return .init(
-    title: orderTitle(from: v),
-    orderNote: orderNote,
-    noteFieldFocused: noteFieldFocused,
-    coordinate: coordinate,
-    address: address,
-    metadata: metadata,
-    status: status,
-    deviceID: dID,
-    publishableKey: pk
-  )
-}
-
-func visitedString(_ visited: Order.Geotag.Visited) -> String {
-  switch visited {
-  case let .entered(entry): return DateFormatter.stringDate(entry)
-  case let .visited(entry, exit): return "\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))"
-  }
-}
-
-func orderTitle(from v: Order) -> String {
-  switch v.address.anyAddressStreetBias {
-  case     .none:    return "Order @ \(DateFormatter.stringDate(v.createdAt))"
-  case let .some(a): return a.rawValue
-  }
-}
-
-
-func assignedVisitFullAddress(from a: Order) -> String {
-  a.address.anyAddressStreetBias?.rawValue ?? ""
-}
-
-func assignedVisitMetadata(from a: Order) -> [OrderScreen.State.Metadata] {
-  a.metadata
-    .map(identity)
-    .sorted(by: \.key)
-    .map { (name: Order.Name, contents: Order.Contents) in
-    OrderScreen.State.Metadata(key: "\(name)", value: "\(contents)")
-  }
-}
-
-extension Sequence {
-  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-    return sorted { a, b in
-      return a[keyPath: keyPath] < b[keyPath: keyPath]
-    }
-  }
-}
-
-extension DateFormatter {
-  static func stringDate(_ date: Date) -> String {
-    let dateFormat = DateFormatter()
-    dateFormat.locale = Locale(identifier: "en_US_POSIX")
-    dateFormat.dateFormat = "h:mm a"
-    return dateFormat.string(from: date)
-  }
-}
-
 func mapOrders(from orders: Set<Order>) -> [MapOrder] {
   orders.map { MapOrder(id: $0.id.string, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
 }
@@ -415,147 +238,3 @@ func mapVisitStatus(from geotagSent: Order.Geotag) -> MapOrder.Status {
   case .cancelled:          return .canceled
   }
 }
-
-extension SignUpFormScreen.State.Focus {
-  init(formFocus: SignUpState.FormFocus) {
-    switch formFocus {
-    case .name: self = .name
-    case .email: self = .email
-    case .password: self = .password
-    }
-  }
-}
-
-func verificationState(_ verification: SignUpState.Verification) -> SignUpVerificationScreen.State {
-  func firstField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.first.rawValue)
-    case let .entering(.some(.one(d)), _, _),
-         let .entering(.some(.two(d, _)), _, _),
-         let .entering(.some(.three(d, _, _)), _, _),
-         let .entering(.some(.four(d, _, _, _)), _, _),
-         let .entering(.some(.five(d, _, _, _, _)), _, _):
-      return String(d.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func secondField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.second.rawValue)
-    case let .entering(.some(.two(_, d)), _, _),
-         let .entering(.some(.three(_, d, _)), _, _),
-         let .entering(.some(.four(_, d, _, _)), _, _),
-         let .entering(.some(.five(_, d, _, _, _)), _, _):
-      return String(d.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func thirdField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.third.rawValue)
-    case let .entering(.some(.three(_, _, d)), _, _),
-         let .entering(.some(.four(_, _, d, _)), _, _),
-         let .entering(.some(.five(_, _, d, _, _)), _, _):
-      return String(d.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func fourthField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.fourth.rawValue)
-    case let .entering(.some(.four(_, _, _, d)), _, _),
-         let .entering(.some(.five(_, _, _, d, _)), _, _):
-      return String(d.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func fifthField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.fifth.rawValue)
-    case let .entering(.some(.five(_, _, _, _, d)), _, _):
-      return String(d.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func sixthField() -> String {
-    switch verification {
-    case let .entered(code, _):
-      return String(code.sixth.rawValue)
-    default:
-      return ""
-    }
-  }
-  
-  func fieldInFocus() -> SignUpVerificationScreen.State.Focus {
-    switch verification {
-    case .entering(.none, .focused, _):
-      return .first
-    case .entering(.one, .focused, _):
-      return .second
-    case .entering(.two, .focused, _):
-      return .third
-    case .entering(.three, .focused, _):
-      return .fourth
-    case .entering(.four, .focused, _):
-      return .fifth
-    case .entering(.five, .focused, _),
-         .entered(_, .notSent(.focused, _)):
-      return .sixth
-    case .entered(_, .inFlight),
-         .entered(_, .notSent(.unfocused, _)),
-         .entering(_, .unfocused, _):
-      return .none
-    }
-  }
-  
-  func verifying() -> Bool {
-    switch verification {
-    case .entered(_, .inFlight):
-      return true
-    case .entered(_, .notSent),
-         .entering(_, _, _):
-      return false
-    }
-  }
-  
-  func error() -> String {
-    switch verification {
-    case let .entered(_, .notSent(_, .some(e))),
-         let .entering(_, _, .some(e)):
-      return e.string
-    case .entered(_, .inFlight),
-         .entered(_, .notSent(_, .none)),
-         .entering(_, _, .none):
-      return ""
-    }
-  }
-  
-  return .init(
-    firstField: firstField(),
-    secondField: secondField(),
-    thirdField: thirdField(),
-    fourthField: fourthField(),
-    fifthField: fifthField(),
-    sixthField: sixthField(),
-    fieldInFocus: fieldInFocus(),
-    verifying: verifying(),
-    error: error()
-  )
-}
-
-

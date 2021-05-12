@@ -38,11 +38,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>The Visits app uses your current location to calculate milage.</string>
+	<string>Visits app uses your location to manage your work on the move</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>The Visits app uses your current location to calculate milage.</string>
+	<string>Visits app uses your location to manage your work on the move</string>
 	<key>NSMotionUsageDescription</key>
-	<string>The Visits app uses your motion patterns to conserve battery life while tracking milage.</string>
+	<string>The Visits app uses your motion patterns to conserve battery life manage your work on the move.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

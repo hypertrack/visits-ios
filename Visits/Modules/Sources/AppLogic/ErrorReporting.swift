@@ -26,23 +26,20 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         run(report.startErrorMonitoring())
       }
       
-      switch action {
-      case let .appHandleSDKUnlocked(_, _, deID, _, _),
-           let .madeSDK(.unlocked(deID, _), _),
-           let .statusUpdated(.unlocked(deID, _), _),
-           let .restoredState(.left(.main(_, _, _, _, _, deID, _, _, _, _)), _):
+      switch (deviceID(from: previousState), deviceID(from: nextState)) {
+      case let (.none, .some(deID)):
         run(report.updateUser(deID))
+      case let (.some(deIDB), .some(deIDA)) where deIDB != deIDA:
+        run(report.updateUser(deIDA))
       default:
         break
       }
       
       func debugPrint(action: AppAction, previousState: AppState, nextState: AppState) -> Effect<(String, String?), Never> {
         .future { callback in
-          _queue.async {
-            let actionOutput = debugOutput(action)
-            let stateOutput = debugDiff(previousState, nextState).map { "\($0)\n" }
-            callback(.success((actionOutput, stateOutput)))
-          }
+          let actionOutput = debugOutput(action)
+          let stateOutput = debugDiff(previousState, nextState).map { "\($0)\n" }
+          callback(.success((actionOutput, stateOutput)))
         }
       }
       
@@ -66,6 +63,8 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
               return .none
             }
           }
+          .subscribe(on: environment.backgroundQueue)
+          .receive(on: environment.mainQueue)
           .eraseToEffect()
       )
       
@@ -77,36 +76,44 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         }
       }
       
-      if case let .some(.displayError(e, _)) = action *^? errorAlertActionPrism,
-         isNotAboutInternetConnection(e) {
-        run(report.capture(.init(rawValue: errorMessage(from: e))))
+      let error: APIError<Never>?
+      switch action {
+      case let .signedUp(.failure(e)),
+           let .autoSignInFailed(e),
+           let .signedIn(.failure(e)):       error = toNever(e)
+      case let .ordersUpdated(.failure(e)),
+           let .placesUpdated(.failure(e)),
+           let .historyUpdated(.failure(e)): error = e
+      default:                               error = nil
+      }
+      if let error = error, isNotAboutInternetConnection(error) {
+        run(report.capture(.init(rawValue: errorMessage(from: error))))
       }
       
-      switch action {
-      case .shakeDetected:
-        state = state |> \.alert *< .right(
-          .init(
-            title: TextState("Is something wrong?"),
-            message: TextState("Do you want to send a report?"),
-            primaryButton: .default(TextState("Send"), send: .yes),
-            secondaryButton: .destructive(TextState("Cancel"), send: .no)
-          )
-        )
-      case .errorReportingAlert(.yes):
-        run(environment.hapticFeedback.notifySuccess().eraseToEffect())
+      if action == .errorReportingAlert(.yes) {
         run(report.capture(.init(rawValue: "Manual Report \(environment.uuid().uuidString)")))
-        state = state |> \.alert *< nil
-      case .errorReportingAlert(.no):
-        state = state |> \.alert *< nil
-      default:
-        break
       }
+      
       return .merge(globalEffects, .concatenate(effects))
     }
   }
 }
 
-func errorMessage(from error: APIError<Never>) -> NonEmptyString {
+private func deviceID(from s: AppState) -> DeviceID? {
+  switch s {
+  case let .operational(o):
+    switch o.sdk.status {
+    case let .unlocked(deID, _):
+      return deID
+    case .locked:
+      return nil
+    }
+  default:
+    return nil
+  }
+}
+
+private func errorMessage(from error: APIError<Never>) -> NonEmptyString {
   switch error {
   case let .api(e):
     return e.detail.rawValue
@@ -118,11 +125,6 @@ func errorMessage(from error: APIError<Never>) -> NonEmptyString {
     return r.prettyPrinted + "\n" + d.prettyPrintedJSON
   }
 }
-
-private let _queue = DispatchQueue(
-  label: "com.hypertrack.visits.error.reporting",
-  qos: .utility
-)
 
 extension Tagged: CustomDebugOutputConvertible where RawValue: CustomDebugOutputConvertible {
   public var debugOutput: String {
@@ -148,7 +150,7 @@ extension Coordinate: CustomDebugOutputConvertible {
   public var debugOutput: String { String(format: "%.6f", latitude) + " " + String(format: "%.6f", longitude) }
 }
 
-func debugOutput(_ value: Any, indent: Int = 0) -> String {
+private func debugOutput(_ value: Any, indent: Int = 0) -> String {
   var visitedItems: Set<ObjectIdentifier> = []
 
   func debugOutputHelp(_ value: Any, indent: Int = 0) -> String {
@@ -292,18 +294,18 @@ func debugOutput(_ value: Any, indent: Int = 0) -> String {
   return debugOutputHelp(value, indent: indent)
 }
 
-extension String {
+private extension String {
   func indent(by indent: Int) -> String {
     let indentation = String(repeating: " ", count: indent)
     return indentation + self.replacingOccurrences(of: "\n", with: "\n\(indentation)")
   }
 }
 
-func debugDiff<T>(_ before: T, _ after: T, printer: (T) -> String = { debugOutput($0) }) -> String? {
+private func debugDiff<T>(_ before: T, _ after: T, printer: (T) -> String = { debugOutput($0) }) -> String? {
   diff(printer(before), printer(after))
 }
 
-func diff(_ first: String, _ second: String) -> String? {
+private func diff(_ first: String, _ second: String) -> String? {
   struct Difference {
     enum Which {
       case both

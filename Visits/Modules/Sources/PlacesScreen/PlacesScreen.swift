@@ -9,9 +9,9 @@ public struct PlacesScreen: View {
    
   public struct State {
     let places: Set<Place>
-    let refreshing: Bool
+    let refreshing: Refreshing.Places
     
-    public init(places: Set<Place>, refreshing: Bool) {
+    public init(places: Set<Place>, refreshing: Refreshing.Places) {
       self.places = places
       self.refreshing = refreshing
     }
@@ -19,8 +19,6 @@ public struct PlacesScreen: View {
   public enum Action {
     case refresh
   }
-  
-  
   
   let state: State
   let send: (Action) -> Void
@@ -39,7 +37,7 @@ public struct PlacesScreen: View {
         PlacesList(placesToDisplay: state.placesToDisplay)
           .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-              RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
+              RefreshButton(state: state.refreshing == .refreshingPlaces ? .refreshing : .enabled) {
                 send(.refresh)
               }
             }
@@ -51,15 +49,7 @@ public struct PlacesScreen: View {
   }
 }
 
-struct PlacesSection {
-  struct PlaceAndTime {
-    let place: Place
-    let time: String?
-  }
-  
-  let header: String
-  let places: [PlaceAndTime]
-}
+
 
 struct PlacesList: View {
   let placesToDisplay: [PlacesSection]
@@ -238,7 +228,7 @@ extension DateFormatter {
 
 struct PlacesScreen_Previews: PreviewProvider {
   static var previews: some View {
-    PlacesScreen(state: .init(places: [], refreshing: false), send: {_ in })
+    PlacesScreen(state: .init(places: [], refreshing: .notRefreshingPlaces), send: {_ in })
     PlacesScreen(
       state: .init(
         places: [
@@ -339,7 +329,7 @@ struct PlacesScreen_Previews: PreviewProvider {
               .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
             ]
           )
-        ], refreshing: false
+        ], refreshing: .notRefreshingPlaces
       ), send: {_ in }
     )
     .preferredColorScheme(.light)

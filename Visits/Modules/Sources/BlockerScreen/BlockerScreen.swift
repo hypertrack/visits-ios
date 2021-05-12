@@ -8,6 +8,8 @@ public struct Blocker: View {
     case deleted(String)
     case invalidPublishableKey(String)
     case stopped
+    case locationWhenInUse
+    case locationWhenInUseFirstRequest
     case locationDenied
     case locationDisabled
     case locationNotDetermined
@@ -23,6 +25,8 @@ public struct Blocker: View {
     case deletedButtonTapped
     case invalidPublishableKeyButtonTapped
     case stoppedButtonTapped
+    case locationWhenInUseButtonTapped
+    case locationWhenInUseFirstRequestButtonTapped
     case locationDeniedButtonTapped
     case locationDisabledButtonTapped
     case locationNotDeterminedButtonTapped
@@ -77,19 +81,21 @@ public struct Blocker: View {
 
 func title(from s: Blocker.State) -> String {
   switch s {
-  case .noMotionServices:      return "No Motion Services"
-  case .deleted:               return "Device Blocked"
-  case .invalidPublishableKey: return "Internal Error"
-  case .stopped:               return "Clock In"
-  case .locationDenied:        return "Allow Location Access"
-  case .locationDisabled:      return "Enable Location"
-  case .locationNotDetermined: return "Allow Location Access"
-  case .locationRestricted:    return "Remove Restrictions"
-  case .locationReduced:       return "Allow Full Accuracy"
-  case .motionDenied:          return "Allow Motion Access"
-  case .motionDisabled:        return "Enable Motion & Fitness"
-  case .motionNotDetermined:   return "Allow Motion Access"
-  case .pushNotShown:          return "Push Notifications"
+  case .noMotionServices:              return "No Motion Services"
+  case .deleted:                       return "Device Blocked"
+  case .invalidPublishableKey:         return "Internal Error"
+  case .stopped:                       return "Clock In"
+  case .locationWhenInUse:             return "Allow Always Access"
+  case .locationWhenInUseFirstRequest: return "Allow Always Access"
+  case .locationDenied:                return "Allow Location Access"
+  case .locationDisabled:              return "Enable Location"
+  case .locationNotDetermined:         return "Allow Location Access"
+  case .locationRestricted:            return "Remove Restrictions"
+  case .locationReduced:               return "Allow Full Accuracy"
+  case .motionDenied:                  return "Allow Motion Access"
+  case .motionDisabled:                return "Enable Motion & Fitness"
+  case .motionNotDetermined:           return "Allow Motion Access"
+  case .pushNotShown:                  return "Push Notifications"
   }
 }
 
@@ -105,27 +111,37 @@ func message(from s: Blocker.State) -> String {
     return "You are currently clocked out. Clocking in starts location tracking and opens the orders for today.\n\nThe app does not track your location while you are clocked out."
   case .locationDenied:
     return """
-           We need your permission to access your location. Visits app uses your location to calculate mileage.
+           We need your permission to access your location. Visits app uses your location to manage your work on the move.
            
-           Please navigate to Settings > Logistics > Location and set to Always.
+           Please navigate to Settings > Visits > Location and set to Always.
            """
   case .locationDisabled:
     return """
-           We need Location Services to track your current location. Visits app uses your location to calculate mileage.
+           Visits app uses your location to manage your work on the move.
             
            Please enable Location Services in Settings > Privacy > Location Services.
            """
+  case .locationWhenInUseFirstRequest:
+    return """
+           We need background location permissions to be set to "Always". Visits app uses your location to manage your work on the move.
+           """
+  case .locationWhenInUse:
+    return """
+           We need location permissions to be set to "Always". Visits app uses your location to manage your work on the move.
+            
+           Please navigate to Settings > Visits > Location and set to Always.
+           """
   case .locationNotDetermined:
-    return "We need your permission to access your location. Visits app uses your location to calculate mileage."
+    return "We need your permission to access your location. Visits app uses your location to manage your work on the move."
   case .locationRestricted:
     return """
-           Visits app needs Location Services to track your current location and calculate mileage.
+           We need your permission to access your location. Visits app uses your location to manage your work on the move.
            
            Please remove restrictions in Settings > Screen Time > Content & Privacy Restriction > Location Services or contact your administrator.
            """
   case .locationReduced:
     return """
-           Visits app needs full location accuracy to calculate mileage.
+           Visits app needs full location accuracy. Visits app uses your location to manage your work on the move.
            
            Please grant full accuracy in Settings > Visits > Location.
            """
@@ -133,18 +149,18 @@ func message(from s: Blocker.State) -> String {
     return """
            We need your permission to access your motion.
            
-           We use Motion & Fitness to efficiently use your battery when tracking.
+           We use Motion & Fitness to efficiently use your battery.
            
-           Please enable Motion & Fitness in Settings > Logistics > Motion & Fitness.
+           Please enable Motion & Fitness in Settings > Visits > Motion & Fitness.
            """
   case .motionDisabled:
     return """
-           We use Motion & Fitness to efficiently use your battery when tracking.
+           We use Motion & Fitness to efficiently use your battery.
            
            Please enable Fitness Tracking in Settings > Privacy > Motion & Fitness > Fitness Tracking.
            """
   case .motionNotDetermined:
-    return "We use Motion & Fitness to efficiently use your battery when tracking."
+    return "We use Motion & Fitness to efficiently use your battery."
     
   case .pushNotShown:
     return "We use push notifications to notify about new orders."
@@ -153,19 +169,21 @@ func message(from s: Blocker.State) -> String {
 
 func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   switch s {
-  case .noMotionServices:      return nil
-  case .deleted:               return ("Resolved?", .deletedButtonTapped)
-  case .invalidPublishableKey: return ("Resolved?", .invalidPublishableKeyButtonTapped)
-  case .stopped:               return ("Clock In", .stoppedButtonTapped)
-  case .locationDenied:        return ("Open Settings", .locationDeniedButtonTapped)
-  case .locationDisabled:      return ("Open Settings", .locationDisabledButtonTapped)
-  case .locationNotDetermined: return ("Allow Access", .locationNotDeterminedButtonTapped)
-  case .locationRestricted:    return ("Open Settings", .locationRestrictedButtonTapped)
-  case .locationReduced:       return ("Open Settings", .locationReducedButtonTapped)
-  case .motionDenied:          return ("Open Settings", .motionDeniedButtonTapped)
-  case .motionDisabled:        return ("Open Settings", .motionDisabledButtonTapped)
-  case .motionNotDetermined:   return ("Allow Access", .motionNotDeterminedButtonTapped)
-  case .pushNotShown:          return ("Next", .pushNotShownButtonTapped)
+  case .noMotionServices:              return nil
+  case .deleted:                       return ("Resolved?", .deletedButtonTapped)
+  case .invalidPublishableKey:         return ("Resolved?", .invalidPublishableKeyButtonTapped)
+  case .stopped:                       return ("Clock In", .stoppedButtonTapped)
+  case .locationWhenInUse:             return ("Open Settings", .locationWhenInUseButtonTapped)
+  case .locationWhenInUseFirstRequest: return ("Allow Always", .locationWhenInUseFirstRequestButtonTapped)
+  case .locationDenied:                return ("Open Settings", .locationDeniedButtonTapped)
+  case .locationDisabled:              return ("Open Settings", .locationDisabledButtonTapped)
+  case .locationNotDetermined:         return ("Allow Access", .locationNotDeterminedButtonTapped)
+  case .locationRestricted:            return ("Open Settings", .locationRestrictedButtonTapped)
+  case .locationReduced:               return ("Open Settings", .locationReducedButtonTapped)
+  case .motionDenied:                  return ("Open Settings", .motionDeniedButtonTapped)
+  case .motionDisabled:                return ("Open Settings", .motionDisabledButtonTapped)
+  case .motionNotDetermined:           return ("Allow Access", .motionNotDeterminedButtonTapped)
+  case .pushNotShown:                  return ("Next", .pushNotShownButtonTapped)
   }
 }
 

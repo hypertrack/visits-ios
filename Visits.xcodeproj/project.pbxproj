@@ -17,6 +17,7 @@
 		3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3161D1722512AE7900AAFCCD /* ComposableArchitecture */; };
 		31790D102628B31100281337 /* ShakeDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31790D0F2628B31100281337 /* ShakeDetection.swift */; };
 		317E664F25D2D2B600B99D40 /* Prelude in Frameworks */ = {isa = PBXBuildFile; productRef = 317E664E25D2D2B600B99D40 /* Prelude */; };
+		31B9399B2649B895000F62E8 /* Types in Frameworks */ = {isa = PBXBuildFile; productRef = 31B9399A2649B895000F62E8 /* Types */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -53,6 +54,7 @@
 			files = (
 				31245E1E25F8111600AF8548 /* App in Frameworks */,
 				317E664F25D2D2B600B99D40 /* Prelude in Frameworks */,
+				31B9399B2649B895000F62E8 /* Types in Frameworks */,
 				3161D1732512AE7900AAFCCD /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -130,6 +132,7 @@
 				3161D1722512AE7900AAFCCD /* ComposableArchitecture */,
 				317E664E25D2D2B600B99D40 /* Prelude */,
 				31245E1D25F8111600AF8548 /* App */,
+				31B9399A2649B895000F62E8 /* Types */,
 			);
 			productName = Visits;
 			productReference = 3161D1212512A2B500AAFCCD /* Visits.app */;
@@ -434,6 +437,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 319453D32548674E00D86A04 /* XCRemoteSwiftPackageReference "prelude-swift" */;
 			productName = Prelude;
+		};
+		31B9399A2649B895000F62E8 /* Types */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Types;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

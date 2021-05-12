@@ -170,6 +170,59 @@ public struct Order {
   public typealias Contents       = Tagged<(Order, contents: ()),     NonEmptyString>
 }
 
+public extension Order {
+  static func isFresh(now: Date) -> (Self) -> Bool {
+    { (now.addingTimeInterval(-60 * 60 * 24)...now).contains($0.createdAt) }
+  }
+}
+
+public extension Set where Element == Order {
+  static func removeOld(now: Date) -> (Self) -> Self {
+    { $0.filter(Order.isFresh(now: now)) }
+  }
+}
+
+public enum Geotag: Equatable {
+  case cancel(Order.ID, Order.Source, Order.OrderNote?)
+  case checkOut(Order.ID, Order.Source, Order.OrderNote?)
+  case pickUp(Order.ID, Order.Source)
+}
+
+public typealias APIOrderID = Tagged<APIOrderIDTag, NonEmptyString>
+public enum APIOrderIDTag {}
+
+public struct APIOrder: Equatable {
+  public enum Source: Equatable { case order, trip }
+  
+  public typealias Name     = Tagged<(APIOrder, name: ()),     NonEmptyString>
+  public typealias Contents = Tagged<(APIOrder, contents: ()), NonEmptyString>
+  
+  public let centroid: Coordinate
+  public let createdAt: Date
+  public let metadata: [Name: Contents]
+  public let source: Source
+  public let visitStatus: VisitStatus?
+  
+  public init(
+    centroid: Coordinate,
+    createdAt: Date,
+    metadata: [Name: Contents],
+    source: Source,
+    visited: VisitStatus?
+  ) {
+    self.centroid = centroid
+    self.createdAt = createdAt
+    self.metadata = metadata
+    self.source = source
+    self.visitStatus = visited
+  }
+}
+
+public enum VisitStatus: Equatable {
+  case entered(Date)
+  case visited(Date, Date)
+}
+
 // MARK: - Foundation
 
 extension Order: Equatable {}

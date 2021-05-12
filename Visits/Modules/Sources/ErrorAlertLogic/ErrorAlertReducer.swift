@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import Foundation
 import Types
 
 
@@ -32,9 +31,12 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
   let tryAgain = "\nPlease try again"
   switch action {
   case .dismissAlert:
+    
     state = .dismissed
+    
     return .none
   case let .displayError(.network(urlError), _):
+    
     state = .shown(
       .init(
         title: TextState("Network Issue"),
@@ -42,8 +44,10 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
+    
     return .none
   case let .displayError(.api(error), _):
+    
     state = .shown(
       .init(
         title: TextState(error.title.string),
@@ -51,8 +55,10 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
+    
     return .none
   case let .displayError(.server(error), _):
+    
     state = .shown(
       .init(
         title: TextState("Server Error"),
@@ -60,8 +66,10 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
+    
     return .none
   case .displayError(.unknown, _):
+    
     state = .shown(
       .init(
         title: TextState("Network Issue"),
@@ -69,6 +77,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )
+    
     return .none
   }
 }

@@ -17,18 +17,10 @@ import SwiftUI
 import Types
 import Views
 
+
 public enum OrderOrOrders: Equatable {
-  case order(OrderScreen.State)
-  case orders(OrdersScreen.State)
-  
-  var credentials: (deviceID: String, publishableKey: String) {
-    switch self {
-    case let .order(s):
-      return (s.deviceID, s.publishableKey)
-    case let .orders(s):
-      return (s.deviceID, s.publishableKey)
-    }
-  }
+  case order(Order)
+  case orders(Set<Order>)
 }
 
 public struct AppScreen: View {
@@ -50,11 +42,11 @@ public struct AppScreen: View {
   }
   public enum Screen {
     case loading
-    case signIn(SignInScreen.State)
-    case signUpForm(SignUpFormScreen.State)
-    case signUpQuestions(SignUpQuestionsScreen.State)
-    case signUpVerification(SignUpVerificationScreen.State)
-    case driverID(DriverIDScreen.State)
+    case signIn(SignInState)
+    case signUpForm(SignUpState.Form)
+    case signUpQuestions(SignUpState.Questions.Status)
+    case signUpVerification(SignUpState.Verification.Status)
+    case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
     case main(OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection)
   }
@@ -198,7 +190,7 @@ struct MainBlock: View {
         }
         .tag(TabSelection.orders)
       case let .orders(vs):
-        OrdersScreen(state: vs) {
+        OrdersScreen(state: .init(orders: vs, refreshing: state.refreshing.orders)) {
           sendOrders($0)
         }
         .tabItem {
@@ -208,7 +200,7 @@ struct MainBlock: View {
         .tag(TabSelection.orders)
       }
       
-      PlacesScreen(state: .init(places: state.places, refreshing: state.refreshing.places == .refreshingPlaces)) {
+      PlacesScreen(state: .init(places: state.places, refreshing: state.refreshing.places)) {
         sendPlaces($0)
       }
         .tabItem {
@@ -235,11 +227,8 @@ struct MainBlock: View {
       
       ProfileScreen(
         state: .init(
-          id: state.driverID.rawValue,
-          name: nil,
-          deviceID: state.deviceID.rawValue,
-          metadata: [:],
-          appVersion: "2.5.0 (44)"
+          driverID: state.driverID,
+          deviceID: state.deviceID
         )
       ) {
         sendProfile($0)

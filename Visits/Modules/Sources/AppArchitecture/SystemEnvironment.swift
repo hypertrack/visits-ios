@@ -1,64 +1,5 @@
 import ComposableArchitecture
-import LogEnvironment
-import Prelude
 
-public func send<State, Action>(_ viewStore: ViewStore<State, Action>) -> (Action) -> Void {
-  { a in viewStore.send(a) }
-}
-
-public extension Reducer {
-  func pullback<GlobalState, GlobalAction, GlobalEnvironment>(
-    state localStateAffine: Affine<GlobalState, State>,
-    action localActionAffine: Affine<GlobalAction, Action>,
-    environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment
-  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
-    .init { gs, ga, ge in
-      guard let ls = localStateAffine.extract(from: gs),
-            let la = localActionAffine.extract(from: ga)
-      else { return .none }
-      var mls = ls
-      let e = self.run(&mls, la, toLocalEnvironment(ge))
-        .compactMap { m in
-          // Actions will emit only if they don't need context or they need original action's context
-          ga |> localActionAffine.inject(m)
-        }
-        .eraseToEffect()
-      // Setting state will only succeed if there is context for setting it
-      gs = (gs |> localStateAffine.inject(mls)) ?? gs
-      return e
-    }
-  }
-}
-
-public extension Reducer {
-  func prettyDebug() -> Reducer {
-    self.debug() { _ in
-      DebugEnvironment(
-        printer: {
-          logAction($0)
-        }
-      )
-    }
-  }
-}
-
-public extension Reducer where Action: Equatable {
-  static func toggleReducer(
-    _ ls: State,
-    _ la: Action,
-    _ rs: State,
-    _ ra: Action
-  ) -> Reducer {
-    .init { state, action, _ in
-      switch action {
-      case la: state = ls
-      case ra: state = rs
-      default: return .none
-      }
-      return .none
-    }
-  }
-}
 
 @dynamicMemberLookup
 public struct SystemEnvironment<Environment> {
@@ -67,17 +8,20 @@ public struct SystemEnvironment<Environment> {
     environment: Environment,
     date: @escaping () -> Date,
     mainQueue: AnySchedulerOf<DispatchQueue>,
+    backgroundQueue: AnySchedulerOf<DispatchQueue>,
     uuid: @escaping () -> UUID
   ) {
     self.environment = environment
     self.date = date
     self.mainQueue = mainQueue
+    self.backgroundQueue = backgroundQueue
     self.uuid = uuid
   }
   
   public var environment: Environment
   public var date: () -> Date
   public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var uuid: () -> UUID
 
   public subscript<Dependency>(
@@ -96,6 +40,11 @@ public struct SystemEnvironment<Environment> {
       environment: environment,
       date: Date.init,
       mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+      backgroundQueue: DispatchQueue(
+        label: "com.hypertrack.visits.background",
+        qos: .utility
+      )
+      .eraseToAnyScheduler(),
       uuid: UUID.init
     )
   }
@@ -108,6 +57,7 @@ public struct SystemEnvironment<Environment> {
       environment: transform(self.environment),
       date: self.date,
       mainQueue: self.mainQueue,
+      backgroundQueue: self.backgroundQueue,
       uuid: self.uuid
     )
   }
@@ -118,12 +68,14 @@ extension SystemEnvironment {
     environment: Environment,
     date: @escaping () -> Date,
     mainQueue: AnySchedulerOf<DispatchQueue>,
+    backgroundQueue: AnySchedulerOf<DispatchQueue>,
     uuid: @escaping () -> UUID
   ) -> Self {
     Self(
       environment: environment,
       date: date,
       mainQueue: mainQueue,
+      backgroundQueue: backgroundQueue,
       uuid: uuid
     )
   }

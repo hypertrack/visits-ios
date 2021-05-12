@@ -84,10 +84,16 @@ public extension HyperTrackEnvironment {
         HyperTrack.registerForRemoteNotifications()
       }
     },
-    requestLocationPermissions: {
+    requestAlwaysLocationPermissions: {
       .fireAndForget {
         logEffect("requestLocationPermissions")
         lm.requestAlwaysAuthorization()
+      }
+    },
+    requestWhenInUseLocationPermissions: {
+      .fireAndForget {
+        logEffect("requestLocationPermissions")
+        lm.requestWhenInUseAuthorization()
       }
     },
     requestMotionPermissions: {
@@ -248,8 +254,10 @@ func locationPermissions() -> LocationPermissions {
     locationPermissions = .restricted
   case .denied:
     locationPermissions = .denied
-  case .authorizedAlways, .authorizedWhenInUse:
-    locationPermissions = .authorized
+  case .authorizedAlways:
+    locationPermissions = .authorizedAlways
+  case .authorizedWhenInUse:
+    locationPermissions = .authorizedWhenInUse
   @unknown default:
     locationPermissions = .denied
   }
@@ -266,7 +274,7 @@ func motionPermissions() -> MotionPermissions {
   }
 }
 
-func statusUpdate(_ state: SDKUnlockedStatus? = nil) -> (SDKStatus, Permissions) {
+func statusUpdate(_ state: SDKUnlockedStatus? = nil) -> SDKStatusUpdate {
   
   let sdk: SDKStatus
   switch ht {
@@ -276,13 +284,13 @@ func statusUpdate(_ state: SDKUnlockedStatus? = nil) -> (SDKStatus, Permissions)
     sdk = .locked
   }
   
-  return (
-    sdk,
-    Permissions(
+  return .init(
+    permissions: Permissions(
       locationAccuracy: locationAccuracy(),
       locationPermissions: locationPermissions(),
       motionPermissions: motionPermissions()
-    )
+    ),
+    status: sdk
   )
 }
 

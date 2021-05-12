@@ -6,68 +6,23 @@ import Views
 
 
 public struct OrderScreen: View {
-  public struct State: Equatable {
+  public struct Metadata: Hashable {
+    public let key: String
+    public let value: String
     
-    public var title: String
-    public var orderNote: String
-    public var noteFieldFocused: Bool
-    public var coordinate: Coordinate
-    public var address: String
-    public var metadata: [Metadata]
-    public var status: OrderStatus
-    public var deviceID: String
-    public var publishableKey: String
-    
-    public struct Metadata: Hashable {
-      public let key: String
-      public let value: String
-      
-      public init(key: String, value: String) {
-        self.key = key
-        self.value = value
-      }
+    public init(key: String, value: String) {
+      self.key = key
+      self.value = value
     }
-    
-    public enum OrderStatus: Equatable {
-      case notSent
-      case pickedUp
-      case entered(String)
-      case visited(String)
-      case checkedOut(visited: String?, completed: String)
-      case canceled(visited: String?, canceled: String)
-    }
-    
-    public var finished: Bool {
-      switch status {
-      case .checkedOut,
-           .canceled:
-        return true
-      default:
-        return false
-      }
-    }
-    
-    public init(
-      title: String,
-      orderNote: String,
-      noteFieldFocused: Bool,
-      coordinate: Coordinate,
-      address: String,
-      metadata: [Metadata],
-      status: OrderStatus,
-      deviceID: String,
-      publishableKey: String
-    ) {
-      self.title = title
-      self.orderNote = orderNote
-      self.noteFieldFocused = noteFieldFocused
-      self.coordinate = coordinate
-      self.address = address
-      self.metadata = metadata
-      self.status = status
-      self.deviceID = deviceID
-      self.publishableKey = publishableKey
-    }
+  }
+  
+  public enum OrderStatus: Equatable {
+    case notSent
+    case pickedUp
+    case entered(String)
+    case visited(String)
+    case checkedOut(visited: String?, completed: String)
+    case canceled(visited: String?, canceled: String)
   }
   
   public enum Action: Equatable {
@@ -85,20 +40,67 @@ public struct OrderScreen: View {
   
   @Environment(\.colorScheme) var colorScheme
   @GestureState private var dragOffset = CGSize.zero
-  let state: State
+  let state: Order
   let send: (Action) -> Void
   
   public init(
-    state: State,
+    state: Order,
     send: @escaping (Action) -> Void
   ) {
     self.state = state
     self.send = send
   }
   
+  var title: String {
+    switch state.address.anyAddressStreetBias {
+    case     .none:    return "Order @ \(DateFormatter.stringDate(state.createdAt))"
+    case let .some(a): return a.rawValue
+    }
+  }
+  
+  var orderNote: String {
+    state.orderNote?.string ?? ""
+  }
+  
+  var metadata: [Metadata] {
+    state.metadata
+      .map({ $0 })
+      .sorted(by: \.key)
+      .map { (name: Order.Name, contents: Order.Contents) in
+      Metadata(key: "\(name)", value: "\(contents)")
+    }
+  }
+  
+  var status: OrderStatus {
+    switch state.geotagSent {
+    case .notSent:
+      return .notSent
+    case .pickedUp:
+      return .pickedUp
+    case let .entered(entry):
+      return .entered(DateFormatter.stringDate(entry))
+    case let .visited(entry, exit):
+      return .visited("\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))")
+    case let .checkedOut(visited, checkedOutDate):
+      return .checkedOut(visited: visited.map(visitedString(_:)), completed: DateFormatter.stringDate(checkedOutDate))
+    case let .cancelled(visited, cancelledDate):
+      return .canceled(visited: visited.map(visitedString(_:)), canceled: DateFormatter.stringDate(cancelledDate))
+    }
+  }
+  
+  public var finished: Bool {
+    switch status {
+    case .checkedOut,
+         .canceled:
+      return true
+    default:
+      return false
+    }
+  }
+  
   public var body: some View {
     Navigation(
-      title: state.title,
+      title: title,
       leading: {
         BackButton { send(.backButtonTapped) }
       },
@@ -106,14 +108,14 @@ public struct OrderScreen: View {
     ) {
       ZStack {
         InformationView(
-          coordinate: state.coordinate,
-          address: state.address,
-          metadata: state.metadata,
-          status: state.status,
-          showButtons: !state.finished,
-          orderNote: state.orderNote,
+          coordinate: state.location,
+          address: state.address.anyAddressStreetBias?.rawValue ?? "",
+          metadata: metadata,
+          status: status,
+          showButtons: !finished,
+          orderNote: orderNote,
           deleveryNoteBinding: Binding(
-            get: { state.orderNote },
+            get: { orderNote },
             set: { send(.noteFieldChanged($0)) }
           ),
           noteFieldFocused: state.noteFieldFocused,
@@ -127,7 +129,7 @@ public struct OrderScreen: View {
           }
         )
         ButtonView(
-          status: state.status,
+          status: status,
           cancelButtonTapped: { send(.cancelButtonTapped) },
           checkOutButtonTapped: { send(.checkOutButtonTapped) },
           pickedUpButtonTapped: { send(.pickedUpButtonTapped) }
@@ -156,7 +158,7 @@ public struct OrderScreen: View {
 }
 
 struct StatusView: View {
-  let status: OrderScreen.State.OrderStatus
+  let status: OrderScreen.OrderStatus
 
   var body: some View {
     switch status {
@@ -183,8 +185,8 @@ struct StatusView: View {
 struct InformationView: View {
   let coordinate: Coordinate
   let address: String
-  let metadata: [OrderScreen.State.Metadata]
-  let status: OrderScreen.State.OrderStatus
+  let metadata: [OrderScreen.Metadata]
+  let status: OrderScreen.OrderStatus
   let showButtons: Bool
   let orderNote: String
   @Binding var deleveryNoteBinding: String
@@ -254,7 +256,7 @@ struct InformationView: View {
 
 
 struct ButtonView: View {
-  let status: OrderScreen.State.OrderStatus
+  let status: OrderScreen.OrderStatus
   let cancelButtonTapped: () -> Void
   let checkOutButtonTapped: () -> Void
   let pickedUpButtonTapped: () -> Void
@@ -300,20 +302,44 @@ struct CancelButton: View {
   }
 }
 
+extension DateFormatter {
+  static func stringDate(_ date: Date) -> String {
+    let dateFormat = DateFormatter()
+    dateFormat.locale = Locale(identifier: "en_US_POSIX")
+    dateFormat.dateFormat = "h:mm a"
+    return dateFormat.string(from: date)
+  }
+}
+
+extension Sequence {
+  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    return sorted { a, b in
+      return a[keyPath: keyPath] < b[keyPath: keyPath]
+    }
+  }
+}
+
+func visitedString(_ visited: Order.Geotag.Visited) -> String {
+  switch visited {
+  case let .entered(entry): return DateFormatter.stringDate(entry)
+  case let .visited(entry, exit): return "\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))"
+  }
+}
 
 struct OrderScreen_Previews: PreviewProvider {
   static var previews: some View {
     OrderScreen(
-      state: .init(
-        title: "Rauscherstraße 5",
-        orderNote: "Waiting for client",
+      state: Order(
+        id: Order.ID(rawValue: "ID7"),
+        createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
+        source: .trip,
+        location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
+        geotagSent: .entered(Date()),
         noteFieldFocused: false,
-        coordinate: Coordinate(latitude: 40.6908, longitude: -74.0459)!,
-        address: "Rauscherstraße 5, 1200 Wien, Австрия",
-        metadata: [.init(key: "Key4", value: "Value4")],
-        status: .checkedOut(visited: nil, completed: "5 PM"),
-        deviceID: "",
-        publishableKey: ""
+        address: .init(
+          street: Street(rawValue: "333 Fulton St"),
+          fullAddress: FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
+        )
       ),
       send: { _ in }
     )
