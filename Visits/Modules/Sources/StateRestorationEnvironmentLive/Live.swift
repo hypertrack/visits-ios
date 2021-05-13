@@ -191,27 +191,26 @@ func restoredStateFrom(
       )
     )
     
-  // Freshly installed app that didn't go though the deep link,
-  // or an old app that didn't open the deep link
-  default:
+  // Freshly installed app that didn't go though the deep link
+  case (.none, .none, .none, .none, .none, .none, .none, .none, .none, .none):
     return .success(nil)
     
   // State restoration failed, back to the starting screen
-//  default:
-//    return .failure(
-//      .init(
-//        driverID: driverID,
-//        email: email,
-//        experience: experience,
-//        locationAlways: locationAlways,
-//        orders: orders,
-//        places: places,
-//        publishableKey: publishableKey,
-//        pushStatus: pushStatus,
-//        screen: screen,
-//        tabSelection: tabSelection
-//      )
-//    )
+  default:
+    return .failure(
+      .init(
+        driverID: driverID,
+        email: email,
+        experience: experience,
+        locationAlways: locationAlways,
+        orders: orders,
+        places: places,
+        publishableKey: publishableKey,
+        pushStatus: pushStatus,
+        screen: screen,
+        tabSelection: tabSelection
+      )
+    )
   }
 }
 

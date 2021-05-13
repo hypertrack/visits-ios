@@ -90,6 +90,10 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         run(report.capture(.init(rawValue: errorMessage(from: error))))
       }
       
+      if case let .restoredState(_, _, .some(e)) = action {
+        run(report.capture(.init(rawValue: .init(rawValue: debugOutput(e))!)))
+      }
+      
       if action == .errorReportingAlert(.yes) {
         run(report.capture(.init(rawValue: "Manual Report \(environment.uuid().uuidString)")))
       }
