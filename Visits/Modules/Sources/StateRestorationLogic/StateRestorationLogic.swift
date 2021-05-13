@@ -1,4 +1,7 @@
+import AppArchitecture
+import Combine
 import ComposableArchitecture
+import Prelude
 import StateRestorationEnvironment
 import Types
 
@@ -8,22 +11,27 @@ import Types
 public enum StateRestorationState: Equatable {
   case waitingToStart
   case restoringState
-  case stateRestored(StorageState)
+  case stateRestored(RestoredState)
 }
 
 // MARK: - Action
 
 public enum StateRestorationAction: Equatable {
   case osFinishedLaunching
-  case restoredState(Result<StorageState?, StateRestorationError>)
+  case restoredState(StorageState?, AppVersion, StateRestorationError?)
 }
 
 // MARK: - Environment
 
 public struct StateRestorationLogicEnvironment {
+  public var appVersion: () -> Effect<AppVersion, Never>
   public var loadState: () -> Effect<Result<StorageState?, StateRestorationError>, Never>
   
-  public init(loadState: @escaping () -> Effect<Result<StorageState?, StateRestorationError>, Never>) {
+  public init(
+    appVersion: @escaping () -> Effect<AppVersion, Never>,
+    loadState: @escaping () -> Effect<Result<StorageState?, StateRestorationError>, Never>
+  ) {
+    self.appVersion = appVersion
     self.loadState = loadState
   }
 }
@@ -33,7 +41,7 @@ public struct StateRestorationLogicEnvironment {
 public let stateRestorationReducer: Reducer<
   StateRestorationState,
   StateRestorationAction,
-  StateRestorationLogicEnvironment
+  SystemEnvironment<StateRestorationLogicEnvironment>
 > = Reducer { state, action, environment in
   switch action {
   case .osFinishedLaunching:
@@ -41,23 +49,44 @@ public let stateRestorationReducer: Reducer<
     
     state = .restoringState
     
-    return environment.loadState()
-      .map(StateRestorationAction.restoredState)
-      .eraseToEffect()
-  case let .restoredState(result):
+    return Publishers.Zip(
+     environment.loadState(),
+      environment.appVersion()
+    )
+    .map { (z: (result: Result<StorageState?, StateRestorationError>, version: AppVersion)) in
+      .restoredState(resultSuccess(z.result) >>- identity, z.version, resultFailure(z.result))
+    }
+    .receive(on: environment.mainQueue)
+    .eraseToEffect()
+    
+  case let .restoredState(ss, ver, _):
     guard state == .restoringState else { return .none }
     
-    state = .stateRestored((try? result.get()) ?? .firstRun)
+    state = .stateRestored(.init(storage: ss ?? .firstRun, version: ver))
     
     return .none
   }
 }
 
-extension StorageState {
+private extension StorageState {
   static let firstRun: Self = .init(
     experience: .firstRun,
     flow: .firstRun,
     locationAlways: .notRequested,
     pushStatus: .dialogSplash(.notShown)
   )
+}
+
+private func resultSuccess<Success, Failure>(_ r: Result<Success, Failure>) -> Success? {
+  switch r {
+  case let .success(s): return s
+  case     .failure:    return nil
+  }
+}
+
+private func resultFailure<Success, Failure>(_ r: Result<Success, Failure>) -> Failure? {
+  switch r {
+  case     .success:    return nil
+  case let .failure(f): return f
+  }
 }

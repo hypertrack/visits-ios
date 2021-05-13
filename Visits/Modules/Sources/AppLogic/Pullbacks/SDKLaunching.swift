@@ -25,17 +25,17 @@ func toStateRestored(_ s: AppState) -> Prelude.Unit? {
 private let sdkLaunchingStatePrism = Prism<AppState, SDKLaunchingState>(
   extract: { s in
     switch s {
-    case let .restoringState(.some(ss)): return .init(status: .stateRestored, storageState: ss)
-    case let .launchingSDK(ss):          return .init(status: .launching, storageState: ss)
-    case let .starting(ss, sdk):         return .init(status: .launched(sdk), storageState: ss)
+    case let .restoringState(.some(ss)): return .init(status: .stateRestored, restoredState: ss)
+    case let .launchingSDK(ss):          return .init(status: .launching, restoredState: ss)
+    case let .starting(ss, sdk):         return .init(status: .launched(sdk), restoredState: ss)
     default:                             return nil
     }
   },
   embed: { d in
     switch d.status {
-    case .stateRestored:     return .restoringState(d.storageState)
-    case .launching:         return .launchingSDK(d.storageState)
-    case let .launched(sdk): return .starting(d.storageState, sdk)
+    case .stateRestored:     return .restoringState(d.restoredState)
+    case .launching:         return .launchingSDK(d.restoredState)
+    case let .launched(sdk): return .starting(d.restoredState, sdk)
     }
   }
 )

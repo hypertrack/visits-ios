@@ -43,6 +43,7 @@ private struct SDKInitializationDomain {
   var publishableKey: PublishableKey
   var pushStatus: PushStatus
   var sdk: SDKStatusUpdate
+  var appVersion: AppVersion
 }
 
 private enum SDKInitializationFlowDomain {
@@ -120,7 +121,8 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
         locationAlways: s.locationAlways,
         publishableKey: publishableKey,
         pushStatus: s.pushStatus,
-        sdk: s.sdk
+        sdk: s.sdk,
+        appVersion: s.version
       )
     default:
       return nil
@@ -155,7 +157,8 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
         flow: flow,
         locationAlways: d.locationAlways,
         pushStatus: d.pushStatus,
-        sdk: d.sdk
+        sdk: d.sdk,
+        version: d.appVersion
       )
     )
   }

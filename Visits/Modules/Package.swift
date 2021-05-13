@@ -35,9 +35,11 @@ let targets: [Target] = [
   .target(name: "Views"),
   
   // Environment
-  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
+  .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Types"]),
   .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
+  .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
+  .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "BranchEnvironmentLive",           dependencies: ["Branch", "BranchEnvironment", "LogEnvironment"]),
   .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
@@ -58,7 +60,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Prelude", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "NetworkEnvironment", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Prelude", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SignUpLogic", "SignUpSignInToggleLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "NetworkEnvironment", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Prelude", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SignUpLogic", "SignUpSignInToggleLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture]),
   .target(name: "AutoSavingLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "BlockerLogic",                    dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
@@ -75,7 +77,7 @@ let targets: [Target] = [
   .target(name: "SignInLogic",                     dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
   .target(name: "SignUpLogic",                     dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
   .target(name: "SignUpSignInToggleLogic",         dependencies: [architecture, "Types"]),
-  .target(name: "StateRestorationLogic",           dependencies: [architecture, "StateRestorationEnvironment", "Types"]),
+  .target(name: "StateRestorationLogic",           dependencies: ["AppArchitecture", architecture, "Prelude", "StateRestorationEnvironment", "Types"]),
   .target(name: "SDKInitializationLogic",          dependencies: [architecture, "Types"]),
   .target(name: "SDKLaunchingLogic",               dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
   .target(name: "SDKStatusUpdateLogic",            dependencies: [architecture, "Types"]),

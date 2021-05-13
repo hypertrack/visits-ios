@@ -12,11 +12,19 @@ let stateRestorationP: Reducer<
 > = stateRestorationReducer.pullback(
   state: stateRestorationStatePrism.toAffine(),
   action: stateRestorationActionPrism,
-  environment: \.stateRestoration.loadState
-    >>> StateRestorationLogicEnvironment.init(loadState:)
+  environment: toStateRestorationEnvironment
 )
 
-let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
+private func toStateRestorationEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<StateRestorationLogicEnvironment> {
+  e.map { e in
+    .init(
+      appVersion: e.bundle.appVersion,
+      loadState: e.stateRestoration.loadState
+    )
+  }
+}
+
+private let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
   extract: { d in
     switch d {
     case     .waitingToFinishLaunching:  return .waitingToStart
@@ -34,18 +42,18 @@ let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
   }
 )
 
-let stateRestorationActionPrism: Prism<AppAction, StateRestorationAction> = .init(
+private let stateRestorationActionPrism: Prism<AppAction, StateRestorationAction> = .init(
   extract: { appAction in
     switch appAction {
     case     .osFinishedLaunching:  return .osFinishedLaunching
-    case let .restoredState(state): return .restoredState(state)
+    case let .restoredState(ss, ver, e): return .restoredState(ss, ver, e)
     default:                         return nil
     }
   },
   embed: { stateRestorationAction in
     switch stateRestorationAction {
     case     .osFinishedLaunching:  return .osFinishedLaunching
-    case let .restoredState(state): return .restoredState(state)
+    case let .restoredState(ss, ver, e): return .restoredState(ss, ver, e)
     }
   }
 )

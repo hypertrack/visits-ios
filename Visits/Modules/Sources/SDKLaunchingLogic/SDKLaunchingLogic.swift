@@ -8,10 +8,10 @@ import Types
 
 public struct SDKLaunchingState: Equatable {
   public var status: Status
-  public var storageState: StorageState
+  public var restoredState: RestoredState
   
   var publishableKey: PublishableKey? {
-    self.storageState *^? \StorageState.flow ** /StorageState.Flow.main ** \.3
+    self.restoredState *^? \RestoredState.storage.flow ** /StorageState.Flow.main ** \.3
   }
   
   public enum Status: Equatable {
@@ -20,8 +20,8 @@ public struct SDKLaunchingState: Equatable {
     case launched(SDKStatusUpdate)
   }
   
-  public init(status: SDKLaunchingState.Status, storageState: StorageState) {
-    self.status = status; self.storageState = storageState
+  public init(status: SDKLaunchingState.Status, restoredState: RestoredState) {
+    self.status = status; self.restoredState = restoredState
   }
 }
 

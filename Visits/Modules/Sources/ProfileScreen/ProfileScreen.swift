@@ -7,14 +7,17 @@ public struct ProfileScreen: View {
   public struct State {
     public let driverID: DriverID
     public let deviceID: DeviceID
+    public let appVersion: AppVersion
     
     
     public init(
       driverID: DriverID,
-      deviceID: DeviceID
+      deviceID: DeviceID,
+      appVersion: AppVersion
     ) {
       self.driverID = driverID
       self.deviceID = deviceID
+      self.appVersion = appVersion
     }
   }
   
@@ -46,7 +49,7 @@ public struct ProfileScreen: View {
         }
         
         Section(header: Text("App")) {
-          TextRow("Version", text: "2.5.0 (44)") {
+          TextRow("Version", text: state.appVersion.rawValue) {
             send(.copyTextPressed($0))
           }
         }
@@ -116,7 +119,8 @@ struct ProfileScreen_Previews: PreviewProvider {
     ProfileScreen(
       state: .init(
         driverID: "DriverID",
-        deviceID: "DeviceID"
+        deviceID: "DeviceID",
+        appVersion: "1.2.3 (45)"
       )
     )
     .previewScheme(.dark)

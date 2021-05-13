@@ -1,4 +1,5 @@
 import APIEnvironment
+import AppBundleDependency
 import BranchEnvironment
 import ErrorReportingEnvironment
 import HapticFeedbackEnvironment
@@ -12,6 +13,7 @@ import StateRestorationEnvironment
 
 public struct AppEnvironment {
   public var api: APIEnvironment
+  public var bundle: AppBundleDependency
   public var deepLink: BranchEnvironment
   public var errorReporting: ErrorReportingEnvironment
   public var hapticFeedback: HapticFeedbackEnvironment
@@ -22,7 +24,7 @@ public struct AppEnvironment {
   public var push: PushEnvironment
   public var stateRestoration: StateRestorationEnvironment
   
-  public init(api: APIEnvironment, deepLink: BranchEnvironment, errorReporting: ErrorReportingEnvironment, hapticFeedback: HapticFeedbackEnvironment, hyperTrack: HyperTrackEnvironment, maps: MapEnvironment, network: NetworkEnvironment, pasteboard: PasteboardEnvironment, push: PushEnvironment, stateRestoration: StateRestorationEnvironment) {
-    self.api = api; self.deepLink = deepLink; self.errorReporting = errorReporting; self.hapticFeedback = hapticFeedback; self.hyperTrack = hyperTrack; self.maps = maps; self.network = network; self.pasteboard = pasteboard; self.push = push; self.stateRestoration = stateRestoration;
+  public init(api: APIEnvironment, bundle: AppBundleDependency, deepLink: BranchEnvironment, errorReporting: ErrorReportingEnvironment, hapticFeedback: HapticFeedbackEnvironment, hyperTrack: HyperTrackEnvironment, maps: MapEnvironment, network: NetworkEnvironment, pasteboard: PasteboardEnvironment, push: PushEnvironment, stateRestoration: StateRestorationEnvironment) {
+    self.api = api; self.bundle = bundle; self.deepLink = deepLink; self.errorReporting = errorReporting; self.hapticFeedback = hapticFeedback; self.hyperTrack = hyperTrack; self.maps = maps; self.network = network; self.pasteboard = pasteboard; self.push = push; self.stateRestoration = stateRestoration;
   }
 }

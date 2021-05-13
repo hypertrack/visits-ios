@@ -39,15 +39,15 @@ private let appStartupActionPrism = Prism<AppAction, AppStartupAction>(
 )
 
 private enum AppStartupDomain {
-  case starting(StorageState, SDKStatusUpdate)
-  case operational(StorageState, SDKStatusUpdate)
+  case starting(RestoredState, SDKStatusUpdate)
+  case operational(RestoredState, SDKStatusUpdate)
 }
 
 private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
   extract: { appState in
     switch appState {
-    case let .starting(ss, sdk):
-      return .starting(ss, sdk)
+    case let .starting(rs, sdk):
+      return .starting(rs, sdk)
     case let .operational(o) where o.alert == nil:
       let flow: StorageState.Flow
       switch o.flow {
@@ -79,10 +79,13 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       }
       return .operational(
         .init(
-          experience: o.experience,
-          flow: flow,
-          locationAlways: o.locationAlways,
-          pushStatus: o.pushStatus
+          storage: .init(
+            experience: o.experience,
+            flow: flow,
+            locationAlways: o.locationAlways,
+            pushStatus: o.pushStatus
+          ),
+          version: o.version
         ),
         o.sdk
       )
@@ -94,9 +97,9 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
     switch appStartupDomain {
     case let .starting(ss, sdk):
       return .starting(ss, sdk)
-    case let .operational(ss, su):
+    case let .operational(rs, su):
       let flow: AppFlow
-      switch ss.flow {
+      switch rs.storage.flow {
       case .firstRun:
         flow = .firstRun
       case let .signUp(e):
@@ -111,11 +114,12 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       return .operational(
         .init(
           alert: nil,
-          experience: ss.experience,
+          experience: rs.storage.experience,
           flow: flow,
-          locationAlways: ss.locationAlways,
-          pushStatus: ss.pushStatus,
-          sdk: su
+          locationAlways: rs.storage.locationAlways,
+          pushStatus: rs.storage.pushStatus,
+          sdk: su,
+          version: rs.version
         )
       )
     }

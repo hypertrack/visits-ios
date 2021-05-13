@@ -2,6 +2,7 @@ import AppLogic
 import Types
 
 import APIEnvironmentLive
+import AppBundleDependencyLive
 import BranchEnvironmentLive
 import ErrorReportingEnvironmentLive
 import HapticFeedbackEnvironmentLive
@@ -16,6 +17,7 @@ import StateRestorationEnvironmentLive
 public extension AppEnvironment {
   static let live = Self(
     api: .live,
+    bundle: .live,
     deepLink: .live,
     errorReporting: .live,
     hapticFeedback: .live,
@@ -30,6 +32,7 @@ public extension AppEnvironment {
   static func simulator(deviceID: DeviceID, publishableKey: PublishableKey) -> Self {
     Self(
       api: .live,
+      bundle: .live,
       deepLink: .live,
       errorReporting: .printing,
       hapticFeedback: .live,

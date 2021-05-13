@@ -48,7 +48,7 @@ public struct AppScreen: View {
     case signUpVerification(SignUpState.Verification.Status)
     case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
-    case main(OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection)
+    case main(OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
@@ -103,9 +103,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(s, p, r, h, mv, drID, deID, sel):
+        case let .main(s, p, r, h, mv, drID, deID, sel, ver):
           MainBlock(
-            state: (s, p, r, h, mv, drID, deID, sel),
+            state: (s, p, r, h, mv, drID, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -134,7 +134,8 @@ struct MainBlock: View {
     orders: [MapOrder],
     driverID: DriverID,
     deviceID: DeviceID,
-    tabSelection: TabSelection
+    tabSelection: TabSelection,
+    version: AppVersion
   )
   let sendMap: (String) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
@@ -228,7 +229,8 @@ struct MainBlock: View {
       ProfileScreen(
         state: .init(
           driverID: state.driverID,
-          deviceID: state.deviceID
+          deviceID: state.deviceID,
+          appVersion: state.version
         )
       ) {
         sendProfile($0)

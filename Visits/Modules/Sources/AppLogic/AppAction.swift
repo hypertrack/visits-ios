@@ -94,7 +94,7 @@ public enum AppAction: Equatable {
   case requestPushAuthorization
   case userHandledPushAuthorization
   // State
-  case restoredState(Result<StorageState?, StateRestorationError>)
+  case restoredState(StorageState?, AppVersion, StateRestorationError?)
   // Alert
   case errorAlert(ErrorAlertAction)
   case errorReportingAlert(ErrorReportingAlertAction)

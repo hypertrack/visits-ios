@@ -114,7 +114,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           case let .some(order): ord = .order(order)
           }
           
-          screen = .main(ord, m.places, m.refreshing, m.history, mapOrders(from: m.orders), m.driverID, deID, m.tab)
+          screen = .main(ord, m.places, m.refreshing, m.history, mapOrders(from: m.orders), m.driverID, deID, m.tab, o.version)
         }
       }
     }
