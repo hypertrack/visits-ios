@@ -62,6 +62,7 @@ public let signInReducer = Reducer<SignInState, SignInAction, SystemEnvironment<
   case let .emailChanged(e):
     guard case let .entering(eg) = state else { return .none }
     
+    let e = e >>- { $0.cleanup() }
     state = .entering(eg |> \.email *< e)
     
     return .none
