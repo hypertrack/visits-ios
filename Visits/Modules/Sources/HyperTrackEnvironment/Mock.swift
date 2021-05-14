@@ -40,7 +40,12 @@ public extension HyperTrackEnvironment {
         
         return Effect(value: .init(permissions: p, status: s))
       },
-      openSettings: noop.openSettings,
+      openSettings: {
+        p.locationPermissions = .authorizedAlways
+        statusUpdateSubject.send(.init(permissions: p, status: s))
+        
+        return .none
+      },
       registerForRemoteNotifications: noop.registerForRemoteNotifications,
       requestAlwaysLocationPermissions: {
         p.locationPermissions = .authorizedAlways
