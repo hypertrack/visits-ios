@@ -79,6 +79,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       guard let o = state.selected else { return .none }
       
       state.orders = state.orders |> Set.insert(o)
+      state.selected = nil
       
       return .none
     case let .ordersUpdated(os):
