@@ -10,9 +10,13 @@ This is an open-sourced logistics application (also available in [AppStore](http
 
 ## Features
 
-| Visits Overview                | Visits Timeline                 | Visit Details                  |
-| ------------------------------ | ------------------------------- | ------------------------------ |
-| <img src="images/visits.png"> | <img src="images/map.png"> | <img src="images/visit.png"> |
+| Timeline                   | Orders                        | Order Details                |
+| -------------------------- | ----------------------------- | ---------------------------- |
+| <img src="Images/map.png"> | <img src="Images/orders.png"> | <img src="Images/order.png"> |
+
+| Places                        | Place Details                | Profile                        |
+| ----------------------------- | ---------------------------- | ------------------------------ |
+| <img src="Images/places.png"> | <img src="Images/place.png"> | <img src="Images/profile.png"> |
 
 - Handle permission requests required for live location tracking
 - Track day's deliveries as geofences on HyperTrack
@@ -26,7 +30,7 @@ This app is using HyperTrack geofences, which come with powerful views on the **
 - Review all delivery details, including: delivery locations, time spent and route to each delivery
 - Review custom markers with delivery notes and delivery completion to answer support tickets
 
-<img src="images/dashboard.png">
+<img src="Images/dashboard.png">
 
 ## How to integrate the app with your backend
 
