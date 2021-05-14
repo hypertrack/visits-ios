@@ -1,5 +1,6 @@
 import Foundation
 import Prelude
+import Tagged
 import Types
 
 
@@ -15,6 +16,13 @@ extension AppState {
     operational_ |> \.flow *< .main(
       main |> \.selectedOrder *< .some(notSent)
            <> \.tab *< .orders
+    )
+  )
+  
+  static let placesScreenshot = Self.operational(
+    operational_ |> \.flow *< .main(
+      main |> \.places *< [cityHall, artsCenter]
+           <> \.tab *< .places
     )
   )
   
@@ -156,6 +164,61 @@ private let checkedOut3 = Order(
 
 private let orders: Set<Order> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
 
+private let cityHall = Place(
+  id: "1",
+  address: .init(street: "San Francisco City Hall", fullAddress: "San Francisco City Hall, 400 Van Ness Ave, San Francisco, CA  94102, United States"),
+  createdAt: taggedDate(hour: 9, minute: 0, second: 0),
+  currentlyInside: nil,
+  metadata: ["name": "City Hall"],
+  shape: .circle(.init(center: Coordinate(latitude: 37.779272, longitude: -122.419148)!, radius: 100)),
+  visits: [
+    .init(
+      id: "1",
+      entry: taggedDate(hour: 9, minute: 10, second: 50),
+      exit: taggedDate(hour: 9, minute: 15, second: 50),
+      duration: 300,
+      route: .init(
+        distance: .init(rawValue: 1234),
+        duration: .init(rawValue: 1234),
+        idleTime: .init(rawValue: 123)
+      )
+    ),
+    .init(
+      id: "2",
+      entry: taggedDate(hour: 7, minute: 10, second: 50),
+      exit: taggedDate(hour: 7, minute: 15, second: 50),
+      duration: 300,
+      route: .init(
+        distance: .init(rawValue: 1234),
+        duration: .init(rawValue: 1234),
+        idleTime: .init(rawValue: 123)
+      )
+    )
+  ]
+)
+
+private let artsCenter = Place(
+  id: "2",
+  address: .init(street: "Yerba Buena Center for the Arts", fullAddress: "Yerba Buena Center for the Arts, 701 Mission St, San Francisco, CA  94103, United States"),
+  createdAt: .init(rawValue: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!),
+  currentlyInside: nil,
+  metadata: ["name":"Arts Center"],
+  shape: .circle(.init(center: Coordinate(latitude: 37.785713, longitude: -122.402123)!, radius: 100)),
+  visits: [
+    .init(
+      id: "123456",
+      entry: .init(rawValue: date(hour: 8, minute: 05, second: 30) - (24 * 60 * 60)),
+      exit: .init(rawValue: date(hour: 8, minute: 30, second: 30) - (24 * 60 * 60)),
+      duration: 1500,
+      route: .init(
+        distance: .init(rawValue: 1234),
+        duration: .init(rawValue: 1234),
+        idleTime: .init(rawValue: 123)
+      )
+    )
+  ]
+)
+
 private let publishableKey = PublishableKey(rawValue: "Key")
 private let deviceID = DeviceID(rawValue: "UNIQUE-ID")
 private let driverID = DriverID(rawValue: "user@company.com")
@@ -164,6 +227,14 @@ private let permissions = Permissions(
   locationPermissions: .authorizedAlways,
   motionPermissions: .authorized
 )
+
+private func date(hour: Int, minute: Int, second: Int) -> Date {
+  Calendar.current.date(bySettingHour: hour, minute: minute, second: second, of: Date())!
+}
+
+private func taggedDate<Tag>(hour: Int, minute: Int, second: Int) -> Tagged<Tag, Date> {
+  .init(rawValue: date(hour: hour, minute: minute, second: second))
+}
 
 private let operational_ = OperationalState(
   experience: .regular,
