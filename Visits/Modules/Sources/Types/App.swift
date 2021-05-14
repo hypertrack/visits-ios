@@ -2,7 +2,7 @@ import NonEmpty
 import Tagged
 
 public enum AppState: Equatable {
-  case waitingToFinishLaunching
+  case initialState
   case restoringState(RestoredState?)
   case launchingSDK(RestoredState)
   case starting(RestoredState, SDKStatusUpdate)

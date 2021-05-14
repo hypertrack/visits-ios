@@ -27,7 +27,7 @@ private func toStateRestorationEnvironment(_ e: SystemEnvironment<AppEnvironment
 private let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
   extract: { d in
     switch d {
-    case     .waitingToFinishLaunching:  return .waitingToStart
+    case     .initialState:              return .waitingToStart
     case     .restoringState(.none):     return .restoringState
     case let .restoringState(.some(ss)): return .stateRestored(ss)
     default:                             return nil
@@ -35,7 +35,7 @@ private let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
   },
   embed: { s in
     switch s {
-    case     .waitingToStart:    return .waitingToFinishLaunching
+    case     .waitingToStart:    return .initialState
     case     .restoringState:    return .restoringState(.none)
     case let .stateRestored(ss): return .restoringState(ss)
     }
