@@ -8,7 +8,6 @@ public struct SignInScreen: View {
   public enum ButtonState { case normal, destructive, disabled }
   
   public enum Action {
-    case signUpTapped
     case cancelSignInTapped
     case emailChanged(String)
     case emailEnterKeyboardButtonTapped
@@ -144,24 +143,14 @@ public struct SignInScreen: View {
         .padding([.trailing, .leading], 58)
       case .disabled:
         PrimaryButton(
-          variant: .disabled(title: "Sign in")
+          variant: .disabled(title: "Sign in"),
+          showActivityIndicator: signingIn
         ) {}
         .disabled(true)
         .padding(.top, 39)
         .padding([.trailing, .leading], 58)
       }
       Spacer()
-      Text("Don’t have an account?")
-        .font(
-          Font.system(size: 14)
-            .weight(.medium))
-        .foregroundColor(.ghost)
-      TransparentButton(title: "Sign up?") {
-        send(.signUpTapped)
-      }
-      .padding(.top, 12)
-      .padding([.trailing, .leading], 58)
-      .padding(.bottom, 30)
     }
     .modifier(AppBackground())
     .edgesIgnoringSafeArea(.all)

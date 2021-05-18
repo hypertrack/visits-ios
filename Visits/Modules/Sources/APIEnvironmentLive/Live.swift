@@ -7,11 +7,8 @@ public extension APIEnvironment {
     getHistory: getHistory(_:_:_:),
     getOrders: getOrders(_:_:),
     getPlaces: getPlaces(_:_:),
-    resendVerificationCode: resendVerification(email:),
     reverseGeocode: reverseGeocode(_:),
-    signIn: signIn(_:_:),
-    signUp: signUp(name:email:password:businessManages:managesFor:),
-    verifyEmail: verifyEmail(email:code:)
+    signIn: signIn(_:_:)
   )
 }
 

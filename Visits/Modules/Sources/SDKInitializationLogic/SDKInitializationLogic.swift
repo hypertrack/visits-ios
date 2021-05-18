@@ -10,7 +10,6 @@ public enum SDKInitializationState: Equatable {
 }
 
 public enum SDKUninitializedSource: Equatable {
-  case signUp(VerificationCode?, Password)
   case signIn(Password)
   case driverID
 }

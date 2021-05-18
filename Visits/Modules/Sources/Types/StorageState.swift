@@ -2,7 +2,6 @@ public struct StorageState: Equatable {
   public enum Flow: Equatable {
     case firstRun
     case signIn(Email?)
-    case signUp(Email?)
     case driverID(DriverID?, PublishableKey)
     case main(Set<Order>, Set<Place>, TabSelection, PublishableKey, DriverID)
   }

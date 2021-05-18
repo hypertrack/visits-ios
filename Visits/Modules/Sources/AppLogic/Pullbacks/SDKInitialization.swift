@@ -47,7 +47,6 @@ private struct SDKInitializationDomain {
 }
 
 private enum SDKInitializationFlowDomain {
-  case signUp(VerificationCode?, Password)
   case signIn(Password)
   case driverID
   case initialized
@@ -62,27 +61,6 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
       let publishableKey: PublishableKey
       
       switch s.flow {
-      case let .signUp(.verification(v)):
-        switch v.status {
-        case let .entering(eg):
-          switch eg.request {
-          case let .success(pk):
-            flow = .signUp(nil, v.password)
-            driverID = rewrap(v.email)
-            publishableKey = pk
-          default:
-            return nil
-          }
-        case let .entered(ed):
-          switch ed.request {
-          case let .success(pk):
-            flow = .signUp(ed.verificationCode, v.password)
-            driverID = rewrap(v.email)
-            publishableKey = pk
-          default:
-            return nil
-          }
-        }
       case let .signIn(.entered(ed)):
         switch ed.request {
         case let .success(pk):
@@ -131,13 +109,6 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
   embed: { d in
     let flow: AppFlow
     switch d.flow {
-    case let .signUp(vc, p):
-      let status: SignUpState.Verification.Status
-      switch vc {
-      case let .some(vc): status = .entered(.init(verificationCode: vc, request: .success(d.publishableKey)))
-      case     .none:     status = .entering(.init(focus: .unfocused, request: .success(d.publishableKey)))
-      }
-      flow = .signUp(.verification(.init(status: status, email: rewrap(d.driverID), password: p)))
     case let .signIn(p):
       flow = .signIn(
         .entered(
@@ -167,7 +138,6 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
 private let sdkInitializationStateLens = Lens<SDKInitializationDomain, SDKInitializationState>(
   get: { s in
     switch s.flow {
-    case let .signUp(vc, p): return .uninitialized(s.driverID, .signUp(vc, p))
     case let .signIn(p):     return .uninitialized(s.driverID, .signIn(p))
     case     .driverID:      return .uninitialized(s.driverID, .driverID)
     case     .initialized:   return .initialized(s.sdk)
@@ -182,7 +152,6 @@ private let sdkInitializationStateLens = Lens<SDKInitializationDomain, SDKInitia
       switch s {
       case let .uninitialized(drID, source):
         switch source {
-        case let .signUp(vc, p): flow = .signUp(vc, p)
         case let .signIn(p):     flow = .signIn(p)
         case     .driverID:      flow = .driverID
         }

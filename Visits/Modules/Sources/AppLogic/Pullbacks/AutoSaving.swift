@@ -24,13 +24,6 @@ private func toStorageState(_ o: OperationalState) -> StorageState {
   switch o.flow {
   case .firstRun:
     flow = .firstRun
-  case let .signUp(.form(f)):
-    switch f.status {
-    case let .filling(f): flow = .signUp(f.email)
-    case let .filled(f):  flow = .signUp(f.email)
-    }
-  case let .signUp(.questions(q)): flow = .signUp(q.email)
-  case let .signUp(.verification(v)): flow = .signUp(v.email)
   case let .signIn(.entering(e)): flow = .signIn(e.email)
   case let .signIn(.entered(e)): flow = .signIn(e.email)
   case let .driverID(d):

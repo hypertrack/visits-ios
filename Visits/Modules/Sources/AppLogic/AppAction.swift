@@ -14,36 +14,7 @@ public enum AppAction: Equatable {
   case osFinishedLaunching
   case shakeDetected
   case willEnterForeground
-  // Sign Up
-  //   Form
-  case focusBusinessName
-  case businessNameChanged(BusinessName?)
-  case completeSignUpForm
-  case goToSignIn
-  //   Questions
-  case businessManagesSelected
-  case managesForSelected
-  case businessManagesChanged(BusinessManages?)
-  case managesForChanged(ManagesFor?)
-  case signUp
-  case cancelSignUp
-  case signedUp(Result<SignUpSuccess, APIError<CognitoError>>)
-  //   Verification
-  case verificationExtractedFromPasteboard(VerificationCode)
-  case firstVerificationFieldChanged(String)
-  case secondVerificationFieldChanged(String)
-  case thirdVerificationFieldChanged(String)
-  case fourthVerificationFieldChanged(String)
-  case fifthVerificationFieldChanged(String)
-  case sixthVerificationFieldChanged(String)
-  case deleteVerificationDigit
-  case focusVerification
-  case resendVerificationCode
-  case verificationCodeSent
-  case receivedPublishableKey(PublishableKey)
-  case autoSignInFailed(APIError<CognitoError>)
   // Sign In
-  case goToSignUp
   case cancelSignIn
   case emailChanged(Email?)
   case focusEmail

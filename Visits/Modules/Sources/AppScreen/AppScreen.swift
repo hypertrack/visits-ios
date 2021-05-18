@@ -9,9 +9,6 @@ import OrdersScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
-import SignUpFormScreen
-import SignUpQuestionsScreen
-import SignUpVerificationScreen
 import SummaryScreen
 import SwiftUI
 import Types
@@ -43,18 +40,12 @@ public struct AppScreen: View {
   public enum Screen {
     case loading
     case signIn(SignInState)
-    case signUpForm(SignUpState.Form)
-    case signUpQuestions(SignUpState.Questions.Status)
-    case signUpVerification(SignUpState.Verification.Status)
     case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
     case main(OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
-    case signUpForm(SignUpFormScreen.Action)
-    case signUpQuestions(SignUpQuestionsScreen.Action)
-    case signUpVerification(SignUpVerificationScreen.Action)
     case signIn(SignInScreen.Action)
     case driverID(DriverIDScreen.Action)
     case blocker(Blocker.Action)
@@ -78,19 +69,6 @@ public struct AppScreen: View {
         switch viewStore.state.screen {
         case .loading:
           LoadingScreen()
-        case let .signUpForm(s):
-          SignUpFormScreen(state: s) {
-            viewStore.send(.signUpForm($0))
-          }
-          
-        case let .signUpQuestions(s):
-          SignUpQuestionsScreen(state: s) {
-            viewStore.send(.signUpQuestions($0))
-          }
-        case let .signUpVerification(s):
-          SignUpVerificationScreen(state: s) {
-            viewStore.send(.signUpVerification($0))
-          }
         case let .signIn(s):
           SignInScreen(state: s) {
             viewStore.send(.signIn($0))

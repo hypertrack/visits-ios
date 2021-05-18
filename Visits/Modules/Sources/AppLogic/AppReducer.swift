@@ -12,8 +12,6 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   sdkInitializationP,
   deepLinkP,
   errorAlertP,
-  signUpSignInToggleP,
-  signUpP,
   signInP,
   driverIDP,
   blockerP,
@@ -36,7 +34,6 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   }
 )
 .onExit(toSignInState, send: constant(_cancelSignInEffects()))
-.onExit(toSignUpState, send: constant(_cancelSignUpEffects()))
 .onEntry(toStateRestored, send: constant(Effect(value: .generated(.entered(.stateRestored)))))
 .onEntry(mainUnlocked, send: constant(Effect(value: .generated(.entered(.mainUnlocked)))))
 .onEntry(appStartedState, send: constant(Effect(value: .generated(.entered(.started)))))

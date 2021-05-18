@@ -78,9 +78,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       let error: APIError<Never>?
       switch action {
-      case let .signedUp(.failure(e)),
-           let .autoSignInFailed(e),
-           let .signedIn(.failure(e)):       error = toNever(e)
+      case let .signedIn(.failure(e)):       error = toNever(e)
       case let .ordersUpdated(.failure(e)),
            let .placesUpdated(.failure(e)),
            let .historyUpdated(.failure(e)): error = e

@@ -38,8 +38,6 @@ private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .in
     let displayError = flip(curry(ErrorAlertLogicAction.displayError))
     
     switch appAction {
-    case let .signedUp(.failure(e)):              return e |> toNever <¡> displayError(.signUp)
-    case let .autoSignInFailed(e):                return e |> toNever <¡> displayError(.verification)
     case let .signedIn(.failure(e)):              return e |> toNever <¡> displayError(.signIn)
     case let .ordersUpdated(.failure(apiError)):  return .displayError(apiError, .orders)
     case let .placesUpdated(.failure(apiError)):  return .displayError(apiError, .places)
@@ -50,8 +48,6 @@ private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .in
   },
   embed: { errorAlertAction in
     switch errorAlertAction {
-    case let .displayError(e, .signUp):         return .signedUp(.failure(fromNever(e)))
-    case let .displayError(e, .verification):   return .autoSignInFailed(fromNever(e))
     case let .displayError(e, .signIn):         return .signedIn(.failure(fromNever(e)))
     case let .displayError(apiError, .orders):  return .ordersUpdated(.failure(apiError))
     case let .displayError(apiError, .places):  return .placesUpdated(.failure(apiError))

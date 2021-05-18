@@ -9,11 +9,7 @@ import OrderScreen
 import OrdersScreen
 import Prelude
 import SignInScreen
-import SignUpFormScreen
-import SignUpQuestionsScreen
-import SignUpVerificationScreen
 import Types
-
 
 
 // MARK: - Life Cycle
@@ -71,12 +67,6 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     
     switch o.flow {
     case .firstRun: screen = .loading
-    case let .signUp(.form(form)):
-      screen = .signUpForm(form)
-    case let .signUp(.questions(questions)):
-      screen = .signUpQuestions(questions.status)
-    case let .signUp(.verification(verification)):
-      screen = .signUpVerification(verification.status)
     case let .signIn(s):
       screen = .signIn(s)
     case let .driverID(driverID):
@@ -133,40 +123,6 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
 
 func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   switch appScreenAction {
-  case .signUpForm(.nameTapped): return .focusBusinessName
-  case let .signUpForm(.nameChanged(n)) where n.isEmpty: return .businessNameChanged(nil)
-  case let .signUpForm(.nameChanged(n)): return .businessNameChanged(.init(stringLiteral: n))
-  case .signUpForm(.nameEnterKeyboardButtonTapped): return .focusEmail
-  case .signUpForm(.emailTapped): return .focusEmail
-  case let .signUpForm(.emailChanged(e)) where e.isEmpty: return .emailChanged(nil)
-  case let .signUpForm(.emailChanged(e)): return .emailChanged(.init(stringLiteral: e))
-  case .signUpForm(.emailEnterKeyboardButtonTapped): return .focusPassword
-  case .signUpForm(.passwordTapped): return .focusPassword
-  case let .signUpForm(.passwordChanged(p)) where p.isEmpty: return .passwordChanged(nil)
-  case let .signUpForm(.passwordChanged(p)): return .passwordChanged(.init(stringLiteral: p))
-  case .signUpForm(.passwordEnterKeyboardButtonTapped): return .completeSignUpForm
-  case .signUpForm(.nextButtonTapped): return .completeSignUpForm
-  case .signUpForm(.signInTapped): return .goToSignIn
-  case .signUpForm(.tappedOutsideFocus): return .dismissFocus
-  case let .signUpQuestions(.businessManagesChanged(bm)): return .businessManagesChanged(bm)
-  case let .signUpQuestions(.managesForChanged(mf)): return .managesForChanged(mf)
-  case .signUpQuestions(.businessManagesTapped): return .businessManagesSelected
-  case .signUpQuestions(.managesForTapped): return .managesForSelected
-  case .signUpQuestions(.deselectQuestions): return .dismissFocus
-  case .signUpQuestions(.backButtonTapped): return .goToSignUp
-  case .signUpQuestions(.acceptButtonTapped): return .signUp
-  case .signUpQuestions(.cancelSignUpTapped): return .cancelSignUp
-  case let .signUpVerification(.firstFieldChanged(s)): return .firstVerificationFieldChanged(s)
-  case let .signUpVerification(.secondFieldChanged(s)): return .secondVerificationFieldChanged(s)
-  case let .signUpVerification(.thirdFieldChanged(s)): return .thirdVerificationFieldChanged(s)
-  case let  .signUpVerification(.fourthFieldChanged(s)): return .fourthVerificationFieldChanged(s)
-  case let .signUpVerification(.fifthFieldChanged(s)): return .fifthVerificationFieldChanged(s)
-  case let .signUpVerification(.sixthFieldChanged(s)): return .sixthVerificationFieldChanged(s)
-  case .signUpVerification(.fieldsTapped): return .focusVerification
-  case .signUpVerification(.tappedOutsideFocus): return .dismissFocus
-  case .signUpVerification(.resendButtonTapped): return .resendVerificationCode
-  case .signUpVerification(.signInTapped): return .goToSignIn
-  case .signUpVerification(.backspacePressed): return .deleteVerificationDigit
   case .signIn(.cancelSignInTapped): return .cancelSignIn
   case let .signIn(.emailChanged(e)) where e.isEmpty: return .emailChanged(nil)
   case let .signIn(.emailChanged(e)): return .emailChanged(.init(stringLiteral: e))
@@ -178,7 +134,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .signIn(.passwordTapped): return .focusPassword
   case .signIn(.signInTapped): return .signIn
   case .signIn(.tappedOutsideFocus): return .dismissFocus
-  case .signIn(.signUpTapped): return .goToSignUp
   case .driverID(.buttonTapped): return .setDriverID
   case let .driverID(.driverIDChanged(d)) where d.isEmpty: return .driverIDChanged(nil)
   case let .driverID(.driverIDChanged(d)): return .driverIDChanged(.init(stringLiteral: d))

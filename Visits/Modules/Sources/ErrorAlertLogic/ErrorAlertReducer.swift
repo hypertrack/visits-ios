@@ -17,12 +17,10 @@ public enum ErrorAlertLogicAction: Equatable {
 }
 
 public enum ErrorAlertSource: Equatable {
-  case verification
   case history
   case orders
   case places
   case signIn
-  case signUp
 }
 
 // MARK: - Reducer

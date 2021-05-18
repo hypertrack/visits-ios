@@ -18,7 +18,7 @@ let targets: [Target] = [
   // Type
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Prelude", "Tagged"]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "DriverIDScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "DriverIDScreen",                  dependencies: [architecture, "Types", "Views"]),
   .target(name: "LoadingScreen"),
@@ -28,9 +28,6 @@ let targets: [Target] = [
   .target(name: "PlacesScreen",                    dependencies: [architecture, "Types", "Views"]),
   .target(name: "ProfileScreen",                   dependencies: [nonEmpty, "Types", "Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),
-  .target(name: "SignUpFormScreen",                dependencies: ["Types", "Views"]),
-  .target(name: "SignUpQuestionsScreen",           dependencies: [nonEmpty, "Prelude", "Tagged", "Types", "Views"]),
-  .target(name: "SignUpVerificationScreen",        dependencies: ["Types", "Views"]),
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
   
@@ -60,7 +57,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Prelude", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "NetworkEnvironment", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Prelude", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SignUpLogic", "SignUpSignInToggleLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "NetworkEnvironment", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Prelude", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture]),
   .target(name: "AutoSavingLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "BlockerLogic",                    dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
@@ -75,8 +72,6 @@ let targets: [Target] = [
   .target(name: "PlacesLogic",                     dependencies: [architecture, "Types"]),
   .target(name: "RefreshingLogic",                 dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
   .target(name: "SignInLogic",                     dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
-  .target(name: "SignUpLogic",                     dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
-  .target(name: "SignUpSignInToggleLogic",         dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationLogic",           dependencies: ["AppArchitecture", architecture, "Prelude", "StateRestorationEnvironment", "Types"]),
   .target(name: "SDKInitializationLogic",          dependencies: [architecture, "Types"]),
   .target(name: "SDKLaunchingLogic",               dependencies: ["AppArchitecture", architecture, "Prelude", "Types"]),
@@ -84,7 +79,7 @@ let targets: [Target] = [
   .target(name: "TabLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "TrackingLogic",                   dependencies: [architecture]),
   // Ties everything together
-  .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Prelude", "SignUpFormScreen", "SignUpQuestionsScreen", "SignUpVerificationScreen", "Types"]),
+  .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Prelude", "Types"]),
 ]
 
 let testTargets: [Target] = [

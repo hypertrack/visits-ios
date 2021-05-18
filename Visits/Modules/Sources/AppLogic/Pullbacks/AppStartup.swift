@@ -52,15 +52,6 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       let flow: StorageState.Flow
       switch o.flow {
       case .firstRun: flow = .firstRun
-      case let .signUp(.form(f)) where f.error == nil
-                                    && f.focus == nil:
-        switch f.status {
-        case let .filling(fi) where fi.businessName == nil
-                                 && fi.password     == nil:
-          flow = .signUp(fi.email)
-        default:
-          return nil
-        }
       case let .signIn(.entering(eg)) where eg.password == nil
                                          && eg.focus    == nil
                                          && eg.error    == nil:
@@ -102,8 +93,6 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       switch rs.storage.flow {
       case .firstRun:
         flow = .firstRun
-      case let .signUp(e):
-        flow = .signUp(.form(.init(status: .filling(.init(email: e)))))
       case let .signIn(e):
         flow = .signIn(.entering(.init(email: e)))
       case let .driverID(drID, pk):

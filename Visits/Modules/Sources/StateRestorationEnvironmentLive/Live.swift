@@ -65,9 +65,6 @@ public extension StateRestorationEnvironment {
         switch s.flow {
         case .firstRun:
           screen = StoredScreen.prism.embed(.firstRun).rawValue
-        case let .signUp(e):
-          screen = StoredScreen.prism.embed(.signUp).rawValue
-          email = e?.string
         case let .signIn(e):
           screen = StoredScreen.prism.embed(.signIn).rawValue
           email = e?.string
@@ -136,12 +133,12 @@ func restoredStateFrom(
       )
     )
     
-  // Latest app on Sign Up screen
+  // Old app on Sign Up screen
   case let (.signUp, email, _, _, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
-        flow: .signUp(email),
+        flow: .signIn(email),
         locationAlways: locationAlways ?? .notRequested,
         pushStatus: pushStatus ?? .dialogSplash(.notShown)
       )
