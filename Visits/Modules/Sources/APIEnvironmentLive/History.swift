@@ -45,7 +45,7 @@ extension History: Decodable {
     case stopDuration = "stop_duration"
     case walkDuration = "walk_duration"
     case steps
-    case driveDuration = "duration"
+    case driveDuration = "drive_duration"
     case distance
   }
   
