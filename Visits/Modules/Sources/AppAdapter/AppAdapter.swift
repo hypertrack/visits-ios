@@ -104,7 +104,17 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           case let .some(order): ord = .order(order)
           }
           
-          screen = .main(ord, m.places, m.refreshing, m.history, mapOrders(from: m.orders), m.driverID, deID, m.tab, o.version)
+          screen = .main(
+            ord,
+            m.places,
+            m.refreshing,
+            m.history,
+            mapOrders(from: m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders),
+            m.driverID,
+            deID,
+            m.tab,
+            o.version
+          )
         }
       }
     }
@@ -191,5 +201,15 @@ func mapVisitStatus(from geotagSent: Order.Geotag) -> MapOrder.Status {
   case .entered, .visited:  return .visited
   case .checkedOut:         return .completed
   case .cancelled:          return .canceled
+  }
+}
+
+extension Set {
+  static func insert(_ newMember: Element) -> (Self) -> Self {
+    { set in
+      var set = set
+      set.insert(newMember)
+      return set
+    }
   }
 }
