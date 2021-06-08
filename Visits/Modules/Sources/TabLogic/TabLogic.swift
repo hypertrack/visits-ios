@@ -5,6 +5,7 @@ import Types
 // MARK: - Action
 
 public enum TabAction: Equatable {
+  case selectOrder(String)
   case switchTo(TabSelection)
 }
 
@@ -16,6 +17,12 @@ public let tabReducer = Reducer<TabSelection, TabAction, Void> { state, action, 
     guard state != ts else { return .none }
     
     state = ts
+    
+    return .none
+  case .selectOrder:
+    guard state != .orders else { return .none }
+    
+    state = .orders
     
     return .none
   }
