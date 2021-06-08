@@ -29,7 +29,7 @@ public extension AppEnvironment {
     stateRestoration: .live
   )
   
-  static func simulator(deviceID: DeviceID, publishableKey: PublishableKey) -> Self {
+  static func simulator(deviceID: DeviceID, publishableKey: PublishableKey, storageState: StorageState?) -> Self {
     Self(
       api: .live,
       bundle: .live,
@@ -41,7 +41,7 @@ public extension AppEnvironment {
       network: .live,
       pasteboard: .live,
       push: .live,
-      stateRestoration: .live
+      stateRestoration: .mock(initialState: storageState)
     )
   }
 }
