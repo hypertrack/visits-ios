@@ -5,14 +5,6 @@ import PackageDescription
 let architecture = Target.Dependency.product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 let nonEmpty = Target.Dependency.product(name: "NonEmpty", package: "swift-nonempty")
 
-let certificates: [Resource] = [
-  .copy("Resources/AmazonRootCA1.cer"),
-  .copy("Resources/AmazonRootCA2.cer"),
-  .copy("Resources/AmazonRootCA3.cer"),
-  .copy("Resources/AmazonRootCA4.cer"),
-  .copy("Resources/SFSRootCAG2.cer")
-]
-
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Prelude"]),
   // Type
@@ -34,7 +26,7 @@ let targets: [Target] = [
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "NetworkEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Types"]),
-  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"], resources: certificates),
+  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"]),
   .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types"]),
