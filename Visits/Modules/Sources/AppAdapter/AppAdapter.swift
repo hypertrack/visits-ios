@@ -7,7 +7,7 @@ import LoadingScreen
 import MapScreen
 import OrderScreen
 import OrdersScreen
-import Prelude
+import Utility
 import SignInScreen
 import Types
 
@@ -22,7 +22,7 @@ public enum LifeCycleAction {
   case willEnterForeground
 }
 
-public extension ViewStore where State == Prelude.Unit, Action == LifeCycleAction {
+public extension ViewStore where State == Utility.Unit, Action == LifeCycleAction {
   static func lifeCycleViewStore(from store: Store<AppState, AppAction>) -> ViewStore {
     ViewStore(
       store.scope(

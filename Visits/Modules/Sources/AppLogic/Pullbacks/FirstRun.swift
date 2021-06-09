@@ -1,7 +1,7 @@
 import AppArchitecture
 import ComposableArchitecture
 import FirstRunLogic
-import Prelude
+import Utility
 import Types
 
 
@@ -15,12 +15,12 @@ let firstRunP: Reducer<
   environment: constant(())
 )
 
-func firstRunReadyState(_ a: AppState) -> Prelude.Unit? {
+func firstRunReadyState(_ a: AppState) -> Utility.Unit? {
   a *^? /AppState.operational >>- _firstRunReadyState
 }
 
 
-private func _firstRunReadyState(_ o: OperationalState) -> Prelude.Unit? {
+private func _firstRunReadyState(_ o: OperationalState) -> Utility.Unit? {
   guard o.isFirstRunState, o.experience == .firstRun else { return nil }
   
   return unit

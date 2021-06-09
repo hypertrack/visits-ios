@@ -1,6 +1,6 @@
 import ComposableArchitecture
 import LogEnvironment
-import Prelude
+import Utility
 
 public func send<State, Action>(_ viewStore: ViewStore<State, Action>) -> (Action) -> Void {
   { a in viewStore.send(a) }

@@ -2,7 +2,7 @@ import AppArchitecture
 import ComposableArchitecture
 import NonEmpty
 import OrderLogic
-import Prelude
+import Utility
 import Tagged
 import Types
 

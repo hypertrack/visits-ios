@@ -1,6 +1,6 @@
 import AppArchitecture
 import ComposableArchitecture
-import Prelude
+import Utility
 import RefreshingLogic
 import Types
 
@@ -15,7 +15,7 @@ let refreshingP: Reducer<
   environment: toRefreshingEnvironment
 )
 
-func mainUnlocked(_ a: AppState) -> Prelude.Unit? {
+func mainUnlocked(_ a: AppState) -> Utility.Unit? {
   a *^? /AppState.operational
     >>- { o in
       switch (o.flow, o.pushStatus, o.sdk.permissions, o.sdk.status) {

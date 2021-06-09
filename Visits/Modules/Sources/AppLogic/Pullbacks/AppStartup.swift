@@ -1,7 +1,7 @@
 import AppArchitecture
 import AppStartupLogic
 import ComposableArchitecture
-import Prelude
+import Utility
 import Types
 
 
@@ -15,7 +15,7 @@ let appStartupP: Reducer<
   environment: constant(())
 )
 
-func appStartedState(_ appState: AppState) -> Prelude.Unit? {
+func appStartedState(_ appState: AppState) -> Utility.Unit? {
   switch appState {
   case .starting: return unit
   default:        return nil

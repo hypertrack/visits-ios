@@ -20,15 +20,6 @@
         }
       },
       {
-        "package": "Prelude",
-        "repositoryURL": "https://github.com/hypertrack/prelude-swift",
-        "state": {
-          "branch": null,
-          "revision": "cdbe9934f18e30624e8bb2ba1154c1d45b3cf315",
-          "version": "0.0.12"
-        }
-      },
-      {
         "package": "HyperTrack",
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {

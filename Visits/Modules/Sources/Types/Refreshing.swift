@@ -1,4 +1,4 @@
-import Prelude
+import Utility
 
 public struct Refreshing {
   public var history: History

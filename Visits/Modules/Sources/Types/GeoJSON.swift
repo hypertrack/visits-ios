@@ -1,6 +1,6 @@
 import Foundation
 import NonEmpty
-import Prelude
+import Utility
 
 
 public enum GeoJSON {

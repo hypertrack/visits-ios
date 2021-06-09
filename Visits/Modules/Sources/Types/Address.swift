@@ -1,5 +1,5 @@
 import NonEmpty
-import Prelude
+import Utility
 import Tagged
 
 

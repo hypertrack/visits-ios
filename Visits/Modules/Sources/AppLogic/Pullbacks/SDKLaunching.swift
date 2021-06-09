@@ -1,6 +1,6 @@
 import AppArchitecture
 import ComposableArchitecture
-import Prelude
+import Utility
 import SDKLaunchingLogic
 import Types
 
@@ -15,7 +15,7 @@ let sdkLaunchingP: Reducer<
   environment: toSDKLaunchingEnvironment
 )
 
-func toStateRestored(_ s: AppState) -> Prelude.Unit? {
+func toStateRestored(_ s: AppState) -> Utility.Unit? {
   switch s {
   case .restoringState(.some): return unit
   default:                     return nil
