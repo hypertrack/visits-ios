@@ -32,7 +32,6 @@ private func toStorageState(_ o: OperationalState) -> StorageState {
     case let .entered(drID): flow = .driverID(drID, d.publishableKey)
     }
   case let .main(m): flow = .main(
-    m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
     m.places,
     m.tab,
     m.publishableKey,

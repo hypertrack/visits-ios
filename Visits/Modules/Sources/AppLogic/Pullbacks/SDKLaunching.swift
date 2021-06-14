@@ -15,7 +15,7 @@ let sdkLaunchingP: Reducer<
   environment: toSDKLaunchingEnvironment
 )
 
-func toStateRestored(_ s: AppState) -> Utility.Unit? {
+func toStateRestored(_ s: AppState) -> Terminal? {
   switch s {
   case .restoringState(.some): return unit
   default:                     return nil

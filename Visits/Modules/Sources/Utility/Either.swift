@@ -132,11 +132,11 @@ public func *> <E, A, B>(ea: Either<E, A>, eb: Either<E, B>) -> Either<E, B> {
 public func pure<E, A>(_ a: A) -> Either<E, A> { .right(a) }
 
 // sourcery:inline:Either.Applicative
-public func when<E>(_ when: Bool) -> (Either<E, Unit>) -> Either<E, Unit> {
+public func when<E>(_ when: Bool) -> (Either<E, Terminal>) -> Either<E, Terminal> {
   { e in when ? e : pure(unit) }
 }
 
-public func unless<E>(_ unless: Bool) -> (Either<E, Unit>) -> Either<E, Unit> {
+public func unless<E>(_ unless: Bool) -> (Either<E, Terminal>) -> Either<E, Terminal> {
   { e in unless ? pure(unit) : e }
 }
 // sourcery:end
@@ -214,11 +214,11 @@ public func ifM<E, A>(_ cond: Either<E, Bool>) -> (Either<E, A>) -> (Either<E, A
 // MARK: Monad
 
 // sourcery:inline:Either.Monad
-public func whenM<E>(_ mb: Either<E, Bool>) -> (Either<E, Unit>) ->  Either<E, Unit> {
+public func whenM<E>(_ mb: Either<E, Bool>) -> (Either<E, Terminal>) ->  Either<E, Terminal> {
   { m in mb >>- { b in when(b)(m) } }
 }
 
-public func unlessM<E>(_ mb: Either<E, Bool>) -> (Either<E, Unit>) ->  Either<E, Unit> {
+public func unlessM<E>(_ mb: Either<E, Bool>) -> (Either<E, Terminal>) ->  Either<E, Terminal> {
   { m in mb >>- { b in unless(b)(m) } }
 }
 // sourcery:end

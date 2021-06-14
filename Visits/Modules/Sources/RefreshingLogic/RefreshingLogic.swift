@@ -26,7 +26,9 @@ public enum RefreshingAction: Equatable {
   case stopTracking
   case updateOrders
   case switchToOrders
-  case ordersUpdated(Result<[APIOrderID: APIOrder], APIError<Never>>)
+  case ordersUpdated(Result<Set<Order>, APIError<Never>>)
+  case orderCanceled
+  case orderCompleted
   case updatePlaces
   case switchToPlaces
   case placesUpdated(Result<Set<Place>, APIError<Never>>)
@@ -38,13 +40,13 @@ public enum RefreshingAction: Equatable {
 
 public struct RefreshingEnvironment {
   public var getHistory: (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Never>>, Never>
-  public var getOrders: (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID: APIOrder], APIError<Never>>, Never>
+  public var getOrders: (PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Never>>, Never>
   public var getPlaces: (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   
   public init(
     getHistory: @escaping (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Never>>, Never>,
-    getOrders: @escaping (PublishableKey, DeviceID) -> Effect<Result<[APIOrderID : APIOrder], APIError<Never>>, Never>,
+    getOrders: @escaping (PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Never>>, Never>,
     getPlaces: @escaping (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>
   ) {
@@ -101,7 +103,7 @@ public let refreshingReducer = Reducer<
     state.refreshing = .none
     
     return .merge(effects)
-  case .updateOrders, .switchToOrders:
+  case .updateOrders, .switchToOrders, .orderCanceled, .orderCompleted:
     if state.refreshing.orders == .notRefreshingOrders {
       state.refreshing.orders = .refreshingOrders
       return getOrders
@@ -142,7 +144,7 @@ struct RefreshingHistoryID: Hashable {}
 struct RefreshingPlacesID: Hashable {}
 
 let getOrdersEffect = { (
-  getOrders: Effect<Result<[APIOrderID: APIOrder], APIError>, Never>,
+  getOrders: Effect<Result<Set<Order>, APIError>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getOrders

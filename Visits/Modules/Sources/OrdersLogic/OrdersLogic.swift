@@ -12,11 +12,38 @@ import Types
 public struct OrdersState: Equatable {
   public var orders: Set<Order>
   public var selected: Order?
+  public var deviceID: DeviceID
+  public var publishableKey: PublishableKey
   
-  public init(orders: Set<Order>, selected: Order? = nil) {
-    self.orders = orders; self.selected = selected
+  public init(orders: Set<Order>, selected: Order? = nil, deviceID: DeviceID, publishableKey: PublishableKey) {
+    self.orders = orders; self.selected = selected; self.deviceID = deviceID; self.publishableKey = publishableKey
+  }
+  
+  public var orderState: OrderState? {
+    selected.map { .init(order: $0, deviceID: deviceID, publishableKey: publishableKey) }
   }
 }
+
+let orderSateAffine = Affine<OrdersState, OrderState>(
+  extract: { s in
+    s.selected.map {
+      .init(
+        order: $0,
+        deviceID: s.deviceID,
+        publishableKey: s.publishableKey
+      )
+    }
+  },
+  inject: { d in
+    { s in
+      s.selected.map { _ in
+        s |> \.selected *< d.order
+          <> \.deviceID *< d.deviceID
+          <> \.publishableKey *< d.publishableKey
+      }
+    }
+  }
+)
 
 // MARK: - Action
 
@@ -24,41 +51,41 @@ public enum OrdersAction: Equatable {
   case order(OrderAction)
   case selectOrder(String)
   case deselectOrder
-  case ordersUpdated(NonEmptyDictionary<APIOrderID, APIOrder>)
-  case reverseGeocoded([GeocodedResult])
+  case ordersUpdated(Set<Order>)
 }
 
 // MARK: - Environment
 
 public struct OrdersEnvironment {
-  public var addGeotag: (Geotag) -> Effect<Never, Never>
+  public var cancelOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
+  public var completeOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
   public var notifySuccess: () -> Effect<Never, Never>
   public var openMap: (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
-  public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   
   public init(
-    addGeotag: @escaping (Geotag) -> Effect<Never, Never>,
+    cancelOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
+    completeOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
     notifySuccess: @escaping () -> Effect<Never, Never>,
-    openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>,
-    reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>
+    openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   ) {
-    self.addGeotag = addGeotag
+    self.cancelOrder = cancelOrder
+    self.completeOrder = completeOrder
     self.notifySuccess = notifySuccess
     self.openMap = openMap
-    self.reverseGeocode = reverseGeocode
   }
 }
 
 // MARK: - Reducer
 
 public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrdersEnvironment>>.combine(
-  orderReducer.optional().pullback(
-    state: \.selected,
+  orderReducer.pullback(
+    state: orderSateAffine,
     action: /OrdersAction.order,
     environment: { e in
       e.map { e in
         .init(
-          addGeotag: e.addGeotag,
+          cancelOrder: e.cancelOrder,
+          completeOrder: e.completeOrder,
           notifySuccess: e.notifySuccess,
           openMap: e.openMap
         )
@@ -70,6 +97,9 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
     case .order:
       return .none
     case let .selectOrder(str):
+      
+      
+      
       let (os, o) = selectOrder(os: state.orders, o: state.selected, id: str)
       state.orders = os
       state.selected = o
@@ -83,43 +113,19 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       
       return .none
     case let .ordersUpdated(os):
-      let allOs = combine(state.orders, state.selected)
-      var updatedOs = os.rawValue |> updateFromAPI(allOs)
-      let freshOs = updatedOs |> Set.removeOld(now: environment.date())
-      
-      let (newOs, newO): (Set<Order>, Order?)
       if let id = state.selected?.id.string {
-        (newOs, newO) = selectOrder(os: freshOs, o: nil, id: id)
+        let (newOs, newO) = selectOrder(os: state.orders, o: state.selected, id: id)
+        state.orders = newOs
+        state.selected = newO
       } else {
-        (newOs, newO) = (freshOs, nil)
+        state.orders = os
+        state.selected = nil
       }
-      
-      state.orders = newOs
-      state.selected = newO
-      
-      if let reverseGeocodingCoordinates = NonEmptySet(rawValue: orderCoordinatesWithoutAddress(freshOs)) {
-        return reverseGeocodingCoordinates.publisher
-          .flatMap(environment.reverseGeocode)
-          .collect()
-          .receive(on: environment.mainQueue)
-          .eraseToEffect()
-          .map(OrdersAction.reverseGeocoded)
-      } else {
-        return .none
-      }
-    case let .reverseGeocoded(g):
-      
-      state.orders = updateAddress(for: state.orders, with: g)
-      state.selected = state.selected <¡> updateAddress(with: g)
       
       return .none
     }
   }
 )
-
-func orderCoordinatesWithoutAddress(_ orders: Set<Order>) -> Set<Coordinate> {
-  Set(orders.compactMap { $0.address == .none ? $0.location : nil })
-}
 
 extension Set {
   static func insert(_ newMember: Element) -> (Self) -> Self {
@@ -141,67 +147,6 @@ func selectOrder(os: Set<Order>, o: Order?, id: String) -> (Set<Order>, Order?) 
   return (os.filter { $0.id.string != id }, o)
 }
 
-func updateFromAPI(_ os: Set<Order>) -> ([APIOrderID: APIOrder]) -> Set<Order> {
-  { apiOs in
-    Set(
-      apiOs.map { tuple in
-        if let match = os.first(where: { tuple.key.rawValue == $0.id.rawValue }) {
-          return update(order: match, with: (tuple.key, tuple.value))
-        } else {
-          return Order(apiOrder: (tuple.key, tuple.value))
-        }
-      }
-      +
-      os.compactMap { o in
-        if apiOs[rewrap(o.id)] == nil {
-          return o
-        } else {
-          return nil
-        }
-      }
-    )
-  }
-}
-
-func update(order: Order?, with apiOrder: (id: APIOrderID, order: APIOrder) ) -> Order {
-  guard var order = order else { return .init(apiOrder: apiOrder) }
-
-  order.geotagSent.isVisited = apiOrder.order.visitStatus.map(Order.Geotag.Visited.init(visitStatus:))
-  
-  return order
-}
-
-extension Order {
-  init(apiOrder: (id: APIOrderID, order: APIOrder)) {
-    let source: Order.Source
-    switch apiOrder.order.source {
-    case .order: source = .order
-    case .trip: source = .trip
-    }
-    
-    self.init(
-      id: rewrap(apiOrder.id),
-      createdAt: apiOrder.order.createdAt,
-      source: source,
-      location: apiOrder.order.centroid,
-      geotagSent: .notSent,
-      noteFieldFocused: false,
-      address: .none,
-      orderNote: nil,
-      metadata: rewrapDictionary(apiOrder.order.metadata)
-    )
-  }
-}
-
-extension Order.Geotag.Visited {
-  init(visitStatus: VisitStatus) {
-    switch visitStatus {
-    case let .entered(entry): self = .entered(entry)
-    case let .visited(entry, exit): self = .visited(entry, exit)
-    }
-  }
-}
-
 func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
   .init(rawValue: source.rawValue)
 }
@@ -209,18 +154,3 @@ func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagg
 func rewrapDictionary<A, B, C, D, E, F>(_ dict: Dictionary<Tagged<A, B>, Tagged<C, D>>) -> Dictionary<Tagged<E, B>, Tagged<F, D>> {
   Dictionary(uniqueKeysWithValues: dict.map { (rewrap($0), rewrap($1)) })
 }
-
-func updateAddress(for orders: Set<Order>, with geocodedResults: [GeocodedResult]) -> Set<Order> {
-  Set(orders.map(updateAddress(with: geocodedResults)))
-}
-
-func updateAddress(with geocodedResults: [GeocodedResult]) -> (Order) -> Order {
-  {
-    var v = $0
-    for g in geocodedResults where v.location == g.coordinate {
-      v.address = g.address
-    }
-    return v
-  }
-}
-

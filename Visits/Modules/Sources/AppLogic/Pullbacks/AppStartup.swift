@@ -15,7 +15,7 @@ let appStartupP: Reducer<
   environment: constant(())
 )
 
-func appStartedState(_ appState: AppState) -> Utility.Unit? {
+func appStartedState(_ appState: AppState) -> Terminal? {
   switch appState {
   case .starting: return unit
   default:        return nil
@@ -64,7 +64,7 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
           return .none
         }
       case let .main(m):
-        flow = .main(m.orders, m.places, m.tab, m.publishableKey, m.driverID)
+        flow = .main(m.places, m.tab, m.publishableKey, m.driverID)
       default:
         return nil
       }
@@ -97,8 +97,8 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
         flow = .signIn(.entering(.init(email: e)))
       case let .driverID(drID, pk):
         flow = .driverID(.init(status: .entering(drID), publishableKey: pk))
-      case let .main(os, ps, ts, pk, drID):
-        flow = .main(.init(orders: os, places: ps, tab: ts, publishableKey: pk, driverID: drID, refreshing: .none))
+      case let .main(ps, ts, pk, drID):
+        flow = .main(.init(orders: [], places: ps, tab: ts, publishableKey: pk, driverID: drID, refreshing: .none))
       }
       return .operational(
         .init(

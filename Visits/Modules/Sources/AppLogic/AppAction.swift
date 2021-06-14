@@ -1,6 +1,7 @@
 import NonEmpty
 import Types
 import UIKit
+import Utility
 
 
 public enum AppAction: Equatable {
@@ -35,9 +36,9 @@ public enum AppAction: Equatable {
   case deselectOrder
   case focusOrderNote
   case openAppleMaps
-  case pickUpOrder
-  case reverseGeocoded([GeocodedResult])
-  case ordersUpdated(Result<[APIOrderID: APIOrder], APIError<Never>>)
+  case orderCancelFinished(Result<Terminal, APIError<Never>>)
+  case orderCompleteFinished(Result<Terminal, APIError<Never>>)
+  case ordersUpdated(Result<Set<Order>, APIError<Never>>)
   // Places
   case placesUpdated(Result<Set<Place>, APIError<Never>>)
   case updatePlaces

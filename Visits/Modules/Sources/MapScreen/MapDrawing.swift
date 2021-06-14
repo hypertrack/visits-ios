@@ -1,4 +1,5 @@
 import MapKit
+import Types
 
 // MARK: - Orders
 
@@ -57,7 +58,9 @@ class OrderPendingAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawOrder(.pending)
+    if let orderAnnotation = self.annotation as? OrderAnnotation {
+      drawOrder(status: orderAnnotation.order.status, visited: orderAnnotation.order.visited)
+    }
   }
 }
 
@@ -78,7 +81,9 @@ class OrderVisitedAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawOrder(.visited)
+    if let orderAnnotation = self.annotation as? OrderAnnotation {
+      drawOrder(status: orderAnnotation.order.status, visited: orderAnnotation.order.visited)
+    }
   }
 }
 
@@ -99,7 +104,9 @@ class OrderCompletedAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawOrder(.completed)
+    if let orderAnnotation = self.annotation as? OrderAnnotation {
+      drawOrder(status: orderAnnotation.order.status, visited: orderAnnotation.order.visited)
+    }
   }
 }
 
@@ -120,26 +127,52 @@ class OrderCanceledAnnotationView: MKAnnotationView {
   }
 
   override func draw(_: CGRect) {
-    drawOrder(.canceled)
+    if let orderAnnotation = self.annotation as? OrderAnnotation {
+      drawOrder(status: orderAnnotation.order.status, visited: orderAnnotation.order.visited)
+    }
   }
 }
 
-func drawOrder(_ orderStatus: MapOrder.Status) {
+class OrderDisabledAnnotationView: MKAnnotationView {
+  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 26, height: 28)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {
+    if let orderAnnotation = self.annotation as? OrderAnnotation {
+      drawOrder(status: orderAnnotation.order.status, visited: orderAnnotation.order.visited)
+    }
+  }
+}
+
+func drawOrder(status: Order.Status, visited: Order.Visited?) {
   let emoji: String
-  let visited: Bool
-  switch orderStatus {
-  case .pending:
-    emoji = "⏳"
-    visited = false
-  case .visited:
-    emoji = "📦"
-    visited = true
-  case .completed:
-    emoji = "🏁"
-    visited = true
-  case .canceled:
-    emoji = "❌"
-    visited = true
+  let isVisited: Bool
+  
+  switch (status, visited) {
+  case (.ongoing, .none): emoji = "⏳"
+  case (.ongoing, .some): emoji = "📦"
+  case (.completing, _),
+       (.completed, _):   emoji = "🏁"
+  case (.cancelling, _),
+       (.cancelled, _):   emoji = "❌"
+  case (.disabled, _):    emoji = "⏸"
+  }
+  
+  switch visited {
+  case .none: isVisited = false
+  case .some: isVisited = true
   }
   
   //// General Declarations
@@ -147,7 +180,7 @@ func drawOrder(_ orderStatus: MapOrder.Status) {
   
   
   //// Variable Declarations
-  let expression = visited ? UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1) : UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1)
+  let expression = isVisited ? UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1) : UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1)
   
   //// Oval Drawing
   let ovalPath = UIBezierPath(ovalIn: CGRect(x: 0, y: 1, width: 26, height: 26))
@@ -590,20 +623,27 @@ public func annotationViewForAnnotation(
     }
   } else if let orderAnnotation = annotation as? OrderAnnotation {
     let reuseIdentifier: String
-    switch orderAnnotation.order.status {
-    case .pending:   reuseIdentifier = "OrderPendingAnnotation"
-    case .visited:   reuseIdentifier = "OrderVisitedAnnotation"
-    case .completed: reuseIdentifier = "OrderCompletedAnnotation"
-    case .canceled:  reuseIdentifier = "OrderCanceledAnnotation"
+    switch (orderAnnotation.order.status, orderAnnotation.order.visited) {
+    case (.ongoing, .none): reuseIdentifier = "OrderPendingAnnotation"
+    case (.ongoing, .some): reuseIdentifier = "OrderVisitedAnnotation"
+    case (.completing, _),
+         (.completed, _):   reuseIdentifier = "OrderCompletedAnnotation"
+    case (.cancelling, _),
+         (.cancelled, _):   reuseIdentifier = "OrderCanceledAnnotation"
+    case (.disabled, _):    reuseIdentifier = "OrderDisabledAnnotation"
     }
+    
     if let orderAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) {
       return orderAnnotationView
     } else {
-      switch orderAnnotation.order.status {
-      case .pending:   return OrderPendingAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case .visited:   return OrderVisitedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case .completed: return OrderCompletedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case .canceled:  return OrderCanceledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      switch (orderAnnotation.order.status, orderAnnotation.order.visited) {
+      case (.ongoing, .none): return OrderPendingAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case (.ongoing, .some): return OrderVisitedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case (.completing, _),
+           (.completed, _):   return OrderCompletedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case (.cancelling, _),
+           (.cancelled, _):   return OrderCanceledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
+      case (.disabled, _):    return OrderDisabledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
       }
     }
   } else {
@@ -615,11 +655,11 @@ public func annotationViewForAnnotation(
 public func rendererForOverlay(
   _ overlay: MKOverlay
 ) -> MKOverlayRenderer? {
-  if let orderCircle = overlay as? OrderCircle {
+  if let orderCircle = overlay as? OrderCircle, let order = orderCircle.order {
     let circleRenderer = MKCircleRenderer(circle: orderCircle)
     
-    let fillColor = orderCircle.order?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
-    let strokeColor = orderCircle.order?.status == .some(.pending) ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
+    let fillColor = order.visited == nil ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
+    let strokeColor = order.visited == nil ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
     circleRenderer.fillColor = fillColor
     
     circleRenderer.strokeColor = strokeColor

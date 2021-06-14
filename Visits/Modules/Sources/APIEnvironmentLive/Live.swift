@@ -4,6 +4,8 @@ import NonEmpty
 
 public extension APIEnvironment {
   static let live = Self(
+    cancelOrder: cancelOrder(_:_:_:),
+    completeOrder: completeOrder(_:_:_:),
     getHistory: getHistory(_:_:_:),
     getOrders: getOrders(_:_:),
     getPlaces: getPlaces(_:_:),

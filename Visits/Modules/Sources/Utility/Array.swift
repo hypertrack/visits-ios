@@ -87,11 +87,11 @@ public func *> <A, B>(ea: Array<A>, eb: Array<B>) -> Array<B> {
 public func pure<A>(_ a: A) -> [A] { [a] }
 
 // sourcery:inline:Array.Applicative
-public func when(_ when: Bool) -> (Array<Unit>) -> Array<Unit> {
+public func when(_ when: Bool) -> (Array<Terminal>) -> Array<Terminal> {
   { e in when ? e : pure(unit) }
 }
 
-public func unless(_ unless: Bool) -> (Array<Unit>) -> Array<Unit> {
+public func unless(_ unless: Bool) -> (Array<Terminal>) -> Array<Terminal> {
   { e in unless ? pure(unit) : e }
 }
 // sourcery:end
@@ -174,11 +174,11 @@ public func ifM<A>(_ cond: Array<Bool>) -> (Array<A>) -> (Array<A>) -> Array<A> 
 // MARK: Monad
 
 // sourcery:inline:Array.Monad
-public func whenM(_ mb: Array<Bool>) -> (Array<Unit>) ->  Array<Unit> {
+public func whenM(_ mb: Array<Bool>) -> (Array<Terminal>) ->  Array<Terminal> {
   { m in mb >>- { b in when(b)(m) } }
 }
 
-public func unlessM(_ mb: Array<Bool>) -> (Array<Unit>) ->  Array<Unit> {
+public func unlessM(_ mb: Array<Bool>) -> (Array<Terminal>) ->  Array<Terminal> {
   { m in mb >>- { b in unless(b)(m) } }
 }
 // sourcery:end

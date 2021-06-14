@@ -3,7 +3,7 @@ public struct StorageState: Equatable {
     case firstRun
     case signIn(Email?)
     case driverID(DriverID?, PublishableKey)
-    case main(Set<Order>, Set<Place>, TabSelection, PublishableKey, DriverID)
+    case main(Set<Place>, TabSelection, PublishableKey, DriverID)
   }
   
   public var experience: Experience
@@ -37,7 +37,6 @@ public struct StateRestorationError: Error, Equatable {
   public var email: Email?
   public var experience: Experience?
   public var locationAlways: LocationAlwaysPermissions?
-  public var orders: Set<Order>?
   public var places: Set<Place>?
   public var publishableKey: PublishableKey?
   public var pushStatus: PushStatus?
@@ -49,7 +48,6 @@ public struct StateRestorationError: Error, Equatable {
     email: Email? = nil,
     experience: Experience? = nil,
     locationAlways: LocationAlwaysPermissions? = nil,
-    orders: Set<Order>? = nil,
     places: Set<Place>? = nil,
     publishableKey: PublishableKey? = nil,
     pushStatus: PushStatus? = nil,
@@ -60,7 +58,6 @@ public struct StateRestorationError: Error, Equatable {
     self.email = email
     self.experience = experience
     self.locationAlways = locationAlways
-    self.orders = orders
     self.places = places
     self.publishableKey = publishableKey
     self.pushStatus = pushStatus

@@ -5,7 +5,6 @@ import UIKit
 
 
 public struct HyperTrackEnvironment {
-  public var addGeotag: (Geotag) -> Effect<Never, Never>
   public var checkDeviceTrackability: () -> Effect<UntrackableReason?, Never>
   public var didFailToRegisterForRemoteNotificationsWithError: (String) -> Effect<Never, Never>
   public var didReceiveRemoteNotification: ([String : [String : String]], @escaping (UIBackgroundFetchResult) -> Void) -> Effect<Never, Never>
@@ -23,7 +22,6 @@ public struct HyperTrackEnvironment {
   public var syncDeviceSettings: () -> Effect<Never, Never>
 
   public init(
-    addGeotag: @escaping (Geotag) -> Effect<Never, Never>,
     checkDeviceTrackability: @escaping () -> Effect<UntrackableReason?, Never>,
     didFailToRegisterForRemoteNotificationsWithError: @escaping (String) -> Effect<Never, Never>,
     didReceiveRemoteNotification: @escaping ([String : [String : String]], @escaping (UIBackgroundFetchResult) -> Void) -> Effect<Never, Never>,
@@ -40,7 +38,6 @@ public struct HyperTrackEnvironment {
     subscribeToStatusUpdates: @escaping () -> Effect<SDKStatusUpdate, Never>,
     syncDeviceSettings: @escaping () -> Effect<Never, Never>
   ) {
-    self.addGeotag = addGeotag
     self.checkDeviceTrackability = checkDeviceTrackability
     self.didFailToRegisterForRemoteNotificationsWithError = didFailToRegisterForRemoteNotificationsWithError
     self.didReceiveRemoteNotification = didReceiveRemoteNotification

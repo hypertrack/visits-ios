@@ -29,8 +29,6 @@ public extension StateRestorationEnvironment {
             driverID: ud.string(forKey: RestorationKey.driverID.rawValue)
               >>- NonEmptyString.init(rawValue:)
               <¡> DriverID.init(rawValue:),
-            orders: (ud.object(forKey: RestorationKey.orders.rawValue) as? Data)
-              >>- { try? JSONDecoder().decode(Set<Order>.self, from: $0) },
             places: (ud.object(forKey: RestorationKey.places.rawValue) as? Data)
               >>- { try? JSONDecoder().decode(Set<Place>.self, from: $0) },
             tabSelection: ud.string(forKey: RestorationKey.tabSelection.rawValue)
@@ -57,7 +55,6 @@ public extension StateRestorationEnvironment {
         
         let screen: String
         var email: String? = nil
-        var orders: Data? = nil
         var places: Data? = nil
         var tabSelection: String? = nil
         var publishableKey: String? = nil
@@ -72,9 +69,8 @@ public extension StateRestorationEnvironment {
           screen = StoredScreen.prism.embed(.driverID).rawValue
           driverID = dID <¡> \.string
           publishableKey = pk <¡> \.string
-        case let .main(o, p, s, pk, dID):
+        case let .main(p, s, pk, dID):
           screen = StoredScreen.prism.embed(.main).rawValue
-          orders = try? JSONEncoder().encode(o)
           places = try? JSONEncoder().encode(p)
           tabSelection = TabSelection.prism.embed(s).rawValue
           driverID = dID <¡> \.string
@@ -83,7 +79,6 @@ public extension StateRestorationEnvironment {
         
         ud.set(screen, forKey: RestorationKey.screen.rawValue)
         ud.set(email, forKey: RestorationKey.email.rawValue)
-        ud.set(orders, forKey: RestorationKey.orders.rawValue)
         ud.set(places, forKey: RestorationKey.places.rawValue)
         ud.set(tabSelection, forKey: RestorationKey.tabSelection.rawValue)
         ud.set(publishableKey, forKey: RestorationKey.publishableKey.rawValue)
@@ -102,28 +97,27 @@ func restoredStateFrom(
   email: Email?,
   publishableKey: PublishableKey?,
   driverID: DriverID?,
-  orders: Set<Order>?,
   places: Set<Place>?,
   tabSelection: TabSelection?,
   pushStatus: PushStatus?,
   experience: Experience?,
   locationAlways: LocationAlwaysPermissions?
 ) -> Result<StorageState?, StateRestorationError> {
-  switch (screen, email, publishableKey, driverID, orders, places, tabSelection, pushStatus, experience, locationAlways) {
+  switch (screen, email, publishableKey, driverID, places, tabSelection, pushStatus, experience, locationAlways) {
   
   // Latest, onboarded app on the main screen
-  case let (.main, _, .some(publishableKey), .some(driverID), orders, places, tabSelection, pushStatus, experience, locationAlways):
+  case let (.main, _, .some(publishableKey), .some(driverID), places, tabSelection, pushStatus, experience, locationAlways):
     return .success(
       StorageState(
         experience: experience ?? .regular,
-        flow: .main(orders ?? [], places ?? [], tabSelection ?? .defaultTab, publishableKey, driverID),
+        flow: .main(places ?? [], tabSelection ?? .defaultTab, publishableKey, driverID),
         locationAlways: locationAlways ?? .notRequested,
         pushStatus: pushStatus ?? .dialogSplash(.notShown)
       )
     )
     
   // Latest app on Driver ID screen
-  case let (.driverID, _, .some(publishableKey), driverID, _, _, _, pushStatus, experience, locationAlways):
+  case let (.driverID, _, .some(publishableKey), driverID, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -134,7 +128,7 @@ func restoredStateFrom(
     )
     
   // Old app on Sign Up screen
-  case let (.signUp, email, _, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.signUp, email, _, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -145,7 +139,7 @@ func restoredStateFrom(
     )
     
   // Latest app on Sign In screen
-  case let (.signIn, email, _, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.signIn, email, _, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -156,7 +150,7 @@ func restoredStateFrom(
     )
   
   // Latest app killed on first run splash screen
-  case let (.firstRun, _, _, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.firstRun, _, _, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -167,18 +161,18 @@ func restoredStateFrom(
     )
     
   // Old app that got to deliveries screen.
-  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _, _, _):
+  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _, _):
     return .success(
       .init(
         experience: .regular,
-        flow: .main([], [], .defaultTab, publishableKey, driverID),
+        flow: .main([], .defaultTab, publishableKey, driverID),
         locationAlways: .notRequested,
         pushStatus: .dialogSplash(.notShown)
       )
     )
     
   // Old app that only got to the DriverID screen
-  case let (.none, _, .some(publishableKey), .none, _, _, _, _, _, _):
+  case let (.none, _, .some(publishableKey), .none, _, _, _, _, _):
     return .success(
       .init(
         experience: .regular,
@@ -189,7 +183,7 @@ func restoredStateFrom(
     )
     
   // Freshly installed app that didn't go though the deep link
-  case (.none, .none, .none, .none, .none, .none, .none, .none, .none, .none):
+  case (.none, .none, .none, .none, .none, .none, .none, .none, .none):
     return .success(nil)
     
   // State restoration failed, back to the starting screen
@@ -200,7 +194,6 @@ func restoredStateFrom(
         email: email,
         experience: experience,
         locationAlways: locationAlways,
-        orders: orders,
         places: places,
         publishableKey: publishableKey,
         pushStatus: pushStatus,
@@ -216,7 +209,6 @@ enum RestorationKey: String, CaseIterable {
   case email = "sXwAlVbnPT"
   case experience = "lQDSheJivt"
   case locationAlways = "wpZz4e12Ro"
-  case orders = "nB24HHL2T5"
   case places = "Q8Cg06VCdL"
   case publishableKey = "UeiDZRFEOd"
   case pushStatus = "jC0FVlTWrC"

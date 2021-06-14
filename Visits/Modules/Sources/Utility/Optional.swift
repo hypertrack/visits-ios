@@ -100,11 +100,11 @@ public func *> <A, B>(ea: Optional<A>, eb: Optional<B>) -> Optional<B> {
 public func pure<A>(_ a: A) -> Optional<A> { .some(a) }
 
 // sourcery:inline:Optional.Applicative
-public func when(_ when: Bool) -> (Optional<Unit>) -> Optional<Unit> {
+public func when(_ when: Bool) -> (Optional<Terminal>) -> Optional<Terminal> {
   { e in when ? e : pure(unit) }
 }
 
-public func unless(_ unless: Bool) -> (Optional<Unit>) -> Optional<Unit> {
+public func unless(_ unless: Bool) -> (Optional<Terminal>) -> Optional<Terminal> {
   { e in unless ? pure(unit) : e }
 }
 // sourcery:end
@@ -182,11 +182,11 @@ public func ifM<A>(_ cond: Optional<Bool>) -> (Optional<A>) -> (Optional<A>) -> 
 // MARK: Monad
 
 // sourcery:inline:Optional.Monad
-public func whenM(_ mb: Optional<Bool>) -> (Optional<Unit>) ->  Optional<Unit> {
+public func whenM(_ mb: Optional<Bool>) -> (Optional<Terminal>) ->  Optional<Terminal> {
   { m in mb >>- { b in when(b)(m) } }
 }
 
-public func unlessM(_ mb: Optional<Bool>) -> (Optional<Unit>) ->  Optional<Unit> {
+public func unlessM(_ mb: Optional<Bool>) -> (Optional<Terminal>) ->  Optional<Terminal> {
   { m in mb >>- { b in unless(b)(m) } }
 }
 // sourcery:end

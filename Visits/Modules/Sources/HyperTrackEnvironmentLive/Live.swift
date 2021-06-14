@@ -12,35 +12,6 @@ extension String: Error {}
 
 public extension HyperTrackEnvironment {
   static let live = Self(
-    addGeotag: { geotag in
-      .fireAndForget {
-        logEffect("addGeotag: \(geotag)")
-        let metadata: [String: String]
-        switch geotag {
-        case let .cancel(id, source, orderNote):
-          metadata =
-            [
-              fromAssignedSource(source): id.string,
-              C.type.rawValue: C.cancel.rawValue,
-              C.orderNote.rawValue: orderNote?.string ?? ""
-            ]
-        case let .checkOut(id, source, orderNote):
-          metadata =
-            [
-              fromAssignedSource(source): id.string,
-              C.type.rawValue: C.checkOut.rawValue,
-              C.orderNote.rawValue: orderNote?.string ?? ""
-            ]
-        case let .pickUp(id, s):
-          metadata =
-            [
-              fromAssignedSource(s): id.string,
-              C.type.rawValue: C.pickUp.rawValue,
-            ]
-        }
-        ht?.addGeotag(HyperTrack.Metadata(rawValue: metadata)!)
-      }
-    },
     checkDeviceTrackability: {
       Effect.result {
         logEffect("checkDeviceTrackability")
@@ -183,24 +154,8 @@ public extension HyperTrackEnvironment {
   )
 }
 
-func fromAssignedSource(_ source: Order.Source) -> String {
-  switch source {
-  case .order: return C.orderID.rawValue
-  case .trip: return C.tripID.rawValue
-  }
-}
-
 enum C: String {
-  case cancel = "VISIT_MARKED_CANCELED"
-  case checkIn = "VISIT_ADDED"
-  case checkOut = "VISIT_MARKED_COMPLETE"
   case driverID = "driver_id"
-  case geofenceID = "geofence_id"
-  case orderID = "order_id"
-  case pickUp = "PICK_UP"
-  case tripID = "trip_id"
-  case type = "type"
-  case orderNote = "visit_note"
 }
 
 var ht: HyperTrack?

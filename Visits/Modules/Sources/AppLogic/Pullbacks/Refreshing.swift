@@ -15,7 +15,7 @@ let refreshingP: Reducer<
   environment: toRefreshingEnvironment
 )
 
-func mainUnlocked(_ a: AppState) -> Utility.Unit? {
+func mainUnlocked(_ a: AppState) -> Terminal? {
   a *^? /AppState.operational
     >>- { o in
       switch (o.flow, o.pushStatus, o.sdk.permissions, o.sdk.status) {
@@ -54,20 +54,22 @@ private let refreshingStateOperationalAffine = Affine<OperationalState, Refreshi
 private let refreshingActionPrism = Prism<AppAction, RefreshingAction>(
   extract: { a in
     switch a {
-    case     .willEnterForeground:                return .willEnterForeground
-    case     .receivedPushNotification:           return .receivedPushNotification
-    case     .generated(.entered(.mainUnlocked)): return .mainUnlocked
-    case     .startTracking:                      return .startTracking
-    case     .stopTracking:                       return .stopTracking
-    case     .updateOrders:                       return .updateOrders
-    case     .switchToOrders:                     return .switchToOrders
-    case let .ordersUpdated(os):                  return .ordersUpdated(os)
-    case     .updatePlaces:                       return .updatePlaces
-    case     .switchToPlaces:                     return .switchToPlaces
-    case let .placesUpdated(ps):                  return .placesUpdated(ps)
-    case     .switchToMap:                        return .switchToMap
-    case let .historyUpdated(h):                  return .historyUpdated(h)
-    default:                                      return nil
+    case     .willEnterForeground:                   return .willEnterForeground
+    case     .receivedPushNotification:              return .receivedPushNotification
+    case     .generated(.entered(.mainUnlocked)):    return .mainUnlocked
+    case     .startTracking:                         return .startTracking
+    case     .stopTracking:                          return .stopTracking
+    case     .updateOrders:                          return .updateOrders
+    case     .switchToOrders:                        return .switchToOrders
+    case let .ordersUpdated(os):                     return .ordersUpdated(os)
+    case     .orderCancelFinished(.success(unit)):   return .orderCanceled
+    case     .orderCompleteFinished(.success(unit)): return .orderCompleted
+    case     .updatePlaces:                          return .updatePlaces
+    case     .switchToPlaces:                        return .switchToPlaces
+    case let .placesUpdated(ps):                     return .placesUpdated(ps)
+    case     .switchToMap:                           return .switchToMap
+    case let .historyUpdated(h):                     return .historyUpdated(h)
+    default:                                         return nil
     }
   },
   embed: { a in
@@ -78,6 +80,8 @@ private let refreshingActionPrism = Prism<AppAction, RefreshingAction>(
     case     .startTracking:                      return .startTracking
     case     .stopTracking:                       return .stopTracking
     case     .updateOrders:                       return .updateOrders
+    case     .orderCanceled:                      return .orderCancelFinished(.success(unit))
+    case     .orderCompleted:                     return .orderCompleteFinished(.success(unit))
     case     .switchToOrders:                     return .switchToOrders
     case let .ordersUpdated(os):                  return .ordersUpdated(os)
     case     .updatePlaces:                       return .updatePlaces

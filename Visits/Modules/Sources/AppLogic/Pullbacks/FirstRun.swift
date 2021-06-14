@@ -15,12 +15,12 @@ let firstRunP: Reducer<
   environment: constant(())
 )
 
-func firstRunReadyState(_ a: AppState) -> Utility.Unit? {
+func firstRunReadyState(_ a: AppState) -> Terminal? {
   a *^? /AppState.operational >>- _firstRunReadyState
 }
 
 
-private func _firstRunReadyState(_ o: OperationalState) -> Utility.Unit? {
+private func _firstRunReadyState(_ o: OperationalState) -> Terminal? {
   guard o.isFirstRunState, o.experience == .firstRun else { return nil }
   
   return unit

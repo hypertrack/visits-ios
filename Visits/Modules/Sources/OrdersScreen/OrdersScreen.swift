@@ -20,7 +20,10 @@ enum Status: String {
   case pending = "⏳ Pending"
   case visited = "📦 Visited"
   case completed = "🏁 Completed"
+  
   case canceled = "❌ Canceled"
+  
+  case snoozed = "⏸ Snoozed"
 }
 
 public struct OrdersScreen: View {
@@ -59,6 +62,9 @@ public struct OrdersScreen: View {
   var canceled: [OrderHeader] {
     orderHeaders(from: state.orders).3
   }
+  var snoozed: [OrderHeader] {
+    orderHeaders(from: state.orders).4
+  }
   var isNetworkAvailable: Bool = true
   
   var noOrders: Bool {
@@ -66,7 +72,7 @@ public struct OrdersScreen: View {
   }
   
   var totalOrders: Int {
-    canceled.count + completed.count + pending.count + visited.count
+    canceled.count + completed.count + pending.count + visited.count + snoozed.count
   }
   
   var refreshing: Bool {
@@ -134,6 +140,12 @@ public struct OrdersScreen: View {
                   items: canceled
                 ) { send(.orderTapped($0.id)) }
               }
+              if !snoozed.isEmpty {
+                orderSection(
+                  for: .snoozed,
+                  items: snoozed
+                ) { send(.orderTapped($0.id)) }
+              }
             }
             .modifier(AppBackground())
             .listStyle(GroupedListStyle())
@@ -160,28 +172,34 @@ extension OrdersScreen {
   }
 }
 
-func orderHeaders(from os: Set<Order>) -> ([OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader]) {
+func orderHeaders(from os: Set<Order>) -> ([OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader]) {
   var pending: [(Date, OrderHeader)] = []
   var visited: [(Date, OrderHeader)] = []
   var completed: [(Date, OrderHeader)] = []
   var canceled: [(Date, OrderHeader)] = []
+  var snoozed: [(Date, OrderHeader)] = []
   
-  for v in os {
-    let t = orderTitle(from: v)
+  for o in os {
+    let t = orderTitle(from: o)
     
-    let h = OrderHeader(id: v.id.string, title: t)
-    switch v.geotagSent {
-    case .notSent, .pickedUp: pending.append((v.createdAt, h))
-    case .entered, .visited:  visited.append((v.createdAt, h))
-    case .checkedOut:         completed.append((v.createdAt, h))
-    case .cancelled:          canceled.append((v.createdAt, h))
+    let h = OrderHeader(id: o.id.string, title: t)
+    switch o.status {
+    case .ongoing, .cancelling, .completing:
+      switch o.visited {
+      case .some:    visited.append((o.createdAt, h))
+      default:       pending.append((o.createdAt, h))
+      }
+    case .completed: completed.append((o.createdAt, h))
+    case .cancelled: canceled.append((o.createdAt, h))
+    case .disabled:  snoozed.append((o.createdAt, h))
     }
   }
   return (
     pending.sorted(by: sortHeaders).map(\.1),
     visited.sorted(by: sortHeaders).map(\.1),
     completed.sorted(by: sortHeaders).map(\.1),
-    canceled.sorted(by: sortHeaders).map(\.1)
+    canceled.sorted(by: sortHeaders).map(\.1),
+    snoozed.sorted(by: sortHeaders).map(\.1)
   )
 }
 
@@ -205,67 +223,63 @@ func sortHeaders(_ left: (date: Date, order: OrderHeader), _ right: (date: Date,
   left.date > right.date
 }
 
-struct VisitsScreen_Previews: PreviewProvider {
-  static var previews: some View {
-    OrdersScreen(
-      state: .init(
-        orders: [entered, checkedOut1, checkedOut2, checkedOut3],
-        refreshing: .refreshingOrders
-      ),
-      send: { _ in }
-    )
-    .previewScheme(.dark)
-  }
-}
-
-let entered = Order(
-  id: Order.ID(rawValue: "ID7"),
-  createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
-  source: .trip,
-  location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
-  geotagSent: .entered(Date()),
-  noteFieldFocused: false,
-  address: .init(
-    street: Street(rawValue: "333 Fulton St"),
-    fullAddress: FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
-  )
-)
-
-let checkedOut1 = Order(
-  id: Order.ID(rawValue: "ID1"),
-  createdAt: Calendar.current.date(bySettingHour: 9, minute: 35, second: 0, of: Date())!,
-  source: .trip,
-  location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
-  geotagSent: .checkedOut(.none, Date()),
-  noteFieldFocused: false,
-  address: .init(
-    street: Street(rawValue: "1301 Market St"),
-    fullAddress: FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
-  )
-)
-
-let checkedOut2 = Order(
-  id: Order.ID(rawValue: "ID2"),
-  createdAt: Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!,
-  source: .trip,
-  location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
-  geotagSent: .checkedOut(.none, Date()),
-  noteFieldFocused: false,
-  address: .init(
-    street: Street(rawValue: "275 Hayes St"),
-    fullAddress: FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
-  )
-)
-
-let checkedOut3 = Order(
-  id: Order.ID(rawValue: "ID5"),
-  createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
-  source: .trip,
-  location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
-  geotagSent: .checkedOut(.none, Date()),
-  noteFieldFocused: false,
-  address: .init(
-    street: Street(rawValue: "601 Eddy St"),
-    fullAddress: FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
-  )
-)
+//struct VisitsScreen_Previews: PreviewProvider {
+//  static var previews: some View {
+//    OrdersScreen(
+//      state: .init(
+//        orders: [entered, checkedOut1, checkedOut2, checkedOut3],
+//        refreshing: .refreshingOrders
+//      ),
+//      send: { _ in }
+//    )
+//    .previewScheme(.dark)
+//  }
+//}
+//
+//let entered = Order(
+//  id: Order.ID(rawValue: "ID7"),
+//  createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
+//  location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
+//  geotagSent: .entered(Date()),
+//  noteFieldFocused: false,
+//  address: .init(
+//    street: Street(rawValue: "333 Fulton St"),
+//    fullAddress: FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
+//  )
+//)
+//
+//let checkedOut1 = Order(
+//  id: Order.ID(rawValue: "ID1"),
+//  createdAt: Calendar.current.date(bySettingHour: 9, minute: 35, second: 0, of: Date())!,
+//  location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
+//  geotagSent: .checkedOut(.none, Date()),
+//  noteFieldFocused: false,
+//  address: .init(
+//    street: Street(rawValue: "1301 Market St"),
+//    fullAddress: FullAddress(rawValue: "Market Square, 1301 Market St, San Francisco, CA  94103, United States")
+//  )
+//)
+//
+//let checkedOut2 = Order(
+//  id: Order.ID(rawValue: "ID2"),
+//  createdAt: Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!,
+//  location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
+//  geotagSent: .checkedOut(.none, Date()),
+//  noteFieldFocused: false,
+//  address: .init(
+//    street: Street(rawValue: "275 Hayes St"),
+//    fullAddress: FullAddress(rawValue: "275 Hayes St, San Francisco, CA  94102, United States")
+//  )
+//)
+//
+//let checkedOut3 = Order(
+//  id: Order.ID(rawValue: "ID5"),
+//  createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
+//  location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
+//  geotagSent: .checkedOut(.none, Date()),
+//  noteFieldFocused: false,
+//  address: .init(
+//    street: Street(rawValue: "601 Eddy St"),
+//    fullAddress: FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
+//  )
+//)

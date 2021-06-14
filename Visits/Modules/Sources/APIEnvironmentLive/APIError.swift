@@ -15,22 +15,24 @@ func callAPI<Success: Decodable, Failure: Decodable>(
   session.dataTaskPublisher(for: request)
     .mapError { APIError<Failure>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Failure>> in
-      if let success = try? decoder.decode(Success.self, from: data) {
-        return Just(success)
+      do {
+        return Just(try decoder.decode(Success.self, from: data))
           .setFailureType(to: APIError<Failure>.self)
           .eraseToAnyPublisher()
-      } else if let failure = try? decoder.decode(Failure.self, from: data) {
-        return Fail(error: .error(failure))
-          .eraseToAnyPublisher()
-      } else if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
-        return Fail(error: .api(failure))
-          .eraseToAnyPublisher()
-      } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
-        return Fail(error: .server(failure))
-          .eraseToAnyPublisher()
-      } else {
-        return Fail(error: .unknown(data, response as! HTTPURLResponse))
-          .eraseToAnyPublisher()
+      } catch {
+        if let failure = try? decoder.decode(Failure.self, from: data) {
+          return Fail(error: .error(failure))
+            .eraseToAnyPublisher()
+        } else if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
+          return Fail(error: .api(failure))
+            .eraseToAnyPublisher()
+        } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
+          return Fail(error: .server(failure))
+            .eraseToAnyPublisher()
+        } else {
+          return Fail(error: .unknown(data, response as! HTTPURLResponse))
+            .eraseToAnyPublisher()
+        }
       }
     }
     .eraseToAnyPublisher()
@@ -45,19 +47,21 @@ func callAPI<Success: Decodable>(
   session.dataTaskPublisher(for: request)
     .mapError { APIError<Never>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Never>> in
-      if let success = try? decoder.decode(Success.self, from: data) {
-        return Just(success)
+      do {
+        return Just(try decoder.decode(Success.self, from: data))
           .setFailureType(to: APIError<Never>.self)
           .eraseToAnyPublisher()
-      } else if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
-        return Fail(error: .api(failure))
-          .eraseToAnyPublisher()
-      } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
-        return Fail(error: .server(failure))
-          .eraseToAnyPublisher()
-      } else {
-        return Fail(error: .unknown(data, response as! HTTPURLResponse))
-          .eraseToAnyPublisher()
+      } catch {
+        if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
+          return Fail(error: .api(failure))
+            .eraseToAnyPublisher()
+        } else if let failure = try? decoder.decode(HyperTrackCriticalAPIError.self, from: data) {
+          return Fail(error: .server(failure))
+            .eraseToAnyPublisher()
+        } else {
+          return Fail(error: .unknown(data, response as! HTTPURLResponse))
+            .eraseToAnyPublisher()
+        }
       }
     }
     .eraseToAnyPublisher()

@@ -5,7 +5,6 @@ import Types
 
 public extension HyperTrackEnvironment {
   static let noop = Self(
-    addGeotag: { _ in .none},
     checkDeviceTrackability: { .none },
     didFailToRegisterForRemoteNotificationsWithError: { _ in .none},
     didReceiveRemoteNotification: { _, _ in .none },
@@ -30,7 +29,6 @@ public extension HyperTrackEnvironment {
     let statusUpdateSubject = PassthroughSubject<SDKStatusUpdate, Never>()
 
     return Self(
-      addGeotag: noop.addGeotag,
       checkDeviceTrackability: { Effect(value: nil) },
       didFailToRegisterForRemoteNotificationsWithError: noop.didFailToRegisterForRemoteNotificationsWithError,
       didReceiveRemoteNotification: noop.didReceiveRemoteNotification,

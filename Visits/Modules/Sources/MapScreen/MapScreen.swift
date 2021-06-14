@@ -4,17 +4,19 @@ import Types
 
 public struct MapOrder: Equatable {
   public enum Status: Equatable {
-    case pending, visited, completed, canceled
+    case pending, visited, completed, canceled, disabled
   }
   
-  public let id: String
+  public let id: Order.ID
   public let coordinate: Coordinate
-  public let status: Status
+  public let status: Order.Status
+  public let visited: Order.Visited?
   
-  public init(id: String, coordinate: Coordinate, status: Status) {
+  public init(id: Order.ID, coordinate: Coordinate, status: Order.Status, visited: Order.Visited? = nil) {
     self.id = id
     self.coordinate = coordinate
     self.status = status
+    self.visited = visited
   }
 }
 
@@ -71,7 +73,7 @@ public struct MapScreen: UIViewRepresentable {
     
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
       if let orderAnnotation = view.annotation as? OrderAnnotation {
-        control.sendSelectedMapOrder(orderAnnotation.order.id)
+        control.sendSelectedMapOrder(orderAnnotation.order.id.string)
       }
     }
   }

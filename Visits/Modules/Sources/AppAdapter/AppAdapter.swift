@@ -22,7 +22,7 @@ public enum LifeCycleAction {
   case willEnterForeground
 }
 
-public extension ViewStore where State == Utility.Unit, Action == LifeCycleAction {
+public extension ViewStore where State == Terminal, Action == LifeCycleAction {
   static func lifeCycleViewStore(from store: Store<AppState, AppAction>) -> ViewStore {
     ViewStore(
       store.scope(
@@ -174,7 +174,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .order(.noteFieldChanged(d)) where d.isEmpty: return .orderNoteChanged(nil)
   case let .order(.noteFieldChanged(d)): return .orderNoteChanged(.init(stringLiteral: d))
   case .order(.noteTapped): return .focusOrderNote
-  case .order(.pickedUpButtonTapped): return .pickUpOrder
   case .order(.tappedOutsideFocusedTextField): return .dismissFocus
   case .tab(.map): return .switchToMap
   case .tab(.orders): return .switchToOrders
@@ -192,16 +191,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
 }
 
 func mapOrders(from orders: Set<Order>) -> [MapOrder] {
-  orders.map { MapOrder(id: $0.id.string, coordinate: $0.location, status: mapVisitStatus(from: $0.geotagSent)) }
-}
-
-func mapVisitStatus(from geotagSent: Order.Geotag) -> MapOrder.Status {
-  switch geotagSent {
-  case .notSent, .pickedUp: return .pending
-  case .entered, .visited:  return .visited
-  case .checkedOut:         return .completed
-  case .cancelled:          return .canceled
-  }
+  orders.map { MapOrder(id: $0.id, coordinate: $0.location, status: $0.status, visited: $0.visited) }
 }
 
 extension Set {

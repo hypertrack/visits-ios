@@ -11,7 +11,7 @@ public struct SDKLaunchingState: Equatable {
   public var restoredState: RestoredState
   
   var publishableKey: PublishableKey? {
-    self.restoredState *^? \RestoredState.storage.flow ** /StorageState.Flow.main ** \.3
+    self.restoredState *^? \RestoredState.storage.flow ** /StorageState.Flow.main ** \.2
   }
   
   public enum Status: Equatable {

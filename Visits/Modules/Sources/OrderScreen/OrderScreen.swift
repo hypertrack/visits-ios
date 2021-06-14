@@ -34,7 +34,6 @@ public struct OrderScreen: View {
     case noteEnterKeyboardButtonTapped
     case noteFieldChanged(String)
     case noteTapped
-    case pickedUpButtonTapped
     case tappedOutsideFocusedTextField
   }
   
@@ -59,7 +58,14 @@ public struct OrderScreen: View {
   }
   
   var orderNote: String {
-    state.orderNote?.string ?? ""
+    state.note?.string ?? ""
+  }
+  
+  var noteFieldFocused: Bool {
+    switch state.status {
+    case .ongoing(.focused): return true
+    default:                 return false
+    }
   }
   
   var metadata: [Metadata] {
@@ -71,27 +77,9 @@ public struct OrderScreen: View {
     }
   }
   
-  var status: OrderStatus {
-    switch state.geotagSent {
-    case .notSent:
-      return .notSent
-    case .pickedUp:
-      return .pickedUp
-    case let .entered(entry):
-      return .entered(DateFormatter.stringDate(entry))
-    case let .visited(entry, exit):
-      return .visited("\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))")
-    case let .checkedOut(visited, checkedOutDate):
-      return .checkedOut(visited: visited.map(visitedString(_:)), completed: DateFormatter.stringDate(checkedOutDate))
-    case let .cancelled(visited, cancelledDate):
-      return .canceled(visited: visited.map(visitedString(_:)), canceled: DateFormatter.stringDate(cancelledDate))
-    }
-  }
-  
   public var finished: Bool {
-    switch status {
-    case .checkedOut,
-         .canceled:
+    switch state.status {
+    case .completed, .cancelled, .disabled:
       return true
     default:
       return false
@@ -111,14 +99,15 @@ public struct OrderScreen: View {
           coordinate: state.location,
           address: state.address.anyAddressStreetBias?.rawValue ?? "",
           metadata: metadata,
-          status: status,
+          status: state.status,
+          visited: state.visited,
           showButtons: !finished,
           orderNote: orderNote,
           deleveryNoteBinding: Binding(
             get: { orderNote },
             set: { send(.noteFieldChanged($0)) }
           ),
-          noteFieldFocused: state.noteFieldFocused,
+          noteFieldFocused: noteFieldFocused,
           orderNoteWantsToBecomeFocused: { send(.noteTapped) },
           orderNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
           mapTapped: { send(.mapTapped) },
@@ -129,16 +118,15 @@ public struct OrderScreen: View {
           }
         )
         ButtonView(
-          status: status,
+          status: state.status,
           cancelButtonTapped: { send(.cancelButtonTapped) },
-          checkOutButtonTapped: { send(.checkOutButtonTapped) },
-          pickedUpButtonTapped: { send(.pickedUpButtonTapped) }
+          checkOutButtonTapped: { send(.checkOutButtonTapped) }
         )
         .padding(.bottom, -10)
       }
       .modifier(AppBackground())
       .onTapGesture {
-        if state.noteFieldFocused {
+        if noteFieldFocused {
           send(.tappedOutsideFocusedTextField)
         }
       }
@@ -158,26 +146,28 @@ public struct OrderScreen: View {
 }
 
 struct StatusView: View {
-  let status: OrderScreen.OrderStatus
+  let status: Order.Status
+  let visited: Order.Visited?
 
   var body: some View {
-    switch status {
-    case .notSent,
-         .pickedUp:
+    switch visited {
+    case .none:
       EmptyView()
-    case let .entered(time),
-         let .visited(time):
-      VisitStatus(text: "Visited: \(time)", state: .visited)
-    case let .checkedOut(.some(visited), completed):
-      VisitStatus(text: "Visited: \(visited)", state: .visited)
-      VisitStatus(text: "Marked Complete at: \(completed)", state: .completed)
-    case let .checkedOut(.none, completed):
-      VisitStatus(text: "Marked Complete at: \(completed)", state: .completed)
-    case let .canceled(.some(visited), canceled):
-      VisitStatus(text: "Visited: \(visited)", state: .visited)
-      VisitStatus(text: "Marked Canceled at: \(canceled)", state: .custom(color: .red))
-    case let .canceled(.none, canceled):
-      VisitStatus(text: "Marked Canceled at: \(canceled)", state: .custom(color: .red))
+    case let .entered(entry):
+      VisitStatus(text: "Visited: \(DateFormatter.stringDate(entry))", state: .visited)
+    case let .visited(entry, exit):
+      VisitStatus(text: "Visited: \(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))", state: .visited)
+    }
+    
+    switch status {
+    case .ongoing, .completing, .cancelling:
+      EmptyView()
+    case let .completed(time):
+      VisitStatus(text: "Marked Complete at: \(DateFormatter.stringDate(time))", state: .completed)
+    case .cancelled:
+      VisitStatus(text: "Marked Canceled", state: .custom(color: .red))
+    case .disabled:
+      VisitStatus(text: "Snoozed", state: .custom(color: .gray))
     }
   }
 }
@@ -186,7 +176,8 @@ struct InformationView: View {
   let coordinate: Coordinate
   let address: String
   let metadata: [OrderScreen.Metadata]
-  let status: OrderScreen.OrderStatus
+  let status: Order.Status
+  let visited: Order.Visited?
   let showButtons: Bool
   let orderNote: String
   @Binding var deleveryNoteBinding: String
@@ -203,9 +194,9 @@ struct InformationView: View {
           .frame(height: 160)
           .padding(.top, 44)
           .onTapGesture(perform: mapTapped)
-        StatusView(status: status)
+        StatusView(status: status, visited: visited)
         switch status {
-        case .notSent, .pickedUp, .entered, .visited:
+        case .ongoing:
           TextFieldBlock(
             text: $deleveryNoteBinding,
             name: "Order note",
@@ -218,7 +209,7 @@ struct InformationView: View {
             enterButtonPressed: orderNoteEnterButtonPressed
           )
           .padding([.top, .trailing, .leading], 16)
-        case .checkedOut, .canceled:
+        default:
           if !orderNote.isEmpty {
             ContentCell(
               title: "Order note",
@@ -256,34 +247,51 @@ struct InformationView: View {
 
 
 struct ButtonView: View {
-  let status: OrderScreen.OrderStatus
+  let status: Order.Status
   let cancelButtonTapped: () -> Void
   let checkOutButtonTapped: () -> Void
-  let pickedUpButtonTapped: () -> Void
+  
+  enum Status {
+    init(status: Order.Status) {
+      switch status {
+      case .ongoing:    self = .showingButtons(.ongoing)
+      case .completing: self = .showingButtons(.completing)
+      case .completed:  self = .hidingButtons(.completed)
+      case .cancelling: self = .showingButtons(.cancelling)
+      case .cancelled:  self = .hidingButtons(.cancelled)
+      case .disabled:   self = .hidingButtons(.disabled)
+      }
+    }
+    
+    case showingButtons(ShowingButtons)
+    case hidingButtons(HidingButtons)
+    
+    enum ShowingButtons { case ongoing, completing, cancelling }
+    enum HidingButtons { case completed, cancelled, disabled }
+  }
   
   var body: some View {
-    switch status {
-    case .notSent:
-      RoundedStack {
-        PrimaryButton(variant: .normal(title: "On my way"), pickedUpButtonTapped)
-          .padding([.leading], 16)
-          .padding([.trailing], 2.5)
-      }
-    case .pickedUp,
-         .entered,
-         .visited:
+    switch Status(status: status) {
+    case let .showingButtons(showing):
       RoundedStack {
         HStack {
-          PrimaryButton(variant: .normal(title: "Complete"), checkOutButtonTapped)
+          PrimaryButton(
+            variant: showing == .ongoing ? .normal(title: "Complete") : .disabled(title: "Complete"),
+            showActivityIndicator: showing == .completing,
+            checkOutButtonTapped
+          )
             .padding([.leading], 16)
             .padding([.trailing], 2.5)
-          PrimaryButton(variant: .destructive(), cancelButtonTapped)
+          PrimaryButton(
+            variant: showing == .ongoing ? .destructive() : .disabled(title: "Cancel"),
+            showActivityIndicator: showing == .cancelling,
+            cancelButtonTapped
+          )
             .padding([.leading], 2.5)
             .padding([.trailing], 16)
         }
       }
-    case .canceled,
-         .checkedOut:
+    case .hidingButtons:
       EmptyView()
     }
   }
@@ -319,27 +327,20 @@ extension Sequence {
   }
 }
 
-func visitedString(_ visited: Order.Geotag.Visited) -> String {
-  switch visited {
-  case let .entered(entry): return DateFormatter.stringDate(entry)
-  case let .visited(entry, exit): return "\(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))"
-  }
-}
-
 struct OrderScreen_Previews: PreviewProvider {
   static var previews: some View {
     OrderScreen(
       state: Order(
         id: Order.ID(rawValue: "ID7"),
+        tripID: "Blah",
         createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
-        source: .trip,
         location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
-        geotagSent: .entered(Date()),
-        noteFieldFocused: false,
         address: .init(
           street: Street(rawValue: "333 Fulton St"),
           fullAddress: FullAddress(rawValue: "333 Fulton St, San Francisco, CA  94102, United States")
-        )
+        ),
+        status: .ongoing(.unfocused),
+        note: "Returning"
       ),
       send: { _ in }
     )
