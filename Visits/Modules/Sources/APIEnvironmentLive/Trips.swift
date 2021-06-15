@@ -181,6 +181,6 @@ extension Trip: Decodable {
         .init(codingPath: decoder.codingPath, debugDescription: "Unrecognized trip status: \(statusString)")
       )
     }
-    orders = try values.decode([Order].self, forKey: .orders)
+    orders = try values.decodeIfPresent([Order].self, forKey: .orders) ?? []
   }
 }
