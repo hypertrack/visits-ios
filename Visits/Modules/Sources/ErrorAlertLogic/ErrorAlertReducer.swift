@@ -44,7 +44,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     )
     
     return .none
-  case let .displayError(.api(error), _):
+  case let .displayError(.api(error, _, _), _):
     
     state = .shown(
       .init(
@@ -55,7 +55,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     )
     
     return .none
-  case let .displayError(.server(error), _):
+  case let .displayError(.server(error, _, _), _):
     
     state = .shown(
       .init(
@@ -66,12 +66,12 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     )
     
     return .none
-  case .displayError(.unknown, _):
+  case let .displayError(.unknown(p, _, _), _):
     
     state = .shown(
       .init(
         title: TextState("Network Issue"),
-        message: TextState("Please try again or update the app to the latest version"),
+        message: TextState("Data corrupted.\n\n\(p.string)\n\nOur engineers are notified about this issue."),
         dismissButton: .default(TextState("OK"), send: .ok)
       )
     )

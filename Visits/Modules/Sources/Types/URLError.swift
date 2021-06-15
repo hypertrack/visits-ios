@@ -90,7 +90,7 @@ public extension URLError {
     case .resourceUnavailable:
       output = "A requested resource couldn’t be retrieved."
     case .secureConnectionFailed:
-      output = "An attempt to establish a secure connection failed for reasons that can’t be expressed more specifically."
+      output = "An attempt to establish a secure connection failed."
     case .serverCertificateHasBadDate:
       output = "A server certificate had a date which indicates it has expired, or is not yet valid."
     case .serverCertificateHasUnknownRoot:

@@ -1,42 +1,49 @@
 import Foundation
 import NonEmpty
 import Tagged
+import Utility
 
 
 public enum APIError<KnownError: Equatable>: Equatable, Error {
-  case error(KnownError)
-  case api(HyperTrackAPIError)
-  case server(HyperTrackCriticalAPIError)
+  case error(KnownError, HTTPURLResponse, Data)
+  case api(HyperTrackAPIError, HTTPURLResponse, Data)
+  case server(HyperTrackCriticalAPIError, HTTPURLResponse, Data)
   case network(URLError)
-  case unknown(Data, HTTPURLResponse)
-  
+  case unknown(ParsingError, HTTPURLResponse, Data)
+
   public func map<T>(_ f: (KnownError) -> T) -> APIError<T> {
     switch self {
-    case let .error(error):      return .error(f(error))
-    case let .api(api):          return .api(api)
-    case let .server(server):    return .server(server)
-    case let .network(error):    return .network(error)
-    case let .unknown(data, response): return .unknown(data, response)
+    case let .error(e, r, d):   return .error(f(e), r, d)
+    case let .api(a, r, d):     return .api(a, r, d)
+    case let .server(s, r, d):  return .server(s, r, d)
+    case let .network(u):       return .network(u)
+    case let .unknown(p, r, d): return .unknown(rewrap(p), r, d)
     }
   }
+  
+  public typealias ParsingError = Tagged<(APIError, unknown: ()), NonEmptyString>
 }
 
-public func toNever<KnownError>(_ e: APIError<KnownError>) -> APIError<Never>? {
-  switch e {
-  case     .error:      return nil
-  case let .api(e):     return .api(e)
-  case let .server(e):  return .server(e)
-  case let .network(e): return .network(e)
-  case let .unknown(d, r): return .unknown(d, r)
+private func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
+  .init(rawValue: source.rawValue)
+}
+
+public func toNever<KnownError>(_ apiError: APIError<KnownError>) -> APIError<Never>? {
+  switch apiError {
+  case     .error:            return nil
+  case let .api(a, r, d):     return .api(a, r, d)
+  case let .server(s, r, d):  return .server(s, r, d)
+  case let .network(u):       return .network(u)
+  case let .unknown(p, r, d): return .unknown(rewrap(p), r, d)
   }
 }
 
-public func fromNever<KnownError>(_ e: APIError<Never>) -> APIError<KnownError> {
-  switch e {
-  case let .api(e):     return .api(e)
-  case let .server(e):  return .server(e)
-  case let .network(e): return .network(e)
-  case let .unknown(d, r): return .unknown(d, r)
+public func fromNever<KnownError>(_ apiError: APIError<Never>) -> APIError<KnownError> {
+  switch apiError {
+  case let .api(a, r, d):     return .api(a, r, d)
+  case let .server(s, r, d):  return .server(s, r, d)
+  case let .network(u):       return .network(u)
+  case let .unknown(p, r, d): return .unknown(rewrap(p), r, d)
   }
 }
 

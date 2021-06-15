@@ -114,7 +114,7 @@ public let signInReducer = Reducer<SignInState, SignInAction, SystemEnvironment<
   case let .signedIn(.failure(e)):
     guard case let .entered(ed) = state, ed.request == .inFlight else { return .none }
     
-    state = .entering(.init(email: ed.email, password: ed.password, focus: nil, error: e *^? /APIError<CognitoError>.error))
+    state = .entering(.init(email: ed.email, password: ed.password, focus: nil, error: e *^? /APIError<CognitoError>.error ** \.0))
     
     return .none
   case .madeSDK:

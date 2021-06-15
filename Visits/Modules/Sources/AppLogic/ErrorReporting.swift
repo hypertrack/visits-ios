@@ -69,8 +69,23 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       )
       
       func isNotAboutInternetConnection(_ e: APIError<Never>) -> Bool {
-        if case let .network(urlError) = e, urlError.code == .notConnectedToInternet {
-          return false
+        if case let .network(urlError) = e {
+          switch urlError.code {
+          case .notConnectedToInternet,
+               .timedOut,
+               .networkConnectionLost,
+               .callIsActive,
+               .internationalRoamingOff,
+               .dataNotAllowed,
+               .cancelled,
+               .cannotConnectToHost,
+               .cannotFindHost,
+               .dnsLookupFailed,
+               .userCancelledAuthentication:
+            return false
+          default:
+            return true
+          }
         } else {
           return true
         }
@@ -119,14 +134,14 @@ private func deviceID(from s: AppState) -> DeviceID? {
 
 private func errorMessage(from error: APIError<Never>) -> NonEmptyString {
   switch error {
-  case let .api(e):
-    return e.detail.rawValue
-  case let .server(e):
-    return e.message
+  case let .api(e, r, d):
+    return e.detail.rawValue + "\n" + r.prettyPrinted + "\n" + d.prettyPrintedJSON
+  case let .server(e, r, d):
+    return e.message + "\n" + r.prettyPrinted + "\n" + d.prettyPrintedJSON
   case let .network(e):
     return e.prettyPrinted
-  case let .unknown(d, r):
-    return r.prettyPrinted + "\n" + d.prettyPrintedJSON
+  case let .unknown(p, r, d):
+    return p.string + "\n" + r.prettyPrinted + "\n" + d.prettyPrintedJSON
   }
 }
 

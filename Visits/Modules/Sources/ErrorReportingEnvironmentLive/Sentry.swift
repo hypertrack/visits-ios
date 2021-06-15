@@ -12,7 +12,16 @@ public extension ErrorReportingEnvironment {
         }
       }
     },
-    capture: { m in .fireAndForget { SentrySDK.capture(message: m.string) } },
+    capture: { m in
+      .fireAndForget {
+        if m.string.count > maxBreadcrumbLength {
+          for breadcrumb in splitBreadcrumb(.error, .init(rawValue: m.rawValue)) {
+            SentrySDK.addBreadcrumb(crumb: breadcrumb)
+          }
+        }
+        SentrySDK.capture(message: m.string)
+      }
+    },
     startErrorMonitoring: {
       .fireAndForget {
         SentrySDK.start { options in
@@ -35,9 +44,10 @@ func sentryUser(from deviceID: DeviceID) -> Sentry.User {
   return sentryUser
 }
 
+let maxBreadcrumbLength = 4096
 
 func splitBreadcrumb(_ t: BreadcrumbType, _ m: BreadcrumbMessage) -> [Breadcrumb] {
-  m.string.split(by: 4096).map {
+  m.string.split(by: maxBreadcrumbLength).map {
     breadcrumb(t.rawValue, m: $0)
   }
 }
