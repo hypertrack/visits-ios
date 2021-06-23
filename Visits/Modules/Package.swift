@@ -47,7 +47,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Utility", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "DriverIDLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "Utility", "PushEnvironment", "RefreshingLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture]),
   .target(name: "AutoSavingLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "BlockerLogic",                    dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
@@ -56,6 +56,7 @@ let targets: [Target] = [
   .target(name: "ErrorAlertLogic",                 dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "FirstRunLogic",                   dependencies: [architecture, "Types"]),
   .target(name: "HistoryLogic",                    dependencies: [architecture, "Types"]),
+  .target(name: "MapLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "ManualReportLogic",               dependencies: [architecture, "Types"]),
   .target(name: "OrderLogic",                      dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "OrdersLogic",                     dependencies: ["AppArchitecture", architecture, nonEmpty, "OrderLogic", "Utility", "Tagged", "Types"]),
@@ -79,7 +80,7 @@ let testTargets: [Target] = [
 
 let package = Package(
   name: "Modules",
-  platforms: [.iOS(.v13)],
+  platforms: [.iOS(.v14)],
   products: [
     .library(name: "App",   targets: ["AppLogic", "AppAdapter", "AppLive", "AppScreen", "AppArchitecture"]),
   ] + targets.map {

@@ -42,7 +42,7 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
-    case main(OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
@@ -54,7 +54,7 @@ public struct AppScreen: View {
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
     case tab(TabSelection)
-    case map(String)
+    case map(MapView.Action)
     case errorAlert(ErrorAlertAction)
     case errorReportingAlert(ErrorReportingAlertAction)
   }
@@ -81,9 +81,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(s, p, r, h, mv, drID, deID, sel, ver):
+        case let .main(m, s, p, r, h, mv, drID, deID, sel, ver):
           MainBlock(
-            state: (s, p, r, h, mv, drID, deID, sel, ver),
+            state: (m, s, p, r, h, mv, drID, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -105,6 +105,7 @@ public struct AppScreen: View {
 
 struct MainBlock: View {
   let state: (
+    mapState: MapState,
     orderScreenState: OrderOrOrders,
     places: Set<Place>,
     refreshing: Refreshing,
@@ -115,7 +116,7 @@ struct MainBlock: View {
     tabSelection: TabSelection,
     version: AppVersion
   )
-  let sendMap: (String) -> Void
+  let sendMap: (MapView.Action) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
   let sendOrders: (OrdersScreen.Action) -> Void
   let sendPlaces: (PlacesScreen.Action) -> Void
@@ -130,10 +131,13 @@ struct MainBlock: View {
       )
     ) {
       ZStack() {
-        MapScreen(
-          polyline: Binding.constant(state.history?.coordinates ?? []),
-          sendSelectedMapOrder: sendMap,
-          orders: Binding.constant(state.orders)
+        MapView(
+          state: .init(
+            autoZoom: state.mapState.autoZoom,
+            orders: state.orders,
+            polyline: state.history?.coordinates ?? []
+          ),
+          send: sendMap
         )
         .edgesIgnoringSafeArea(.top)
         .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)

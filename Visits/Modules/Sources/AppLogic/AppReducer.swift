@@ -15,6 +15,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   signInP,
   driverIDP,
   blockerP,
+  mapP,
   ordersP,
   placesP,
   historyP,

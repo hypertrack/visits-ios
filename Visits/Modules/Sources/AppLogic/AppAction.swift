@@ -26,6 +26,10 @@ public enum AppAction: Equatable {
   // DriverID
   case driverIDChanged(DriverID?)
   case setDriverID
+  // Map
+  case mapRegionWillChange
+  case mapRegionDidChange
+  case mapToggleAutoZoom
   // Orders
   case selectOrder(String)
   case updateOrders

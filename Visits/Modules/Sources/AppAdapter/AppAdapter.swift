@@ -105,6 +105,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           }
           
           screen = .main(
+            m.map,
             ord,
             m.places,
             m.refreshing,
@@ -179,7 +180,10 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.orders): return .switchToOrders
   case .tab(.summary): return .switchToSummary
   case .tab(.profile): return .switchToProfile
-  case let .map(id): return .selectOrder(id)
+  case .map(.regionDidChange): return .mapRegionDidChange
+  case .map(.regionWillChange): return .mapRegionWillChange
+  case let .map(.selectedOrder(id)): return .selectOrder(id)
+  case .map(.toggleAutoZoom): return .mapToggleAutoZoom
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
   case let .errorAlert(ea):

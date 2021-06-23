@@ -251,6 +251,7 @@ private let operational_ = OperationalState(
 )
 
 private let main = MainState(
+  map: .initialState,
   orders: [],
   places: [],
   tab: .orders,
