@@ -16,7 +16,7 @@ import Types
 
 public enum LifeCycleAction {
   case finishedLaunching
-  case deepLinkOpened(NSUserActivity)
+  case deepLinkOpened(URL)
   case receivedPushNotification
   case shakeDetected
   case willEnterForeground
@@ -29,7 +29,7 @@ public extension ViewStore where State == Terminal, Action == LifeCycleAction {
         state: { _ in unit },
         action: { a in
           switch a {
-          case let .deepLinkOpened(a):    return .deepLinkOpened(a)
+          case let .deepLinkOpened(u):    return .deepLinkOpened(u)
           case .finishedLaunching:        return .osFinishedLaunching
           case .receivedPushNotification: return .receivedPushNotification
           case .shakeDetected:            return .shakeDetected

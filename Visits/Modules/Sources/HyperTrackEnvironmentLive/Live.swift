@@ -185,31 +185,17 @@ class LocationManagerClientDelegate: NSObject, CLLocationManagerDelegate {
 }
 
 func locationAccuracy() -> LocationAccuracy {
-  let accuracy: LocationAccuracy
-  if #available(iOS 14, *) {
-    switch lm.accuracyAuthorization {
-    case .fullAccuracy:
-      accuracy = .full
-    case .reducedAccuracy:
-      accuracy = .reduced
-    @unknown default:
-      accuracy = .reduced
-    }
-  } else {
-    accuracy = .full
+  switch lm.accuracyAuthorization {
+  case .fullAccuracy:    return .full
+  case .reducedAccuracy: return .reduced
+  @unknown default:      return .reduced
   }
-  return accuracy
 }
 
 func locationPermissions() -> LocationPermissions {
   let locationPermissions: LocationPermissions
-  let locationAuthorization: CLAuthorizationStatus
-  if #available(iOS 14, *) {
-    locationAuthorization = lm.authorizationStatus
-  } else {
-    locationAuthorization = CLLocationManager.authorizationStatus()
-  }
-  switch locationAuthorization {
+  
+  switch lm.authorizationStatus {
   case .notDetermined:
     locationPermissions = .notDetermined
   case .restricted:

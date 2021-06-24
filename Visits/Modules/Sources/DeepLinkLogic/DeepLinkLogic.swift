@@ -21,7 +21,7 @@ public struct DeepLinkState: Equatable {
 public enum DeepLinkAction: Equatable {
   case subscribeToDeepLinks
   case firstRunWaitingComplete
-  case deepLinkOpened(NSUserActivity)
+  case deepLinkOpened(URL)
   case applyFullDeepLink(PublishableKey, DriverID, SDKStatusUpdate)
   case applyPartialDeepLink(PublishableKey)
 }
@@ -29,18 +29,18 @@ public enum DeepLinkAction: Equatable {
 // MARK: - Environment
 
 public struct DeepLinkEnvironment {
-  public var continueUserActivity: (NSUserActivity) -> Effect<Never, Never>
+  public var handleDeepLink: (URL) -> Effect<Never, Never>
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
   public var setDriverID: (DriverID) -> Effect<Never, Never>
   public var subscribeToDeepLinks: () -> Effect<(PublishableKey, DriverID?), Never>
   
   public init(
-    continueUserActivity: @escaping (NSUserActivity) -> Effect<Never, Never>,
+    handleDeepLink: @escaping (URL) -> Effect<Never, Never>,
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
     setDriverID: @escaping (DriverID) -> Effect<Never, Never>,
     subscribeToDeepLinks: @escaping () -> Effect<(PublishableKey, DriverID?), Never>
   ) {
-    self.continueUserActivity = continueUserActivity
+    self.handleDeepLink = handleDeepLink
     self.makeSDK = makeSDK
     self.setDriverID = setDriverID
     self.subscribeToDeepLinks = subscribeToDeepLinks
@@ -88,9 +88,9 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
     state.flow = .firstScreen
     
     return .none
-  case let .deepLinkOpened(ua):
+  case let .deepLinkOpened(url):
     
-    return environment.continueUserActivity(ua).fireAndForget()
+    return environment.handleDeepLink(url).fireAndForget()
   
   case let .applyFullDeepLink(pk, drID, sdk):
    

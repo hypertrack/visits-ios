@@ -6,7 +6,7 @@ import Utility
 
 public enum AppAction: Equatable {
   // DeepLink
-  case deepLinkOpened(NSUserActivity)
+  case deepLinkOpened(URL)
   case deepLinkFirstRunWaitingComplete
   case applyFullDeepLink(PublishableKey, DriverID, SDKStatusUpdate)
   case applyPartialDeepLink(PublishableKey)

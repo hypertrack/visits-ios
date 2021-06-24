@@ -21,12 +21,12 @@ public extension BranchEnvironment {
         return AnyCancellable {}
       }
     },
-    continueUserActivity: { userActivity in
+    handleDeepLink: { url in
       .fireAndForget {
-        logEffect("continueUserActivity")
+        logEffect("handleDeepLink")
         Branch
           .getInstance()
-          .continue(userActivity)
+          .handleDeepLink(url)
       }
     }
   )

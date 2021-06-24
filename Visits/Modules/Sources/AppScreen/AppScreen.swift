@@ -164,18 +164,14 @@ struct MainBlock: View {
       
       switch state.orderScreenState {
       case let .order(v):
-        OrderScreen(state: v) {
-          sendOrder($0)
-        }
+        OrderScreen(state: v, send: sendOrder)
         .tabItem {
           Image(systemName: "list.dash")
           Text("Orders")
         }
         .tag(TabSelection.orders)
       case let .orders(vs):
-        OrdersScreen(state: .init(orders: vs, refreshing: state.refreshing.orders)) {
-          sendOrders($0)
-        }
+        OrdersScreen(state: .init(orders: vs, refreshing: state.refreshing.orders), send: sendOrders)
         .tabItem {
           Image(systemName: "list.dash")
           Text("Orders")
@@ -183,9 +179,7 @@ struct MainBlock: View {
         .tag(TabSelection.orders)
       }
       
-      PlacesScreen(state: .init(places: state.places, refreshing: state.refreshing.places)) {
-        sendPlaces($0)
-      }
+      PlacesScreen(state: .init(places: state.places, refreshing: state.refreshing.places), send: sendPlaces)
         .tabItem {
           Image(systemName: "mappin.and.ellipse")
           Text("Places")
@@ -213,10 +207,9 @@ struct MainBlock: View {
           driverID: state.driverID,
           deviceID: state.deviceID,
           appVersion: state.version
-        )
-      ) {
-        sendProfile($0)
-      }
+        ),
+        send: sendProfile
+      )
       .tabItem {
         Image(systemName: "person")
         Text("Profile")

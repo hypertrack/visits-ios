@@ -12,11 +12,7 @@ public struct IgnoreKeyboard: ViewModifier {
   
   @ViewBuilder
   public func body(content: Content) -> some View {
-    if #available(iOS 14.0, *) {
-      content
-        .ignoresSafeArea(.keyboard)
-    } else {
-      content
-    }
+    content
+      .ignoresSafeArea(.keyboard)
   }
 }

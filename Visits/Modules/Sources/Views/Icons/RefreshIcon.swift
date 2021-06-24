@@ -64,17 +64,7 @@ public struct RefreshIcon: View {
   public init() { }
   
   public var body: some View {
-    if #available(iOS 14.0, *) {
-      Image(systemName: "arrow.triangle.2.circlepath")
-    } else {
-      ZStack {
-        ArrowFirstShape()
-          .fill(Color.accentColor)
-        ArrowSecondShape()
-          .fill(Color.accentColor)
-      }
-      .frame(width: 28, height: 25, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-    }
+    Image(systemName: "arrow.triangle.2.circlepath")
   }
 }
 

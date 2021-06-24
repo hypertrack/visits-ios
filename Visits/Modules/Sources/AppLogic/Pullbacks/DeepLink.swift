@@ -22,7 +22,7 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
     switch a {
     case     .generated(.entered(.operational)): return .subscribeToDeepLinks
     case     .deepLinkFirstRunWaitingComplete:   return .firstRunWaitingComplete
-    case let .deepLinkOpened(ua):                return .deepLinkOpened(ua)
+    case let .deepLinkOpened(u):                 return .deepLinkOpened(u)
     case let .applyFullDeepLink(pk, drID, su):   return .applyFullDeepLink(pk, drID, su)
     case let .applyPartialDeepLink(pk):          return .applyPartialDeepLink(pk)
     default:                                     return nil
@@ -32,7 +32,7 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
     switch d {
     case     .subscribeToDeepLinks:            return .generated(.entered(.operational))
     case     .firstRunWaitingComplete:         return .deepLinkFirstRunWaitingComplete
-    case let .deepLinkOpened(ua):              return .deepLinkOpened(ua)
+    case let .deepLinkOpened(u):               return .deepLinkOpened(u)
     case let .applyFullDeepLink(pk, drID, su): return .applyFullDeepLink(pk, drID, su)
     case let .applyPartialDeepLink(pk):        return .applyPartialDeepLink(pk)
     }
@@ -42,7 +42,7 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
 private func toDeepLinkEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<DeepLinkEnvironment> {
   e.map { e in
     .init(
-      continueUserActivity: e.deepLink.continueUserActivity,
+      handleDeepLink:       e.deepLink.handleDeepLink,
       makeSDK:              e.hyperTrack.makeSDK,
       setDriverID:          e.hyperTrack.setDriverID,
       subscribeToDeepLinks: e.deepLink.subscribeToDeepLinks

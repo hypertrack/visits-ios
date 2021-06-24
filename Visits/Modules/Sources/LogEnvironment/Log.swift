@@ -1,24 +1,19 @@
 import ComposableArchitecture
 import os
 
-@available (iOS 14, *)
+
 let loggerAction = Logger(subsystem: "com.hypertrack.visits", category: "Action")
-@available (iOS 14, *)
 let loggerEffect = Logger(subsystem: "com.hypertrack.visits", category: "Effect")
 
 public func logEffect(_ message: String) {
   #if DEBUG
-    if #available(iOS 14, *) {
-      loggerEffect.log("🚀 \(message)")
-    }
+    loggerEffect.log("🚀 \(message)")
   #endif
 }
 
 public func logAction(_ message: String) {
   #if DEBUG
-    if #available(iOS 14, *) {
-      logInChunks({ loggerAction.log("\($0)") }, message: "🚀 " + message)
-    }
+    logInChunks({ loggerAction.log("\($0)") }, message: "🚀 " + message)
   #endif
 }
 

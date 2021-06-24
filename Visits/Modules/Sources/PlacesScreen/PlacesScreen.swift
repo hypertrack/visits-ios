@@ -33,18 +33,14 @@ public struct PlacesScreen: View {
   
   public var body: some View {
     NavigationView {
-      if #available(iOS 14.0, *) {
-        PlacesList(placesToDisplay: state.placesToDisplay)
-          .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-              RefreshButton(state: state.refreshing == .refreshingPlaces ? .refreshing : .enabled) {
-                send(.refresh)
-              }
+      PlacesList(placesToDisplay: state.placesToDisplay)
+        .toolbar {
+          ToolbarItem(placement: .navigationBarLeading) {
+            RefreshButton(state: state.refreshing == .refreshingPlaces ? .refreshing : .enabled) {
+              send(.refresh)
             }
           }
-      } else {
-        PlacesList(placesToDisplay: state.placesToDisplay)
-      }
+        }
     }
   }
 }
