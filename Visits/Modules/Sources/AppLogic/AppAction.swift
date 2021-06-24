@@ -29,7 +29,7 @@ public enum AppAction: Equatable {
   // Map
   case mapRegionWillChange
   case mapRegionDidChange
-  case mapToggleAutoZoom
+  case mapEnableAutoZoom
   // Orders
   case selectOrder(String)
   case updateOrders

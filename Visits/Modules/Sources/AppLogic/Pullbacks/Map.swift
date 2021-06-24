@@ -21,7 +21,7 @@ private let mapActionPrism = Prism<AppAction, MapAction>(
   switch a {
   case .mapRegionWillChange: return .regionWillChange
   case .mapRegionDidChange:  return .regionDidChange
-  case .mapToggleAutoZoom:   return .toggleAutoZoom
+  case .mapEnableAutoZoom:   return .enableAutoZoom
   default:                   return nil
   }
 },
@@ -29,7 +29,7 @@ private let mapActionPrism = Prism<AppAction, MapAction>(
   switch a {
   case .regionWillChange: return .mapRegionWillChange
   case .regionDidChange:  return .mapRegionDidChange
-  case .toggleAutoZoom:   return .mapToggleAutoZoom
+  case .enableAutoZoom:   return .mapEnableAutoZoom
   }
 }
 )

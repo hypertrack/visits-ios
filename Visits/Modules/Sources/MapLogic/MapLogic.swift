@@ -7,7 +7,7 @@ import Types
 public enum MapAction: Equatable {
   case regionWillChange
   case regionDidChange
-  case toggleAutoZoom
+  case enableAutoZoom
 }
 
 // MARK: - Reducer
@@ -24,11 +24,10 @@ public let mapReducer = Reducer<
     state.autoZoom = .disabled
     
     return .none
-  case .toggleAutoZoom:
-    switch state.autoZoom {
-    case .enabled:  state.autoZoom = .disabled
-    case .disabled: state.autoZoom = .enabled
-    }
+  case .enableAutoZoom:
+    guard state.autoZoom == .disabled else { preconditionFailure() }
+    
+    state.autoZoom = .enabled
     
     return .none
   }

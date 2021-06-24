@@ -36,7 +36,7 @@ public struct MapView: View {
     case regionDidChange
     case regionWillChange
     case selectedOrder(String)
-    case toggleAutoZoom
+    case enableAutoZoom
   }
   
   let state: State
@@ -60,17 +60,20 @@ public struct MapView: View {
         sendRegionDidChange: { send(.regionDidChange) },
         sendRegionWillChange: { send(.regionWillChange) }
       )
-      HStack {
-        Spacer()
-        VStack {
-          AutoZoomButton(
-            autoZoom: state.autoZoom,
-            sendToggleAutoZoom: { send(.toggleAutoZoom) }
-          )
-            .padding(.trailing, 16)
-            .padding(.top, 48)
-            
+      if state.autoZoom == .disabled {
+        HStack {
           Spacer()
+          VStack {
+            AutoZoomButton(
+              sendEnableAutoZoom: {
+                send(.enableAutoZoom)
+              
+              }
+            )
+              .padding(.trailing, 16)
+              .padding(.top, 48)
+            Spacer()
+          }
         }
       }
     }
@@ -136,12 +139,12 @@ public struct MapViewRepresentable: UIViewRepresentable {
     }
     
     public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-       return annotationViewForAnnotation(annotation, onMapView: mapView)
-     }
-     
+      return annotationViewForAnnotation(annotation, onMapView: mapView)
+    }
+    
     public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-       return rendererForOverlay(overlay)!
-     }
+      return rendererForOverlay(overlay)!
+    }
     
     public func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
       control.zoomIfNeeded(onMapView: mapView)
@@ -155,17 +158,16 @@ public struct MapViewRepresentable: UIViewRepresentable {
     
     public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
-      mapViewRegionDidChangeFromUserInteraction(mapView){
+         mapViewRegionDidChangeFromUserInteraction(mapView){
         control.sendRegionDidChange()
       }
     }
     
     public func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
-      mapViewRegionDidChangeFromUserInteraction(mapView){
+         mapViewRegionDidChangeFromUserInteraction(mapView){
         control.sendRegionWillChange()
       }
-
     }
   }
 }
@@ -179,7 +181,7 @@ public func mapViewRegionDidChangeFromUserInteraction(
   if let gestureRecognizers = view.gestureRecognizers {
     for recognizer in gestureRecognizers {
       if recognizer.state == UIGestureRecognizer.State.began ||
-        recognizer.state == UIGestureRecognizer.State.ended {
+          recognizer.state == UIGestureRecognizer.State.ended {
         return true
       }
     }
