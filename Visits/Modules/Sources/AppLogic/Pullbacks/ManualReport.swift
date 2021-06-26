@@ -18,20 +18,23 @@ let manualReportP: Reducer<
 
 
 private let manualReportStateAffine: Affine<AppState, ManualReportState> = /AppState.operational
-  ** \OperationalState.alert
-  ** Prism<Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?, ManualReportState>(
-    extract: { alerts in
-      switch alerts {
-      case     .none:     return .dismissed
-      case let .right(a): return .shown(a)
+  ** Affine<OperationalState, ManualReportState>(
+    extract: { s in
+      let manualReportState = { status in ManualReportState(status: status, visibility: s.visibility) }
+      
+      switch s.alert {
+      case     .none:     return manualReportState(.dismissed)
+      case let .right(a): return manualReportState(.shown(a))
       default:            return nil
       }
     },
-    embed: { alert in
-      switch alert {
-      case     .dismissed: return .none
-      case let .shown(a):  return .right(a)
-      }
+    inject: { d in
+      { s in
+        switch d.status {
+        case     .dismissed: return s |> \.alert *< .none     <> \.visibility *< d.visibility
+        case let .shown(a):  return s |> \.alert *< .right(a) <> \.visibility *< d.visibility
+        }
+      } 
     }
   )
 

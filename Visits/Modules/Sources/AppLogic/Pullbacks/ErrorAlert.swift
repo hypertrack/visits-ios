@@ -16,19 +16,22 @@ let errorAlertP: Reducer<
 )
 
 private let errorAlertStateAffine: Affine<AppState, ErrorAlertState> = /AppState.operational
-  ** \OperationalState.alert
-  ** Prism<Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?, ErrorAlertState>(
-    extract: { alerts in
-      switch alerts {
-      case     .none:    return .dismissed
-      case let .left(a): return .shown(a)
+  ** Affine<OperationalState, ErrorAlertState>(
+    extract: { s in
+      let errorAlertState = { status in ErrorAlertState(status: status, visibility: s.visibility) }
+      
+      switch s.alert {
+      case     .none:    return errorAlertState(.dismissed)
+      case let .left(a): return errorAlertState(.shown(a))
       default:           return nil
       }
     },
-    embed: { alert in
-      switch alert {
-      case     .dismissed: return .none
-      case let .shown(a):  return .left(a)
+    inject: { d in
+      { s in
+        switch d.status {
+        case     .dismissed: return s |> \.alert *< .none    <> \.visibility *< d.visibility
+        case let .shown(a):  return s |> \.alert *< .left(a) <> \.visibility *< d.visibility
+        }
       }
     }
   )
