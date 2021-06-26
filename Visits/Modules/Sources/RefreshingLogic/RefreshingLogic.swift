@@ -19,7 +19,7 @@ public struct RefreshingState: Equatable {
 // MARK: - Action
 
 public enum RefreshingAction: Equatable {
-  case willEnterForeground
+  case appVisibilityChanged(AppVisibility)
   case receivedPushNotification
   case mainUnlocked
   case startTracking
@@ -70,7 +70,7 @@ public let refreshingReducer = Reducer<
   let getHistory = getHistoryEffect(environment.getHistory(state.publishableKey, state.deviceID, environment.date()), environment.mainQueue)
   
   switch action {
-  case .willEnterForeground,
+  case .appVisibilityChanged(.onScreen),
        .receivedPushNotification,
        .mainUnlocked,
        .startTracking:
@@ -88,7 +88,8 @@ public let refreshingReducer = Reducer<
     state.refreshing = .all
     
     return .merge(effects)
-  case .stopTracking:
+  case .appVisibilityChanged(.offScreen),
+      .stopTracking:
     var effects: [Effect<RefreshingAction, Never>] = []
     if state.refreshing.history == .refreshingHistory {
       effects += [.cancel(id: RefreshingHistoryID())]

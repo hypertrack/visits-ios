@@ -7,6 +7,7 @@ import Types
 // MARK: - Action
 
 public enum SignInAction: Equatable {
+  case appWentOffScreen
   case focusEmail
   case focusPassword
   case dismissFocus
@@ -95,7 +96,7 @@ public let signInReducer = Reducer<SignInState, SignInAction, SystemEnvironment<
     }
     
     return .none
-  case .cancelSignIn:
+  case .appWentOffScreen, .cancelSignIn:
     guard case let .entered(ed) = state, ed.request == .inFlight else { return .none }
     
     state = .entering(.init(email: ed.email, password: ed.password, focus: nil, error: nil))

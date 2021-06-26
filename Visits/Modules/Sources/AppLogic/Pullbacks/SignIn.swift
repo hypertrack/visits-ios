@@ -25,20 +25,22 @@ private let signInStateAffine = /AppState.operational ** \.flow ** /AppFlow.sign
 private let signInActionPrism = Prism<AppAction, SignInAction>(
   extract: { a in
     switch a {
-    case     .focusEmail:         return .focusEmail
-    case     .focusPassword:      return .focusPassword
-    case     .dismissFocus:       return .dismissFocus
-    case let .emailChanged(e):    return .emailChanged(e)
-    case let .passwordChanged(p): return .passwordChanged(p)
-    case     .signIn:             return .signIn
-    case     .cancelSignIn:       return .cancelSignIn
-    case let .signedIn(r):        return .signedIn(r)
-    case let .madeSDK(s):         return .madeSDK(s)
-    default:                      return nil
+    case     .appVisibilityChanged(.offScreen): return .appWentOffScreen
+    case     .focusEmail:                       return .focusEmail
+    case     .focusPassword:                    return .focusPassword
+    case     .dismissFocus:                     return .dismissFocus
+    case let .emailChanged(e):                  return .emailChanged(e)
+    case let .passwordChanged(p):               return .passwordChanged(p)
+    case     .signIn:                           return .signIn
+    case     .cancelSignIn:                     return .cancelSignIn
+    case let .signedIn(r):                      return .signedIn(r)
+    case let .madeSDK(s):                       return .madeSDK(s)
+    default:                                    return nil
     }
   },
   embed: { a in
     switch a {
+    case     .appWentOffScreen:   return .appVisibilityChanged(.offScreen)
     case     .focusEmail:         return .focusEmail
     case     .focusPassword:      return .focusPassword
     case     .dismissFocus:       return .dismissFocus
