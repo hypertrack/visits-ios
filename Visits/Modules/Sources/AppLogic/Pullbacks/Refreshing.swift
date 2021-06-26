@@ -54,7 +54,7 @@ private let refreshingStateOperationalAffine = Affine<OperationalState, Refreshi
 private let refreshingActionPrism = Prism<AppAction, RefreshingAction>(
   extract: { a in
     switch a {
-    case     .willEnterForeground:                   return .willEnterForeground
+    case     .appVisibilityChanged(.onScreen):       return .willEnterForeground
     case     .receivedPushNotification:              return .receivedPushNotification
     case     .generated(.entered(.mainUnlocked)):    return .mainUnlocked
     case     .startTracking:                         return .startTracking
@@ -74,7 +74,7 @@ private let refreshingActionPrism = Prism<AppAction, RefreshingAction>(
   },
   embed: { a in
     switch a {
-    case     .willEnterForeground:                return .willEnterForeground
+    case     .willEnterForeground:                return .appVisibilityChanged(.onScreen)
     case     .receivedPushNotification:           return .receivedPushNotification
     case     .mainUnlocked:                       return .generated(.entered(.mainUnlocked))
     case     .startTracking:                      return .startTracking

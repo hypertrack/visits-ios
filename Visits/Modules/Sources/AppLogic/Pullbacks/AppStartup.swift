@@ -17,8 +17,12 @@ let appStartupP: Reducer<
 
 func appStartedState(_ appState: AppState) -> Terminal? {
   switch appState {
-  case .starting: return unit
-  default:        return nil
+  case let .launching(l):
+    switch (l.stateAndSDK, l.visibility) {
+    case (.starting, .some): return unit
+    default:                 return .none
+    }
+  default:                   return .none
   }
 }
 
@@ -39,15 +43,18 @@ private let appStartupActionPrism = Prism<AppAction, AppStartupAction>(
 )
 
 private enum AppStartupDomain {
-  case starting(RestoredState, SDKStatusUpdate)
-  case operational(RestoredState, SDKStatusUpdate)
+  case starting(RestoredState, SDKStatusUpdate, AppVisibility)
+  case operational(RestoredState, SDKStatusUpdate, AppVisibility)
 }
 
 private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
-  extract: { appState in
-    switch appState {
-    case let .starting(rs, sdk):
-      return .starting(rs, sdk)
+  extract: { s in
+    switch s {
+    case let .launching(l):
+      switch (l.stateAndSDK, l.visibility) {
+      case let (.starting(rs, sdk), .some(v)): return .starting(rs, sdk, v)
+      default:                                 return .none
+      }
     case let .operational(o) where o.alert == nil:
       let flow: StorageState.Flow
       switch o.flow {
@@ -78,17 +85,18 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
           ),
           version: o.version
         ),
-        o.sdk
+        o.sdk,
+        o.visibility
       )
     default:
       return nil
     }
   },
-  embed: { appStartupDomain in
-    switch appStartupDomain {
-    case let .starting(ss, sdk):
-      return .starting(ss, sdk)
-    case let .operational(rs, su):
+  embed: { d in
+    switch d {
+    case let .starting(rs, sdk, v):
+      return .launching(.init(stateAndSDK: .starting(rs, sdk), visibility: v))
+    case let .operational(rs, sdk, v):
       let flow: AppFlow
       switch rs.storage.flow {
       case .firstRun:
@@ -105,10 +113,11 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
           alert: nil,
           experience: rs.storage.experience,
           flow: flow,
-          locationAlways: su.permissions.locationPermissions == .notDetermined ? .notRequested : rs.storage.locationAlways,
+          locationAlways: sdk.permissions.locationPermissions == .notDetermined ? .notRequested : rs.storage.locationAlways,
           pushStatus: rs.storage.pushStatus,
-          sdk: su,
-          version: rs.version
+          sdk: sdk,
+          version: rs.version,
+          visibility: v
         )
       )
     }
@@ -125,10 +134,10 @@ private let appStartupStateLens = Lens<AppStartupDomain, AppStartupState>(
   set: { appStartupState in
     { appStartupDomain in
       switch (appStartupState, appStartupDomain) {
-      case let (.started, .starting(ss, su)):    return .operational(ss, su)
-      case let (.stopped, .operational(ss, su)): return .starting(ss, su)
+      case let (.started, .starting(rs, sdk, v)):    return .operational(rs, sdk, v)
+      case let (.stopped, .operational(rs, sdk, v)): return .starting(rs, sdk, v)
       case     (.started, .operational),
-               (.stopped, .starting):            return appStartupDomain
+               (.stopped, .starting):                return appStartupDomain
       }
     }
   }

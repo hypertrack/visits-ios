@@ -247,7 +247,8 @@ private let operational_ = OperationalState(
   locationAlways: .requestedAfterWhenInUse,
   pushStatus: .dialogSplash(.shown),
   sdk: .init(permissions: .granted, status: .unlocked(deviceID, .running)),
-  version: "1.2.3 (45)"
+  version: "1.2.3 (45)",
+  visibility: .onScreen
 )
 
 private let main = MainState(

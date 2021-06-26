@@ -7,6 +7,7 @@ import Types
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
   sdkLaunchingP,
   stateRestorationP,
+  appVisibilityStartupP,
   appStartupP,
   sdkStatusUpdateP,
   sdkInitializationP,
@@ -20,6 +21,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   placesP,
   historyP,
   refreshingP,
+  appVisibilityP,
   tabP,
   autoSavingP,
   trackingP,

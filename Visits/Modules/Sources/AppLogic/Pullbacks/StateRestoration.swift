@@ -10,7 +10,7 @@ let stateRestorationP: Reducer<
   AppAction,
   SystemEnvironment<AppEnvironment>
 > = stateRestorationReducer.pullback(
-  state: stateRestorationStatePrism.toAffine(),
+  state: stateRestorationStateAffine,
   action: stateRestorationActionPrism,
   environment: toStateRestorationEnvironment
 )
@@ -24,20 +24,21 @@ private func toStateRestorationEnvironment(_ e: SystemEnvironment<AppEnvironment
   }
 }
 
-private let stateRestorationStatePrism = Prism<AppState, StateRestorationState>(
-  extract: { d in
-    switch d {
-    case     .initialState:              return .waitingToStart
+
+private let stateRestorationStateAffine = /AppState.launching ** \.stateAndSDK ** Prism<AppLaunching.StateAndSDK?, StateRestorationState>(
+  extract: { s in
+    switch s {
+    case     .none:                      return .waitingToStart
     case     .restoringState(.none):     return .restoringState
-    case let .restoringState(.some(ss)): return .stateRestored(ss)
-    default:                             return nil
+    case let .restoringState(.some(rs)): return .stateRestored(rs)
+    default:                             return .none
     }
   },
-  embed: { s in
-    switch s {
-    case     .waitingToStart:    return .initialState
+  embed: { d in
+    switch d {
+    case     .waitingToStart:    return .none
     case     .restoringState:    return .restoringState(.none)
-    case let .stateRestored(ss): return .restoringState(ss)
+    case let .stateRestored(rs): return .restoringState(rs)
     }
   }
 )

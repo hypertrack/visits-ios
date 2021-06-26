@@ -15,11 +15,12 @@ struct Visits: App {
           viewStore.send(.deepLinkOpened(url))
         }
         .onReceive(Just(scenePhase)) { scenePhase in
-          if scenePhase == .active {
-            viewStore.send(.willEnterForeground)
-          }
+          viewStore.send(
+            .appVisibilityChanged(
+              scenePhase == .active ? .onScreen : .offScreen
+            )
+          )
         }
     }
   }
 }
- 

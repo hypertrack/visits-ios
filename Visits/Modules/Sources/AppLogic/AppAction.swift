@@ -14,7 +14,7 @@ public enum AppAction: Equatable {
   case copyToPasteboard(NonEmptyString)
   case osFinishedLaunching
   case shakeDetected
-  case willEnterForeground
+  case appVisibilityChanged(AppVisibility)
   // Sign In
   case cancelSignIn
   case emailChanged(Email?)

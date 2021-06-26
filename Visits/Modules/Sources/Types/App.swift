@@ -1,13 +1,8 @@
-import NonEmpty
-import Tagged
-
 public enum AppState: Equatable {
-  case initialState
-  case restoringState(RestoredState?)
-  case launchingSDK(RestoredState)
-  case starting(RestoredState, SDKStatusUpdate)
+  case launching(AppLaunching)
   case operational(OperationalState)
 }
 
-public typealias AppVersion = Tagged<AppVersionTag, NonEmptyString>
-public enum AppVersionTag {}
+public extension AppState {
+  static let initialState = Self.launching(.init())
+}

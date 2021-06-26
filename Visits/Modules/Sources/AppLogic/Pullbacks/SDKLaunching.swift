@@ -10,32 +10,51 @@ let sdkLaunchingP: Reducer<
   AppAction,
   SystemEnvironment<AppEnvironment>
 > = sdkLaunchingReducer.pullback(
-  state: sdkLaunchingStatePrism.toAffine(),
+  state: sdkLaunchingStateAffine,
   action: sdkLaunchingActionPrism,
   environment: toSDKLaunchingEnvironment
 )
 
 func toStateRestored(_ s: AppState) -> Terminal? {
   switch s {
-  case .restoringState(.some): return unit
-  default:                     return nil
+  case let .launching(l):
+    switch l.stateAndSDK {
+    case .restoringState(.some): return unit
+    default:                     return nil
+    }
+  default:                       return nil
   }
 }
 
-private let sdkLaunchingStatePrism = Prism<AppState, SDKLaunchingState>(
+private let sdkLaunchingStateAffine = Affine<AppState, SDKLaunchingState>(
   extract: { s in
     switch s {
-    case let .restoringState(.some(ss)): return .init(status: .stateRestored, restoredState: ss)
-    case let .launchingSDK(ss):          return .init(status: .launching, restoredState: ss)
-    case let .starting(ss, sdk):         return .init(status: .launched(sdk), restoredState: ss)
-    default:                             return nil
+    case let .launching(l):
+      switch l.stateAndSDK {
+      case let .restoringState(.some(rs)): return .init(status: .stateRestored, restoredState: rs)
+      case let .launchingSDK(rs):          return .init(status: .launching, restoredState: rs)
+      case let .starting(rs, sdk):         return .init(status: .launched(sdk), restoredState: rs)
+      default:                             return nil
+      }
+    default:                               return nil
     }
   },
-  embed: { d in
-    switch d.status {
-    case .stateRestored:     return .restoringState(d.restoredState)
-    case .launching:         return .launchingSDK(d.restoredState)
-    case let .launched(sdk): return .starting(d.restoredState, sdk)
+  inject: { d in
+    { s in
+      switch s {
+      case let .launching(l):
+        
+        let stateAndSDK: AppLaunching.StateAndSDK
+        switch d.status {
+        case     .stateRestored: stateAndSDK = .restoringState(d.restoredState)
+        case     .launching:     stateAndSDK = .launchingSDK(d.restoredState)
+        case let .launched(sdk): stateAndSDK = .starting(d.restoredState, sdk)
+        }
+        
+        return .launching(l |> \.stateAndSDK *< stateAndSDK)
+        
+      default: return .none
+      }
     }
   }
 )
