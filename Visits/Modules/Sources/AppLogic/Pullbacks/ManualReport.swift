@@ -22,9 +22,9 @@ private let manualReportStateAffine: Affine<AppState, ManualReportState> = /AppS
   ** Prism<Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?, ManualReportState>(
     extract: { alerts in
       switch alerts {
-      case     .none:    return .dismissed
+      case     .none:     return .dismissed
       case let .right(a): return .shown(a)
-      default:           return nil
+      default:            return nil
       }
     },
     embed: { alert in
@@ -38,15 +38,17 @@ private let manualReportStateAffine: Affine<AppState, ManualReportState> = /AppS
 private let manualReportActionPrism = Prism<AppAction, ManualReportAction>(
   extract: { a in
     switch a {
-    case     .shakeDetected:           return .shakeDetected
-    case let .errorReportingAlert(aa): return .alert(aa)
-    default:                           return nil
+    case     .appVisibilityChanged(.offScreen): return .appWentOffScreen
+    case let .errorReportingAlert(aa):          return .alert(aa)
+    case     .shakeDetected:                    return .shakeDetected
+    default:                                    return nil
     }
   },
   embed: { a in
     switch a {
-    case     .shakeDetected: return .shakeDetected
-    case let .alert(aa):     return .errorReportingAlert(aa)
+    case     .appWentOffScreen: return .appVisibilityChanged(.offScreen)
+    case let .alert(aa):        return .errorReportingAlert(aa)
+    case     .shakeDetected:    return .shakeDetected
     }
   }
 )

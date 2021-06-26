@@ -12,8 +12,9 @@ public enum ManualReportState: Equatable {
 // MARK: - Action
 
 public enum ManualReportAction: Equatable {
-  case shakeDetected
   case alert(ErrorReportingAlertAction)
+  case appWentOffScreen
+  case shakeDetected
 }
 
 // MARK: - Environment
@@ -53,7 +54,7 @@ public let manualReportReducer = Reducer<
     state = .dismissed
     
     return environment.notifySuccess().fireAndForget()
-  case .alert(.no):
+  case .appWentOffScreen, .alert(.no):
     guard case .shown = state else { return .none }
     
     state = .dismissed

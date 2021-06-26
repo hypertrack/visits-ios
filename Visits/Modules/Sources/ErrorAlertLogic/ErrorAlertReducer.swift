@@ -12,6 +12,7 @@ public enum ErrorAlertState: Equatable {
 // MARK: - Action
 
 public enum ErrorAlertLogicAction: Equatable {
+  case appWentOffScreen
   case dismissAlert
   case displayError(APIError<Never>, ErrorAlertSource)
 }
@@ -28,7 +29,7 @@ public enum ErrorAlertSource: Equatable {
 public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, Void> { state, action, environment in
   let tryAgain = "\nPlease try again"
   switch action {
-  case .dismissAlert:
+  case .appWentOffScreen, .dismissAlert:
     
     state = .dismissed
     
