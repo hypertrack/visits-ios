@@ -6,12 +6,13 @@ import Tagged
 import Types
 
 
-func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError<Never>> {
+func getTrips(auth token: Token.Value, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError<Token.Expired>> {
   paginate(
     getPage: { pagination in
       callAPI(
         request: tripsRequest(auth: token, deviceID: deviceID, paginationToken: pagination),
-        success: TripsPage.self
+        success: TripsPage.self,
+        failure: Token.Expired.self
       )
     },
     valuesFromPage: \.trips,
@@ -19,7 +20,7 @@ func getTrips(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Trip], API
   )
 }
 
-func tripsRequest(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {
+func tripsRequest(auth token: Token.Value, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {
   var urlString = "\(clientURL)/trips?device_id=\(deviceID)"
   if let paginationToken = paginationToken {
     urlString += "&pagination_token=\(paginationToken)"

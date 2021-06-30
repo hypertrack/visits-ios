@@ -4,20 +4,22 @@ import Utility
 
 
 public struct APIEnvironment {
-  public var cancelOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
-  public var completeOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
-  public var getHistory: (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Never>>, Never>
-  public var getOrders: (PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Never>>, Never>
-  public var getPlaces: (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never>
+  public var cancelOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var completeOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var getHistory: (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
+  public var getOrders:  (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
+  public var getPlaces:  (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
+  public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
   
   public init(
-    cancelOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
-    completeOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
-    getHistory: @escaping (PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Never>>, Never>,
-    getOrders: @escaping (PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Never>>, Never>,
-    getPlaces: @escaping (PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never>,
+    cancelOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    completeOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    getHistory: @escaping (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
+    getOrders: @escaping  (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
+    getPlaces: @escaping  (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
+    getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
   ) {
@@ -26,6 +28,7 @@ public struct APIEnvironment {
     self.getHistory = getHistory
     self.getOrders = getOrders
     self.getPlaces = getPlaces
+    self.getToken = getToken
     self.reverseGeocode = reverseGeocode
     self.signIn = signIn
   }

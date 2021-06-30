@@ -9,22 +9,21 @@ import Tagged
 import Types
 
 
-func getPlaces(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError<Never>>, Never> {
-  logEffect("getPlaces", failureType: APIError.self)
-    .flatMap { getToken(auth: pk, deviceID: deID) }
-    .flatMap {
-      getGeofences(auth: $0, deviceID: deID)
-        .map { Set($0.compactMap(Place.init(geofence:))) }
-    }
+func getPlaces(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never> {
+  logEffect("getPlaces")
+  
+  return getGeofences(auth: token, deviceID: deID)
+    .map { Set($0.compactMap(Place.init(geofence:))) }
     .catchToEffect()
 }
 
-func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError<Never>> {
+func getGeofences(auth token: Token.Value, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError<Token.Expired>> {
   paginate(
     getPage: { pagination in
       callAPI(
         request: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: pagination),
-        success: GeofencePage.self
+        success: GeofencePage.self,
+        failure: Token.Expired.self
       )
     },
     valuesFromPage: \.geofences,
@@ -34,7 +33,7 @@ func getGeofences(auth token: Token, deviceID: DeviceID) -> AnyPublisher<[Geofen
   .eraseToAnyPublisher()
 }
 
-func geofencesRequest(auth token: Token, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {
+func geofencesRequest(auth token: Token.Value, deviceID: DeviceID, paginationToken: PaginationToken?) -> URLRequest {
   var components = URLComponents()
   components.scheme = "https"
   components.host = "live-app-backend.htprod.hypertrack.com"

@@ -1,3 +1,4 @@
+import AppAdapter
 import AppScreen
 import Combine
 import SwiftUI

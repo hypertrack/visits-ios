@@ -42,7 +42,7 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, Set<Place>, Refreshing, History?, [MapOrder], DriverID, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, DriverID, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
@@ -108,9 +108,9 @@ struct MainBlock: View {
     mapState: MapState,
     orderScreenState: OrderOrOrders,
     places: Set<Place>,
-    refreshing: Refreshing,
+    requests: Set<Request>,
     history: History?,
-    orders: [MapOrder],
+    orders: Set<Order>,
     driverID: DriverID,
     deviceID: DeviceID,
     tabSelection: TabSelection,
@@ -171,7 +171,7 @@ struct MainBlock: View {
         }
         .tag(TabSelection.orders)
       case let .orders(vs):
-        OrdersScreen(state: .init(orders: vs, refreshing: state.refreshing.orders), send: sendOrders)
+        OrdersScreen(state: .init(orders: vs, refreshing: state.requests.contains(Request.orders)), send: sendOrders)
         .tabItem {
           Image(systemName: "list.dash")
           Text("Orders")
@@ -179,7 +179,7 @@ struct MainBlock: View {
         .tag(TabSelection.orders)
       }
       
-      PlacesScreen(state: .init(places: state.places, refreshing: state.refreshing.places), send: sendPlaces)
+      PlacesScreen(state: .init(places: state.places, refreshing: state.requests.contains(Request.places)), send: sendPlaces)
         .tabItem {
           Image(systemName: "mappin.and.ellipse")
           Text("Places")

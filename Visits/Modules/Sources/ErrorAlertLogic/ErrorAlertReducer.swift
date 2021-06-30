@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Types
+import Utility
 
 
 // MARK: - State
@@ -21,16 +22,15 @@ public struct ErrorAlertState: Equatable {
 // MARK: - Action
 
 public enum ErrorAlertLogicAction: Equatable {
-  case appWentOffScreen
-  case dismissAlert
-  case displayError(APIError<Never>, ErrorAlertSource)
-}
-
-public enum ErrorAlertSource: Equatable {
-  case history
-  case orders
-  case places
-  case signIn
+  case appVisibilityChanged(AppVisibility)
+  case errorAlert(ErrorAlertAction)
+  case historyUpdated(Result<History, APIError<Token.Expired>>)
+  case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
+  case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
+  case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
+  case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case signedIn(Result<PublishableKey, APIError<CognitoError>>)
+  case tokenUpdated(Result<Token.Value, APIError<Never>>)
 }
 
 // MARK: - Reducer
@@ -38,48 +38,74 @@ public enum ErrorAlertSource: Equatable {
 public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, Void> { state, action, environment in
   let tryAgain = "\nPlease try again"
   switch action {
-  case .appWentOffScreen, .dismissAlert:
+  case .appVisibilityChanged(.offScreen), .errorAlert(.ok):
     
     state.status = .dismissed
     
     return .none
-  case let .displayError(.network(urlError), _):
+  case .appVisibilityChanged(.onScreen):
+    return .none
+  case let .historyUpdated(.failure(.network(u))),
+       let .orderCancelFinished(_, .failure(.network(u))),
+       let .orderCompleteFinished(_, .failure(.network(u))),
+       let .ordersUpdated(.failure(.network(u))),
+       let .placesUpdated(.failure(.network(u))),
+       let .signedIn(.failure(.network(u))),
+       let .tokenUpdated(.failure(.network(u))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
       .init(
         title: TextState("Network Issue"),
-        message: TextState(urlError.errorDescription.rawValue + tryAgain),
+        message: TextState(u.errorDescription.rawValue + tryAgain),
         dismissButton: dismissButton
       )
     )
     
     return .none
-  case let .displayError(.api(error, _, _), _):
+  case let .historyUpdated(.failure(.api(e, _, _))),
+       let .orderCancelFinished(_, .failure(.api(e, _, _))),
+       let .orderCompleteFinished(_, .failure(.api(e, _, _))),
+       let .ordersUpdated(.failure(.api(e, _, _))),
+       let .placesUpdated(.failure(.api(e, _, _))),
+       let .signedIn(.failure(.api(e, _, _))),
+       let .tokenUpdated(.failure(.api(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
       .init(
-        title: TextState(error.title.string),
-        message: TextState(error.detail.string),
+        title: TextState(e.title.string),
+        message: TextState(e.detail.string),
         dismissButton: dismissButton
       )
     )
     
     return .none
-  case let .displayError(.server(error, _, _), _):
+  case let .historyUpdated(.failure(.server(e, _, _))),
+       let .orderCancelFinished(_, .failure(.server(e, _, _))),
+       let .orderCompleteFinished(_, .failure(.server(e, _, _))),
+       let .ordersUpdated(.failure(.server(e, _, _))),
+       let .placesUpdated(.failure(.server(e, _, _))),
+       let .signedIn(.failure(.server(e, _, _))),
+       let .tokenUpdated(.failure(.server(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
       .init(
         title: TextState("Server Error"),
-        message: TextState(error.message.rawValue + tryAgain),
+        message: TextState(e.message.rawValue + tryAgain),
         dismissButton: dismissButton
       )
     )
     
     return .none
-  case let .displayError(.unknown(p, _, _), _):
+  case let .historyUpdated(.failure(.unknown(p, _, _))),
+       let .orderCancelFinished(_, .failure(.unknown(p, _, _))),
+       let .orderCompleteFinished(_, .failure(.unknown(p, _, _))),
+       let .ordersUpdated(.failure(.unknown(p, _, _))),
+       let .placesUpdated(.failure(.unknown(p, _, _))),
+       let .signedIn(.failure(.unknown(p, _, _))),
+       let .tokenUpdated(.failure(.unknown(p, _, _))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
@@ -90,6 +116,20 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
       )
     )
     
+    return .none
+  case .historyUpdated(.success(_)),
+       .orderCancelFinished(_, .success(_)),
+       .orderCompleteFinished(_, .success(_)),
+       .ordersUpdated(.success(_)),
+       .placesUpdated(.success(_)),
+       .signedIn(.success(_)),
+       .tokenUpdated(.success(_)),
+       .historyUpdated(.failure(.error(_, _, _))),
+       .orderCancelFinished(_, .failure(.error(_, _, _))),
+       .orderCompleteFinished(_, .failure(.error(_, _, _))),
+       .ordersUpdated(.failure(.error(_, _, _))),
+       .placesUpdated(.failure(.error(_, _, _))),
+       .signedIn(.failure(.error(_, _, _))):
     return .none
   }
 }

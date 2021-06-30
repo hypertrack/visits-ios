@@ -1,15 +1,15 @@
 import AppArchitecture
 import ComposableArchitecture
 import Utility
-import RefreshingLogic
+import RequestLogic
 import Types
 
 
-let refreshingP: Reducer<
+let requestP: Reducer<
   AppState,
   AppAction,
   SystemEnvironment<AppEnvironment>
-> = refreshingReducer.pullback(
+> = requestReducer.pullback(
   state: refreshingStateAffine,
   action: refreshingActionPrism,
   environment: toRefreshingEnvironment
@@ -29,21 +29,21 @@ func mainUnlocked(_ a: AppState) -> Terminal? {
 
 private let refreshingStateAffine = /AppState.operational ** refreshingStateOperationalAffine
 
-private let refreshingStateOperationalAffine = Affine<OperationalState, RefreshingState>(
+private let refreshingStateOperationalAffine = Affine<OperationalState, RequestState>(
   extract: { s in
     switch (s.flow, s.sdk.status) {
     case let (.main(m), .unlocked(deID, _)):
-      return .init(refreshing: m.refreshing, deviceID: deID, publishableKey: m.publishableKey)
+      return .init(requests: m.requests, deviceID: deID, publishableKey: m.publishableKey, token: m.token)
     default:
       return nil
     }
   },
-  inject: { s in
-    { d in
-      switch (d.flow, d.sdk.status) {
+  inject: { d in
+    { s in
+      switch (s.flow, s.sdk.status) {
       case let (.main(m), .unlocked(_, us)):
-        return d |> \.flow *< .main(m |> \.publishableKey *< s.publishableKey <> \.refreshing *< s.refreshing)
-                 <> \.sdk.status *< .unlocked(s.deviceID, us)
+        return s |> \.flow *< .main(m |> \.publishableKey *< d.publishableKey <> \.requests *< d.requests <> \.token *< d.token)
+                 <> \.sdk.status *< .unlocked(d.deviceID, us)
       default:
         return nil
       }
@@ -51,54 +51,63 @@ private let refreshingStateOperationalAffine = Affine<OperationalState, Refreshi
   }
 )
 
-private let refreshingActionPrism = Prism<AppAction, RefreshingAction>(
+private let refreshingActionPrism = Prism<AppAction, RequestAction>(
   extract: { a in
     switch a {
     case let .appVisibilityChanged(v):               return .appVisibilityChanged(v)
-    case     .receivedPushNotification:              return .receivedPushNotification
+    case let .cancelOrder(o):                        return .cancelOrder(o)
+    case let .checkOutOrder(o):                      return .completeOrder(o)
+    case let .historyUpdated(r):                     return .historyUpdated(r)
     case     .generated(.entered(.mainUnlocked)):    return .mainUnlocked
+    case let .orderCancelFinished(o, r):             return .orderCanceled(o, r)
+    case let .orderCompleteFinished(o, r):           return .orderCompleted(o, r)
+    case let .ordersUpdated(os):                     return .ordersUpdated(os)
+    case let .placesUpdated(ps):                     return .placesUpdated(ps)
+    case     .receivedPushNotification:              return .receivedPushNotification
     case     .startTracking:                         return .startTracking
     case     .stopTracking:                          return .stopTracking
-    case     .updateOrders:                          return .updateOrders
-    case     .switchToOrders:                        return .switchToOrders
-    case let .ordersUpdated(os):                     return .ordersUpdated(os)
-    case     .orderCancelFinished(.success(unit)):   return .orderCanceled
-    case     .orderCompleteFinished(.success(unit)): return .orderCompleted
-    case     .updatePlaces:                          return .updatePlaces
-    case     .switchToPlaces:                        return .switchToPlaces
-    case let .placesUpdated(ps):                     return .placesUpdated(ps)
     case     .switchToMap:                           return .switchToMap
-    case let .historyUpdated(h):                     return .historyUpdated(h)
+    case     .switchToOrders:                        return .switchToOrders
+    case     .switchToPlaces:                        return .switchToPlaces
+    case let .tokenUpdated(r):                       return .tokenUpdated(r)
+    case     .updateOrders:                          return .updateOrders
+    case     .updatePlaces:                          return .updatePlaces
     default:                                         return nil
     }
   },
   embed: { a in
     switch a {
-    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
-    case     .receivedPushNotification:           return .receivedPushNotification
-    case     .mainUnlocked:                       return .generated(.entered(.mainUnlocked))
-    case     .startTracking:                      return .startTracking
-    case     .stopTracking:                       return .stopTracking
-    case     .updateOrders:                       return .updateOrders
-    case     .orderCanceled:                      return .orderCancelFinished(.success(unit))
-    case     .orderCompleted:                     return .orderCompleteFinished(.success(unit))
-    case     .switchToOrders:                     return .switchToOrders
-    case let .ordersUpdated(os):                  return .ordersUpdated(os)
-    case     .updatePlaces:                       return .updatePlaces
-    case     .switchToPlaces:                     return .switchToPlaces
-    case let .placesUpdated(ps):                  return .placesUpdated(ps)
-    case     .switchToMap:                        return .switchToMap
-    case let .historyUpdated(h):                  return .historyUpdated(h)
+    case let .appVisibilityChanged(v):  return .appVisibilityChanged(v)
+    case let .cancelOrder(o):           return .cancelOrder(o)
+    case let .completeOrder(o):         return .checkOutOrder(o)
+    case let .historyUpdated(r):        return .historyUpdated(r)
+    case     .mainUnlocked:             return .generated(.entered(.mainUnlocked))
+    case let .orderCanceled(o, r):      return .orderCancelFinished(o, r)
+    case let .orderCompleted(o, r):     return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(os):        return .ordersUpdated(os)
+    case let .placesUpdated(ps):        return .placesUpdated(ps)
+    case     .receivedPushNotification: return .receivedPushNotification
+    case     .startTracking:            return .startTracking
+    case     .stopTracking:             return .stopTracking
+    case     .switchToMap:              return .switchToMap
+    case     .switchToOrders:           return .switchToOrders
+    case     .switchToPlaces:           return .switchToPlaces
+    case let .tokenUpdated(r):          return .tokenUpdated(r)
+    case     .updateOrders:             return .updateOrders
+    case     .updatePlaces:             return .updatePlaces
     }
   }
 )
 
-private func toRefreshingEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RefreshingEnvironment> {
+private func toRefreshingEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RequestEnvironment> {
   e.map { e in
     .init(
+      cancelOrder:    e.api.cancelOrder,
+      completeOrder:  e.api.completeOrder,
       getHistory:     e.api.getHistory,
       getOrders:      e.api.getOrders,
       getPlaces:      e.api.getPlaces,
+      getToken:       e.api.getToken,
       reverseGeocode: e.api.reverseGeocode
     )
   }

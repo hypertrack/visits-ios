@@ -2,32 +2,15 @@ import MapKit
 import SwiftUI
 import Types
 
-public struct MapOrder: Equatable {
-  public enum Status: Equatable {
-    case pending, visited, completed, canceled, disabled
-  }
-  
-  public let id: Order.ID
-  public let coordinate: Coordinate
-  public let status: Order.Status
-  public let visited: Order.Visited?
-  
-  public init(id: Order.ID, coordinate: Coordinate, status: Order.Status, visited: Order.Visited? = nil) {
-    self.id = id
-    self.coordinate = coordinate
-    self.status = status
-    self.visited = visited
-  }
-}
 
 public struct MapView: View {
   
   public struct State: Equatable {
     public var autoZoom: AutoZoom
-    public var orders: [MapOrder]
+    public var orders: Set<Order>
     public var polyline: [Coordinate]
     
-    public init(autoZoom: AutoZoom, orders: [MapOrder], polyline: [Coordinate]) {
+    public init(autoZoom: AutoZoom, orders: Set<Order>, polyline: [Coordinate]) {
       self.autoZoom = autoZoom; self.orders = orders; self.polyline = polyline
     }
   }
@@ -35,7 +18,7 @@ public struct MapView: View {
   public enum Action: Equatable {
     case regionDidChange
     case regionWillChange
-    case selectedOrder(String)
+    case selectedOrder(Order)
     case enableAutoZoom
   }
   
@@ -82,17 +65,17 @@ public struct MapView: View {
 
 public struct MapViewRepresentable: UIViewRepresentable {
   public var polyline: [Coordinate]
-  public var orders: [MapOrder]
+  public var orders: Set<Order>
   public var autoZoom: AutoZoom
-  var sendSelectedMapOrder: (String) -> Void
+  var sendSelectedMapOrder: (Order) -> Void
   var sendRegionDidChange: () -> Void
   var sendRegionWillChange: () -> Void
   
   public init(
     polyline: [Coordinate],
-    orders: [MapOrder],
+    orders: Set<Order>,
     autoZoom: AutoZoom,
-    sendSelectedMapOrder: @escaping (String) -> Void,
+    sendSelectedMapOrder: @escaping (Order) -> Void,
     sendRegionDidChange: @escaping () -> Void,
     sendRegionWillChange: @escaping () -> Void
   ) {
@@ -152,7 +135,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
     
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
       if let orderAnnotation = view.annotation as? OrderAnnotation {
-        control.sendSelectedMapOrder(orderAnnotation.order.id.string)
+        control.sendSelectedMapOrder(orderAnnotation.order)
       }
     }
     
@@ -197,9 +180,16 @@ struct MapView_Previews: PreviewProvider {
         autoZoom: .enabled,
         orders: [
           .init(
-            id: "1",
-            coordinate: Coordinate(latitude: 37.78309567490489, longitude: -122.41842806339264)!,
-            status: .cancelled,
+            id: Order.ID(rawValue: "ID5"),
+            tripID: "_",
+            createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
+            location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
+            address: .init(
+              street: Street(rawValue: "601 Eddy St"),
+              fullAddress: FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
+            ),
+            status: .completed(Date()),
+            note: nil,
             visited: .entered(Date())
           )
         ],

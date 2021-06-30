@@ -4,7 +4,7 @@ import Types
 // MARK: - Orders
 
 func putOrders(
-  orders: [MapOrder],
+  orders: Set<Order>,
   onMapView mapView: MKMapView
 ) {
   mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? OrderAnnotation })
@@ -13,7 +13,7 @@ func putOrders(
   for order in orders {
     mapView.addAnnotation(OrderAnnotation(order: order))
     
-    let geofenceOverlay = OrderCircle(center: order.coordinate.coordinate2D, radius: 50)
+    let geofenceOverlay = OrderCircle(center: order.location.coordinate2D, radius: 50)
     geofenceOverlay.order = order
     if let polylineOverlay = polyline(fromMapView: mapView) {
       mapView.insertOverlay(geofenceOverlay, below: polylineOverlay)
@@ -24,18 +24,18 @@ func putOrders(
 }
 
 class OrderCircle: MKCircle {
-  var order: MapOrder?
+  var order: Order?
 }
 
 // MARK: Order
 
 class OrderAnnotation: NSObject, MKAnnotation {
   var coordinate: CLLocationCoordinate2D
-  let order: MapOrder
+  let order: Order
 
-  init(order: MapOrder) {
+  init(order: Order) {
     self.order = order
-    self.coordinate = order.coordinate.coordinate2D
+    self.coordinate = order.location.coordinate2D
     
     super.init()
   }
@@ -474,7 +474,7 @@ public func zoom(
       coordinateCloud += [coordinate]
     }
     
-    coordinateCloud += orders.map(\.order.coordinate.coordinate2D)
+    coordinateCloud += orders.map(\.order.location.coordinate2D)
     
     if !coordinateCloud.isEmpty {
       var mapRect = mapRectFromCoordinates(coordinateCloud)

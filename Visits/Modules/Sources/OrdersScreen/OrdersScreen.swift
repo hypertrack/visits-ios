@@ -5,17 +5,6 @@ import UIKit
 import Views
 
 
-struct OrderHeader: Equatable, Hashable, Identifiable {
-  let id: String
-  let title: String
-  
-  init(id: String, title: String) {
-    self.id = id
-    self.title = title
-  }
-}
-
-
 enum Status: String {
   case pending = "⏳ Pending"
   case visited = "📦 Visited"
@@ -29,11 +18,11 @@ enum Status: String {
 public struct OrdersScreen: View {
   public struct State: Equatable {
     public let orders: Set<Order>
-    public let refreshing: Refreshing.Orders
+    public let refreshing: Bool
     
     public init(
       orders: Set<Order>,
-      refreshing: Refreshing.Orders
+      refreshing: Bool
     ) {
       self.orders = orders
       self.refreshing = refreshing
@@ -43,40 +32,55 @@ public struct OrdersScreen: View {
   public enum Action: Equatable {
     case clockOutButtonTapped
     case refreshButtonTapped
-    case orderTapped(String)
+    case orderTapped(Order)
   }
   
   @Environment(\.colorScheme) var colorScheme
   let state: State
   let send: (Action) -> Void
   
-  var pending: [OrderHeader] {
-    orderHeaders(from: state.orders).0
+  var pending: [Order] {
+    state.orders.filter {
+      switch ($0.status, $0.visited) {
+      case (.ongoing, .none),
+        (.cancelling, .none),
+        (.completing, .none): return true
+      default:                return false
+      }
+    }
+    .sorted(by: \.id)
   }
-  var visited: [OrderHeader] {
-    orderHeaders(from: state.orders).1
+  var visited: [Order] {
+    state.orders.filter {
+      switch ($0.status, $0.visited) {
+      case (.ongoing, .some),
+        (.cancelling, .some),
+        (.completing, .some): return true
+      default:                return false
+      }
+    }
+    .sorted(by: \.id)
   }
-  var completed: [OrderHeader] {
-    orderHeaders(from: state.orders).2
+  var completed: [Order] {
+    state.orders.filter {
+      guard case .completed = $0.status else { return false }
+      return true
+    }
+    .sorted(by: \.id)
   }
-  var canceled: [OrderHeader] {
-    orderHeaders(from: state.orders).3
+  var canceled: [Order] {
+    state.orders.filter {
+      guard case .cancelled = $0.status else { return false }
+      return true
+    }
+    .sorted(by: \.id)
   }
-  var snoozed: [OrderHeader] {
-    orderHeaders(from: state.orders).4
-  }
-  var isNetworkAvailable: Bool = true
-  
-  var noOrders: Bool {
-    canceled.isEmpty && completed.isEmpty && pending.isEmpty && visited.isEmpty
-  }
-  
-  var totalOrders: Int {
-    canceled.count + completed.count + pending.count + visited.count + snoozed.count
-  }
-  
-  var refreshing: Bool {
-    state.refreshing == .refreshingOrders
+  var snoozed: [Order] {
+    state.orders.filter {
+      guard case .disabled = $0.status else { return false }
+      return true
+    }
+    .sorted(by: \.id)
   }
   
   public init(
@@ -97,7 +101,7 @@ public struct OrdersScreen: View {
         .frame(width: 110, height: 44, alignment: .leading)
       },
       trailing: {
-        RefreshButton(state: refreshing ? .refreshing : .enabled) {
+        RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
           send(.refreshButtonTapped)
         }
       },
@@ -105,46 +109,40 @@ public struct OrdersScreen: View {
         ZStack {
           VStack(spacing: 0) {
             VisitStatus(
-              text: refreshing ? "Updating orders." : noOrders ? "No orders for today, tap refresh to update." : "You've completed \(completed.count + canceled.count) out of \(totalOrders) orders so far.",
-              state: noOrders ? .custom(color: Color.gray) : .visited
+              text: state.refreshing ? "Updating orders." : state.orders.isEmpty ? "No orders for today, tap refresh to update." : "You've completed \(completed.count + canceled.count) out of \(state.orders.count) orders so far.",
+              state: state.orders.isEmpty ? .custom(color: Color.gray) : .visited
             )
             .padding(.top, 44)
-            if !isNetworkAvailable {
-              VisitStatus(
-                text: "Network unavailable.",
-                state: .custom(color: Color.red)
-              )
-            }
             List {
               if !pending.isEmpty {
                 orderSection(
                   for: .pending,
-                  items: pending
-                ) { send(.orderTapped($0.id)) }
+                  order: pending
+                ) { send(.orderTapped($0)) }
               }
               if !visited.isEmpty {
                 orderSection(
                   for: .visited,
-                  items: visited
-                ) { send(.orderTapped($0.id)) }
+                  order: visited
+                ) { send(.orderTapped($0)) }
               }
               if !completed.isEmpty {
                 orderSection(
                   for: .completed,
-                  items: completed
-                ) { send(.orderTapped($0.id)) }
+                  order: completed
+                ) { send(.orderTapped($0)) }
               }
               if !canceled.isEmpty {
                 orderSection(
                   for: .canceled,
-                  items: canceled
-                ) { send(.orderTapped($0.id)) }
+                  order: canceled
+                ) { send(.orderTapped($0)) }
               }
               if !snoozed.isEmpty {
                 orderSection(
                   for: .snoozed,
-                  items: snoozed
-                ) { send(.orderTapped($0.id)) }
+                  order: snoozed
+                ) { send(.orderTapped($0)) }
               }
             }
             .modifier(AppBackground())
@@ -161,46 +159,15 @@ public struct OrdersScreen: View {
 
 
 extension OrdersScreen {
-  func orderSection(for status: Status, items: [OrderHeader], didSelect cell: @escaping (OrderHeader) -> Void) -> some View {
+  func orderSection(for status: Status, order: [Order], didSelect cell: @escaping (Order) -> Void) -> some View {
     CustomSection(header: "\(status.rawValue)") {
-      ForEach(items) { item in
-        DeliveryCell(title: "\(item.title)") {
-          cell(item)
+      ForEach(order) { order in
+        DeliveryCell(title: "\(orderTitle(from: order))") {
+          cell(order)
         }
       }
     }
   }
-}
-
-func orderHeaders(from os: Set<Order>) -> ([OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader], [OrderHeader]) {
-  var pending: [(Date, OrderHeader)] = []
-  var visited: [(Date, OrderHeader)] = []
-  var completed: [(Date, OrderHeader)] = []
-  var canceled: [(Date, OrderHeader)] = []
-  var snoozed: [(Date, OrderHeader)] = []
-  
-  for o in os {
-    let t = orderTitle(from: o)
-    
-    let h = OrderHeader(id: o.id.string, title: t)
-    switch o.status {
-    case .ongoing, .cancelling, .completing:
-      switch o.visited {
-      case .some:    visited.append((o.createdAt, h))
-      default:       pending.append((o.createdAt, h))
-      }
-    case .completed: completed.append((o.createdAt, h))
-    case .cancelled: canceled.append((o.createdAt, h))
-    case .disabled:  snoozed.append((o.createdAt, h))
-    }
-  }
-  return (
-    pending.sorted(by: sortHeaders).map(\.1),
-    visited.sorted(by: sortHeaders).map(\.1),
-    completed.sorted(by: sortHeaders).map(\.1),
-    canceled.sorted(by: sortHeaders).map(\.1),
-    snoozed.sorted(by: sortHeaders).map(\.1)
-  )
 }
 
 func orderTitle(from v: Order) -> String {
@@ -219,8 +186,12 @@ extension DateFormatter {
   }
 }
 
-func sortHeaders(_ left: (date: Date, order: OrderHeader), _ right: (date: Date, order: OrderHeader)) -> Bool {
-  left.date > right.date
+extension Sequence {
+  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    return sorted { a, b in
+      return a[keyPath: keyPath] < b[keyPath: keyPath]
+    }
+  }
 }
 
 //struct VisitsScreen_Previews: PreviewProvider {

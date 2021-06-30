@@ -21,8 +21,10 @@ public enum APIError<KnownError: Equatable>: Equatable, Error {
     }
   }
   
-  public typealias ParsingError = Tagged<(APIError, unknown: ()), NonEmptyString>
 }
+
+public typealias ParsingError = Tagged<ParsingErrorTag, NonEmptyString>
+public enum ParsingErrorTag {}
 
 private func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
   .init(rawValue: source.rawValue)

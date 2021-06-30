@@ -1,18 +1,11 @@
-import APIEnvironment
-import Combine
-import Foundation
-import NonEmpty
-import Tagged
+import ComposableArchitecture
 import Types
 
 
-typealias Token = Tagged<TokenTag, NonEmptyString>
-enum TokenTag {}
-
-func getToken(auth publishableKey: PublishableKey, deviceID: DeviceID) -> AnyPublisher<Token, APIError<Never>> {
-  callAPI(request: authorizationRequest(auth: publishableKey, deviceID: deviceID), success: Authentication.self)
+public func getToken(_ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never> {
+  callAPI(request: authorizationRequest(auth: pk, deviceID: deID), success: Authentication.self)
     .map(\.accessToken)
-    .eraseToAnyPublisher()
+    .catchToEffect()
 }
 
 func authorizationRequest(auth publishableKey: PublishableKey, deviceID: DeviceID) -> URLRequest {
@@ -30,7 +23,7 @@ func authorizationRequest(auth publishableKey: PublishableKey, deviceID: DeviceI
 }
 
 struct Authentication: Decodable {
-  let accessToken: Token
+  let accessToken: Token.Value
   
   enum CodingKeys: String, CodingKey {
     case accessToken = "access_token"

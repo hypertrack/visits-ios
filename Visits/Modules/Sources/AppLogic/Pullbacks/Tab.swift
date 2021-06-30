@@ -20,7 +20,7 @@ private let tabStateAffine = /AppState.operational ** \.flow ** /AppFlow.main **
 private let tabActionPrism = Prism<AppAction, TabAction>(
   extract: { a in
     switch a {
-    case let .selectOrder(id): return .selectOrder(id)
+    case let .selectOrder(o):  return .selectOrder(o)
     case     .switchToMap:     return .switchTo(.map)
     case     .switchToOrders:  return .switchTo(.orders)
     case     .switchToPlaces:  return .switchTo(.places)
@@ -31,7 +31,7 @@ private let tabActionPrism = Prism<AppAction, TabAction>(
   },
   embed: { a in
     switch a {
-    case let .selectOrder(id):    return .selectOrder(id)
+    case let .selectOrder(o):     return .selectOrder(o)
     case     .switchTo(.map):     return .switchToMap
     case     .switchTo(.orders):  return .switchToOrders
     case     .switchTo(.places):  return .switchToPlaces

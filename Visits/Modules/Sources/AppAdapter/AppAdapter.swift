@@ -108,9 +108,9 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             m.map,
             ord,
             m.places,
-            m.refreshing,
+            m.requests,
             m.history,
-            mapOrders(from: m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders),
+            m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
             m.driverID,
             deID,
             m.tab,
@@ -165,10 +165,10 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders
-  case let .orders(.orderTapped(id)): return .selectOrder(id)
+  case let .orders(.orderTapped(o)): return .selectOrder(o)
   case .order(.backButtonTapped): return .deselectOrder
-  case .order(.cancelButtonTapped): return .cancelOrder
-  case .order(.checkOutButtonTapped): return .checkOutOrder
+  case .order(.cancelButtonTapped): return .cancelSelectedOrder
+  case .order(.checkOutButtonTapped): return .completeSelectedOrder
   case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)
   case .order(.mapTapped): return .openAppleMaps
   case .order(.noteEnterKeyboardButtonTapped): return .dismissFocus
@@ -182,7 +182,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.profile): return .switchToProfile
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
-  case let .map(.selectedOrder(id)): return .selectOrder(id)
+  case let .map(.selectedOrder(o)): return .selectOrder(o)
   case .map(.enableAutoZoom): return .mapEnableAutoZoom
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
@@ -192,10 +192,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
     return .errorReportingAlert(era)
   case let .profile(.copyTextPressed(t)): return .copyToPasteboard(t)
   }
-}
-
-func mapOrders(from orders: Set<Order>) -> [MapOrder] {
-  orders.map { MapOrder(id: $0.id, coordinate: $0.location, status: $0.status, visited: $0.visited) }
 }
 
 extension Set {

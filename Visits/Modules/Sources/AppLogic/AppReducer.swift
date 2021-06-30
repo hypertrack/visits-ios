@@ -20,7 +20,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   ordersP,
   placesP,
   historyP,
-  refreshingP,
+  requestP,
   appVisibilityP,
   tabP,
   autoSavingP,

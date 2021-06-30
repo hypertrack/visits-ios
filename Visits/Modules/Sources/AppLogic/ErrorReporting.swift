@@ -93,13 +93,14 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       let error: APIError<Never>?
       switch action {
-      case let .signedIn(.failure(e)):              error = toNever(e)
+      case let .tokenUpdated(.failure(e)):             error = e
+      case let .signedIn(.failure(e)):                 error = toNever(e)
       case let .ordersUpdated(.failure(e)),
            let .placesUpdated(.failure(e)),
-           let .historyUpdated(.failure(e)),
-           let .orderCancelFinished(.failure(e)),
-           let .orderCompleteFinished(.failure(e)): error = e
-      default:                                      error = nil
+           let .historyUpdated(.failure(e)):           error = toNever(e)
+      case let .orderCancelFinished(_, .failure(e)),
+           let .orderCompleteFinished(_, .failure(e)): error = toNever(e)
+      default:                                         error = nil
       }
       if let error = error, isNotAboutInternetConnection(error) {
         run(report.capture(.init(rawValue: errorMessage(from: error))))

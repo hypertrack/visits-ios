@@ -8,20 +8,22 @@ import Types
 
 
 func getHistory(
+  _ token: Token.Value,
   _ pk: PublishableKey,
   _ dID: DeviceID,
   _ date: Date
-) -> Effect<Result<History, APIError<Never>>, Never> {
-  logEffect("getHistory", failureType: APIError<Never>.self)
-    .flatMap {
-      callAPIWithAuth(publishableKey: pk, deviceID: dID, success: History.self) { token in
-        historyRequest(auth: token, deviceID: dID, date: date)
-      }
-    }
+) -> Effect<Result<History, APIError<Token.Expired>>, Never> {
+  logEffect("getHistory")
+  
+  return callAPI(
+    request: historyRequest(auth: token, deviceID: dID, date: date),
+    success: History.self,
+    failure: Token.Expired.self
+  )
     .catchToEffect()
 }
 
-func historyRequest(auth token: Token, deviceID: DeviceID, date: Date) -> URLRequest {
+func historyRequest(auth token: Token.Value, deviceID: DeviceID, date: Date) -> URLRequest {
   let url = URL(string: "\(clientURL)/devices/\(deviceID)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

@@ -17,7 +17,7 @@ func callAPI<Success: Decodable, Failure: Decodable>(
     .mapError { APIError<Failure>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Failure>> in
       let response = response as! HTTPURLResponse
-      let parsingError: APIError<Failure>.ParsingError
+      let parsingError: ParsingError
       do {
         return Just(try decoder.decode(Success.self, from: data))
           .setFailureType(to: APIError<Failure>.self)
@@ -67,7 +67,7 @@ func callAPI<Success: Decodable>(
     .mapError { APIError<Never>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Never>> in
       let response = response as! HTTPURLResponse
-      let parsingError: APIError<Never>.ParsingError
+      let parsingError: ParsingError
       do {
         return Just(try decoder.decode(Success.self, from: data))
           .setFailureType(to: APIError<Never>.self)
@@ -95,19 +95,6 @@ func callAPI<Success: Decodable>(
           .eraseToAnyPublisher()
       }
     }
-    .eraseToAnyPublisher()
-}
-
-
-func callAPIWithAuth<Success: Decodable>(
-  publishableKey: PublishableKey,
-  deviceID: DeviceID,
-  success: Success.Type,
-  decoder: JSONDecoder = JSONDecoder(),
-  request: @escaping (Token) -> URLRequest
-) -> AnyPublisher<Success, APIError<Never>> {
-  getToken(auth: publishableKey, deviceID: deviceID)
-    .flatMap { callAPI(request: request($0), success: success, decoder: decoder) }
     .eraseToAnyPublisher()
 }
 

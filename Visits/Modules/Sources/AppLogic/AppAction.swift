@@ -30,21 +30,25 @@ public enum AppAction: Equatable {
   case mapRegionWillChange
   case mapRegionDidChange
   case mapEnableAutoZoom
+  // Token
+  case tokenUpdated(Result<Token.Value, APIError<Never>>)
   // Orders
-  case selectOrder(String)
+  case selectOrder(Order)
   case updateOrders
   // Order
-  case cancelOrder
-  case checkOutOrder
+  case cancelSelectedOrder
+  case cancelOrder(Order)
+  case completeSelectedOrder
+  case checkOutOrder(Order)
   case orderNoteChanged(NonEmptyString?)
   case deselectOrder
   case focusOrderNote
   case openAppleMaps
-  case orderCancelFinished(Result<Terminal, APIError<Never>>)
-  case orderCompleteFinished(Result<Terminal, APIError<Never>>)
-  case ordersUpdated(Result<Set<Order>, APIError<Never>>)
+  case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
+  case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
+  case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
   // Places
-  case placesUpdated(Result<Set<Place>, APIError<Never>>)
+  case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
   case updatePlaces
   // TabView
   case switchToOrders
@@ -53,7 +57,7 @@ public enum AppAction: Equatable {
   case switchToSummary
   case switchToProfile
   // History
-  case historyUpdated(Result<History, APIError<Never>>)
+  case historyUpdated(Result<History, APIError<Token.Expired>>)
   // Generic UI
   case dismissFocus
   // SDK

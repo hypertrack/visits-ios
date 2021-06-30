@@ -4,11 +4,12 @@ import NonEmpty
 
 public extension APIEnvironment {
   static let live = Self(
-    cancelOrder: cancelOrder(_:_:_:),
-    completeOrder: completeOrder(_:_:_:),
-    getHistory: getHistory(_:_:_:),
-    getOrders: getOrders(_:_:),
-    getPlaces: getPlaces(_:_:),
+    cancelOrder: cancelOrder(_:_:_:_:),
+    completeOrder: completeOrder(_:_:_:_:),
+    getHistory: getHistory(_:_:_:_:),
+    getOrders: getOrders(_:_:_:),
+    getPlaces: getPlaces(_:_:_:),
+    getToken: getToken(_:_:),
     reverseGeocode: reverseGeocode(_:),
     signIn: signIn(_:_:)
   )

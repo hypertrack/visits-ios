@@ -105,3 +105,5 @@ extension Order.Visited: Hashable {}
 
 extension Order.Status.NoteFocus: Equatable {}
 extension Order.Status.NoteFocus: Hashable {}
+
+extension Order: Identifiable {}

@@ -38,26 +38,30 @@ private let errorAlertStateAffine: Affine<AppState, ErrorAlertState> = /AppState
 
 private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .init(
   extract: { appAction in
-    let displayError = flip(curry(ErrorAlertLogicAction.displayError))
-    
     switch appAction {
-    case     .appVisibilityChanged(.offScreen):   return .appWentOffScreen
-    case let .signedIn(.failure(e)):              return e |> toNever <¡> displayError(.signIn)
-    case let .ordersUpdated(.failure(apiError)):  return .displayError(apiError, .orders)
-    case let .placesUpdated(.failure(apiError)):  return .displayError(apiError, .places)
-    case let .historyUpdated(.failure(apiError)): return .displayError(apiError, .history)
-    case     .errorAlert(.ok):                    return .dismissAlert
+    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
+    case let .errorAlert(a):                      return .errorAlert(a)
+    case let .historyUpdated(r):                  return .historyUpdated(r)
+    case let .orderCancelFinished(o, r):          return .orderCancelFinished(o, r)
+    case let .orderCompleteFinished(o, r):        return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(r):                   return .ordersUpdated(r)
+    case let .placesUpdated(r):                   return .placesUpdated(r)
+    case let .signedIn(r):                        return .signedIn(r)
+    case let .tokenUpdated(r):                    return .tokenUpdated(r)
     default:                                      return nil
     }
   },
   embed: { errorAlertAction in
     switch errorAlertAction {
-    case     .appWentOffScreen:                 return .appVisibilityChanged(.offScreen)
-    case let .displayError(e, .signIn):         return .signedIn(.failure(fromNever(e)))
-    case let .displayError(apiError, .orders):  return .ordersUpdated(.failure(apiError))
-    case let .displayError(apiError, .places):  return .placesUpdated(.failure(apiError))
-    case let .displayError(apiError, .history): return .historyUpdated(.failure(apiError))
-    case     .dismissAlert:                     return .errorAlert(.ok)
+    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
+    case let .errorAlert(a):                      return .errorAlert(a)
+    case let .historyUpdated(r):                  return .historyUpdated(r)
+    case let .orderCancelFinished(o, r):          return .orderCancelFinished(o, r)
+    case let .orderCompleteFinished(o, r):        return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(r):                   return .ordersUpdated(r)
+    case let .placesUpdated(r):                   return .placesUpdated(r)
+    case let .signedIn(r):                        return .signedIn(r)
+    case let .tokenUpdated(r):                    return .tokenUpdated(r)
     }
   }
 )

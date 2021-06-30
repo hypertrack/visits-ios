@@ -257,6 +257,5 @@ private let main = MainState(
   places: [],
   tab: .orders,
   publishableKey: publishableKey,
-  driverID: driverID,
-  refreshing: .none
+  driverID: driverID
 )

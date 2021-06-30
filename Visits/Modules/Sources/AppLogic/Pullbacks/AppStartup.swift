@@ -106,7 +106,7 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       case let .driverID(drID, pk):
         flow = .driverID(.init(status: .entering(drID), publishableKey: pk))
       case let .main(ps, ts, pk, drID):
-        flow = .main(.init(map: .initialState, orders: [], places: ps, tab: ts, publishableKey: pk, driverID: drID, refreshing: .none))
+        flow = .main(.init(map: .initialState, orders: [], places: ps, tab: ts, publishableKey: pk, driverID: drID))
       }
       return .operational(
         .init(

@@ -12,44 +12,15 @@ import Types
 public struct OrdersState: Equatable {
   public var orders: Set<Order>
   public var selected: Order?
-  public var deviceID: DeviceID
-  public var publishableKey: PublishableKey
   
-  public init(orders: Set<Order>, selected: Order? = nil, deviceID: DeviceID, publishableKey: PublishableKey) {
-    self.orders = orders; self.selected = selected; self.deviceID = deviceID; self.publishableKey = publishableKey
-  }
-  
-  public var orderState: OrderState? {
-    selected.map { .init(order: $0, deviceID: deviceID, publishableKey: publishableKey) }
-  }
+  public init(orders: Set<Order>, selected: Order? = nil) { self.orders = orders; self.selected = selected }
 }
-
-let orderSateAffine = Affine<OrdersState, OrderState>(
-  extract: { s in
-    s.selected.map {
-      .init(
-        order: $0,
-        deviceID: s.deviceID,
-        publishableKey: s.publishableKey
-      )
-    }
-  },
-  inject: { d in
-    { s in
-      s.selected.map { _ in
-        s |> \.selected *< d.order
-          <> \.deviceID *< d.deviceID
-          <> \.publishableKey *< d.publishableKey
-      }
-    }
-  }
-)
 
 // MARK: - Action
 
 public enum OrdersAction: Equatable {
   case order(OrderAction)
-  case selectOrder(String)
+  case selectOrder(Order)
   case deselectOrder
   case ordersUpdated(Set<Order>)
 }
@@ -57,19 +28,13 @@ public enum OrdersAction: Equatable {
 // MARK: - Environment
 
 public struct OrdersEnvironment {
-  public var cancelOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
-  public var completeOrder: (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>
   public var notifySuccess: () -> Effect<Never, Never>
   public var openMap: (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   
   public init(
-    cancelOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
-    completeOrder: @escaping (PublishableKey, DeviceID, Order) -> Effect<Result<Terminal, APIError<Never>>, Never>,
     notifySuccess: @escaping () -> Effect<Never, Never>,
     openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   ) {
-    self.cancelOrder = cancelOrder
-    self.completeOrder = completeOrder
     self.notifySuccess = notifySuccess
     self.openMap = openMap
   }
@@ -78,14 +43,12 @@ public struct OrdersEnvironment {
 // MARK: - Reducer
 
 public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrdersEnvironment>>.combine(
-  orderReducer.pullback(
-    state: orderSateAffine,
+  orderReducer.optional().pullback(
+    state: \.selected,
     action: /OrdersAction.order,
     environment: { e in
       e.map { e in
         .init(
-          cancelOrder: e.cancelOrder,
-          completeOrder: e.completeOrder,
           notifySuccess: e.notifySuccess,
           openMap: e.openMap
         )
@@ -96,11 +59,9 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
     switch action {
     case .order:
       return .none
-    case let .selectOrder(str):
+    case let .selectOrder(o):
       
-      
-      
-      let (os, o) = selectOrder(os: state.orders, o: state.selected, id: str)
+      let (os, o) = selectOrder(os: state.orders, selected: state.selected, toSelect: o.id)
       state.orders = os
       state.selected = o
       
@@ -113,8 +74,8 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       
       return .none
     case let .ordersUpdated(os):
-      if let id = state.selected?.id.string {
-        let (newOs, newO) = selectOrder(os: state.orders, o: state.selected, id: id)
+      if let o = state.selected {
+        let (newOs, newO) = selectOrder(os: os, selected: nil, toSelect: o.id)
         state.orders = newOs
         state.selected = newO
       } else {
@@ -141,10 +102,10 @@ func combine(_ os: Set<Order>, _ o: Order?) -> Set<Order> {
   o.map { Set.insert($0)(os) } ?? os
 }
 
-func selectOrder(os: Set<Order>, o: Order?, id: String) -> (Set<Order>, Order?) {
-  let os = combine(os, o)
-  let o: Order? = os.firstIndex(where: { $0.id.string == id }).map { os[$0] }
-  return (os.filter { $0.id.string != id }, o)
+func selectOrder(os: Set<Order>, selected: Order?, toSelect: Order.ID) -> (Set<Order>, Order?) {
+  let os = combine(os, selected)
+  let o: Order? = os.firstIndex(where: { $0.id.string == toSelect.string }).map { os[$0] }
+  return (os.filter { $0.id.string != toSelect.string }, o)
 }
 
 func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {

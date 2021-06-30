@@ -94,7 +94,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
   
   case let .applyFullDeepLink(pk, drID, sdk):
    
-    state.flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: pk, driverID: drID, refreshing: .none))
+    state.flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: pk, driverID: drID))
     state.sdk = sdk
     
     return .none

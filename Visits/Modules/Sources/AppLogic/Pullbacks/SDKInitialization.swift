@@ -84,7 +84,8 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
                            && m.selectedOrder == nil
                            && m.places == []
                            && m.tab == .defaultTab
-                           && m.refreshing == .none:
+                           && m.requests.isEmpty
+                           && m.token == nil:
         flow = .initialized
         driverID = m.driverID
         publishableKey = m.publishableKey
@@ -120,7 +121,7 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
     case .driverID:
       flow = .driverID(.init(status: .entered(d.driverID), publishableKey: d.publishableKey))
     case .initialized:
-      flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: d.publishableKey, driverID: d.driverID, refreshing: .none))
+      flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: d.publishableKey, driverID: d.driverID))
     }
     
     return .operational(
