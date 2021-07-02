@@ -37,10 +37,8 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case     .dismissFocus:                return .order(.dismissFocus)
     case     .cancelSelectedOrder:         return .order(.cancelSelectedOrder)
     case let .cancelOrder(o):              return .order(.cancelOrder(o))
-    case let .orderCancelFinished(o, r):   return .order(.cancelFinished(o, r))
     case     .completeSelectedOrder:       return .order(.completeSelectedOrder)
     case let .checkOutOrder(o):            return .order(.completeOrder(o))
-    case let .orderCompleteFinished(o, r): return .order(.completeFinished(o, r))
     case let .orderNoteChanged(n):         return .order(.noteChanged(n <¡> Order.Note.init(rawValue:)))
     case     .openAppleMaps:               return .order(.openAppleMaps)
     case let .selectOrder(o):              return .selectOrder(o)
@@ -55,10 +53,8 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case     .order(.dismissFocus):           return .dismissFocus
     case     .order(.cancelSelectedOrder):    return .cancelSelectedOrder
     case let .order(.cancelOrder(o)):         return .cancelOrder(o)
-    case let .order(.cancelFinished(o, r)):   return .orderCancelFinished(o, r)
     case     .order(.completeSelectedOrder):  return .completeSelectedOrder
     case let .order(.completeOrder(o)):       return .checkOutOrder(o)
-    case let .order(.completeFinished(o, r)): return .orderCompleteFinished(o, r)
     case let .order(.noteChanged(n)):         return .orderNoteChanged(n?.rawValue)
     case     .order(.openAppleMaps):          return .openAppleMaps
     case let .selectOrder(o):                 return .selectOrder(o)

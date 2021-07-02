@@ -88,16 +88,6 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
   }
 )
 
-extension Set {
-  static func insert(_ newMember: Element) -> (Self) -> Self {
-    { set in
-      var set = set
-      set.insert(newMember)
-      return set
-    }
-  }
-}
-
 func combine(_ os: Set<Order>, _ o: Order?) -> Set<Order> {
   o.map { Set.insert($0)(os) } ?? os
 }

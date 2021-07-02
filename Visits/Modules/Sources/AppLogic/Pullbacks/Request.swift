@@ -10,9 +10,9 @@ let requestP: Reducer<
   AppAction,
   SystemEnvironment<AppEnvironment>
 > = requestReducer.pullback(
-  state: refreshingStateAffine,
-  action: refreshingActionPrism,
-  environment: toRefreshingEnvironment
+  state: requestStateAffine,
+  action: requestActionPrism,
+  environment: toRequestEnvironment
 )
 
 func mainUnlocked(_ a: AppState) -> Terminal? {
@@ -27,13 +27,19 @@ func mainUnlocked(_ a: AppState) -> Terminal? {
     }
 }
 
-private let refreshingStateAffine = /AppState.operational ** refreshingStateOperationalAffine
+private let requestStateAffine = /AppState.operational ** requestStateOperationalAffine
 
-private let refreshingStateOperationalAffine = Affine<OperationalState, RequestState>(
+private let requestStateOperationalAffine = Affine<OperationalState, RequestState>(
   extract: { s in
     switch (s.flow, s.sdk.status) {
     case let (.main(m), .unlocked(deID, _)):
-      return .init(requests: m.requests, deviceID: deID, publishableKey: m.publishableKey, token: m.token)
+      return .init(
+        requests: m.requests,
+        orders: m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
+        deviceID: deID,
+        publishableKey: m.publishableKey,
+        token: m.token
+      )
     default:
       return nil
     }
@@ -42,7 +48,23 @@ private let refreshingStateOperationalAffine = Affine<OperationalState, RequestS
     { s in
       switch (s.flow, s.sdk.status) {
       case let (.main(m), .unlocked(_, us)):
-        return s |> \.flow *< .main(m |> \.publishableKey *< d.publishableKey <> \.requests *< d.requests <> \.token *< d.token)
+        let orders: Set<Order>
+        let selectedOrder: Order?
+        if let so = m.selectedOrder {
+          (selectedOrder, orders) = selectOrder(id: so.id, from: d.orders)
+        } else {
+          orders = d.orders
+          selectedOrder = nil
+        }
+        
+        let main = AppFlow.main(
+          m |> \.orders *< orders
+            <> \.selectedOrder *< selectedOrder
+            <> \.publishableKey *< d.publishableKey
+            <> \.requests *< d.requests
+            <> \.token *< d.token
+        )
+        return s |> \.flow *< main
                  <> \.sdk.status *< .unlocked(d.deviceID, us)
       default:
         return nil
@@ -51,7 +73,7 @@ private let refreshingStateOperationalAffine = Affine<OperationalState, RequestS
   }
 )
 
-private let refreshingActionPrism = Prism<AppAction, RequestAction>(
+private let requestActionPrism = Prism<AppAction, RequestAction>(
   extract: { a in
     switch a {
     case let .appVisibilityChanged(v):               return .appVisibilityChanged(v)
@@ -99,7 +121,7 @@ private let refreshingActionPrism = Prism<AppAction, RequestAction>(
   }
 )
 
-private func toRefreshingEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RequestEnvironment> {
+private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RequestEnvironment> {
   e.map { e in
     .init(
       cancelOrder:    e.api.cancelOrder,

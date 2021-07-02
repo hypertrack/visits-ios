@@ -10,10 +10,8 @@ public enum OrderAction: Equatable {
   case dismissFocus
   case cancelSelectedOrder
   case cancelOrder(Order)
-  case cancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case completeSelectedOrder
   case completeOrder(Order)
-  case completeFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case noteChanged(Order.Note?)
   case openAppleMaps
 }
@@ -53,42 +51,14 @@ public let orderReducer = Reducer<Order, OrderAction, SystemEnvironment<OrderEnv
   case .cancelSelectedOrder:
     guard case .ongoing = state.status else { preconditionFailure() }
     
-    state.status = .cancelling
-    
     return .init(value: .cancelOrder(state))
   case .cancelOrder:
-    return .none
-  case .cancelFinished(_, .success):
-    guard case .cancelling = state.status else { preconditionFailure() }
-    
-    state.status = .cancelled
-    
-    return .none
-  case .cancelFinished(_, .failure):
-    guard case .cancelling = state.status else { preconditionFailure() }
-    
-    state.status = .ongoing(.unfocused)
-    
     return .none
   case .completeSelectedOrder:
     guard case .ongoing = state.status else { preconditionFailure() }
     
-    state.status = .completing
-    
-    return Effect(value: .completeOrder(state))
+    return .init(value: .completeOrder(state))
   case .completeOrder:
-    return .none
-  case .completeFinished(_, .success):
-    guard case .completing = state.status else { preconditionFailure() }
-    
-    state.status = .completed(environment.date())
-    
-    return .none
-  case .completeFinished(_, .failure):
-    guard case .completing = state.status else { preconditionFailure() }
-    
-    state.status = .ongoing(.unfocused)
-    
     return .none
   case let .noteChanged(n):
     state.note = n

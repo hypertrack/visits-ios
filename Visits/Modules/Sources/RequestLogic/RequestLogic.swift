@@ -9,12 +9,13 @@ import APIEnvironmentLive
 
 public struct RequestState: Equatable {
   public var requests: Set<Request>
+  public var orders: Set<Order>
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
   
-  public init(requests: Set<Request>, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
-    self.requests = requests; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
+  public init(requests: Set<Request>, orders: Set<Order>, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+    self.requests = requests; self.orders = orders; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
   }
 }
 
@@ -79,38 +80,39 @@ public let requestReducer = Reducer<
   SystemEnvironment<RequestEnvironment>
 > { state, action, environment in
   
-  func cancelOrder(_ t: Token.Value, _ o: Order) -> Effect<RequestAction, Never> {
-    cancelOrderEffect(o.id, environment.cancelOrder(t, state.publishableKey, state.deviceID, o), environment.mainQueue)
+  let pk = state.publishableKey
+  let deID = state.deviceID
+  
+  func cancelOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in cancelOrderEffect(o.id, environment.cancelOrder(t, pk, deID, o), environment.mainQueue) }
   }
-  func completeOrder(_ t: Token.Value, _ o: Order) -> Effect<RequestAction, Never> {
-    completeOrderEffect(o.id, environment.completeOrder(t, state.publishableKey, state.deviceID, o), environment.mainQueue)
+  func completeOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in completeOrderEffect(o.id, environment.completeOrder(t, pk, deID, o), environment.mainQueue) }
   }
   func getOrders(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getOrdersEffect(environment.getOrders(t, state.publishableKey, state.deviceID), environment.mainQueue)
+    getOrdersEffect(environment.getOrders(t, pk, deID), environment.mainQueue)
   }
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getPlacesEffect(environment.getPlaces(t, state.publishableKey, state.deviceID), environment.mainQueue)
+    getPlacesEffect(environment.getPlaces(t, pk, deID), environment.mainQueue)
   }
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getHistoryEffect(environment.getHistory(t, state.publishableKey, state.deviceID, environment.date()), environment.mainQueue)
+    getHistoryEffect(environment.getHistory(t, pk, deID, environment.date()), environment.mainQueue)
   }
-  let getToken = getTokenEffect(environment.getToken(state.publishableKey, state.deviceID), environment.mainQueue)
+  let getToken = getTokenEffect(environment.getToken(pk, deID), environment.mainQueue)
   
-  func requestEffect(request r: Request, token t: Token.Value) -> Effect<RequestAction, Never> {
-    switch r {
-    case let .cancelOrder(o):   return cancelOrder(t, o)
-    case let .completeOrder(o): return completeOrder(t, o)
-    case     .history:          return getHistory(t)
-    case     .orders:           return getOrders(t)
-    case     .places:           return getPlaces(t)
+  func requestEffect(_ t: Token.Value) -> (Request) -> Effect<RequestAction, Never> {
+    { r in
+      switch r {
+      case     .history:          return getHistory(t)
+      case     .orders:           return getOrders(t)
+      case     .places:           return getPlaces(t)
+      }
     }
   }
   
   func cancelRequest(request r: Request) -> Effect<RequestAction, Never> {
     let id: AnyHashable
     switch r {
-    case let .cancelOrder(o):   id = RequestingCancelOrderID(orderID: o.id)
-    case let .completeOrder(o): id = RequestingCompleteOrderID(orderID: o.id)
     case     .history:          id = RequestingHistoryID()
     case     .orders:           id = RequestingOrdersID()
     case     .places:           id = RequestingPlacesID()
@@ -118,26 +120,12 @@ public let requestReducer = Reducer<
     return .cancel(id: id)
   }
   
-  func requestByRefreshingToken(_ r: Request) -> Effect<RequestAction, Never> {
-    var effect: Effect<RequestAction, Never>
-    switch state.token {
-    case     .none:
-      state.token = .refreshing
-      
-      effect = getToken
-    case let .valid(t):
-      if !state.requests.contains(r) {
-        effect = requestEffect(request: r, token: t)
-      } else {
-        effect = .none
-      }
-    case     .refreshing:
-      effect = .none
+  func requestOrRefreshToken(_ token: Token?, request: (Token.Value) -> Effect<RequestAction, Never>) -> (Token?, Effect<RequestAction, Never>) {
+    switch token {
+    case     .none:       return (.refreshing, getToken)
+    case     .refreshing: return (token,       .none)
+    case let .valid(t):   return (token,       request(t))
     }
-    
-    state.requests.insert(r)
-    
-    return effect
   }
   
   switch action {
@@ -145,47 +133,76 @@ public let requestReducer = Reducer<
        .receivedPushNotification,
        .mainUnlocked,
        .startTracking:
+    let (token, effects) = requestOrRefreshToken(state.token) { t in
+      .merge(
+        state.requests.symmetricDifference(Request.allCases)
+          .map(requestEffect(t))
+      )
+    }
     
-    return .merge(
-      requestByRefreshingToken(.history),
-      requestByRefreshingToken(.orders),
-      requestByRefreshingToken(.places)
+    state.token = token
+    state.requests = Set(Request.allCases)
+    
+    return effects
+  case .appVisibilityChanged(.offScreen):
+    let effects = Effect<RequestAction, Never>.merge(
+      state.requests.map(cancelRequest(request:))
     )
-  case .appVisibilityChanged(.offScreen),
-       .stopTracking:
     
-    var effects: [Effect<RequestAction, Never>] = []
-    var requestsToCancel = Set<Request>()
+    state.requests = []
     
-    func cancelAndRemove(_ r: Request) {
-      requestsToCancel.insert(r)
-      effects.append(cancelRequest(request: r))
-    }
+    return effects
+  case .stopTracking:
+    let effects = Effect<RequestAction, Never>.merge(
+      state.requests.map(cancelRequest(request:))
+      +
+        [
+          .cancel(id: RequestingCancelOrdersID()),
+          .cancel(id: RequestingCompleteOrdersID()),
+        ]
+      +
+      (state.token == .refreshing ? [.cancel(id: RequestingTokenID())] : [])
+    )
     
-    for r in state.requests {
-      switch r {
-      case .cancelOrder, .completeOrder:
-        if case .stopTracking = action {
-          cancelAndRemove(r)
+    state.requests = []
+    state.orders = state.orders.map { o in
+        switch o.status {
+        case .cancelling,
+             .completing: return o |> \.status *< .ongoing(.unfocused)
+        default:          return o
         }
-      case .history, .orders, .places:
-        cancelAndRemove(r)
       }
-    }
-    state.requests = state.requests.subtracting(requestsToCancel)
+      |> Set.init
+    state.token = state.token == .refreshing ? .none : state.token
     
-    if case .stopTracking = action, state.token == .refreshing {
-      state.token = .none
-      effects.append(.cancel(id: RequestingTokenID()))
-    }
-    
-    return .merge(effects)
+    return effects
   case .switchToMap:
-    return requestByRefreshingToken(.history)
+    guard !state.requests.contains(.history) else { return .none }
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: .history |> flip(requestEffect))
+    
+    state.token = token
+    state.requests.insert(.history)
+    
+    return effects
   case .updateOrders, .switchToOrders:
-    return requestByRefreshingToken(.orders)
+    guard !state.requests.contains(.orders) else { return .none }
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+    
+    state.token = token
+    state.requests.insert(.orders)
+    
+    return effects
   case .updatePlaces, .switchToPlaces:
-    return requestByRefreshingToken(.places)
+    guard !state.requests.contains(.places) else { return .none }
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: .places |> flip(requestEffect))
+    
+    state.token = token
+    state.requests.insert(.places)
+    
+    return effects
   case .ordersUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
@@ -194,36 +211,45 @@ public let requestReducer = Reducer<
     state.token = .refreshing
     
     return getToken
-  case let .orderCanceled(o, .success):
-    guard state.requests.contains(.cancelOrder(o)) else { preconditionFailure() }
+  case let .orderCanceled(o, r):
+    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .cancelling }).first else { preconditionFailure() }
     
-    state.requests.remove(.cancelOrder(o))
+    state.orders.remove(order)
+    state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
     
-    return requestByRefreshingToken(.orders)
-  case let .orderCanceled(o, .failure):
-    guard state.requests.contains(.cancelOrder(o)) else { preconditionFailure() }
-    
-    state.requests.remove(.cancelOrder(o))
-    
-    return .none
-  case let .orderCompleted(o, .failure):
-    guard state.requests.contains(.completeOrder(o)) else { preconditionFailure() }
-    
-    state.requests.remove(.completeOrder(o))
+    if case .success = r, !state.requests.contains(.orders) {
+      let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+      state.token = token
+      state.requests.insert(.orders)
+      
+      return effects
+    }
     
     return .none
-  case let .orderCompleted(o, .success):
-    guard state.requests.contains(.completeOrder(o)) else { preconditionFailure() }
+  case let .orderCompleted(o, r):
+    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .completing }).first else { preconditionFailure() }
     
-    state.requests.remove(.completeOrder(o))
+    state.orders.remove(order)
+    state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
     
-    return requestByRefreshingToken(.orders)
+    if case .success = r, !state.requests.contains(.orders) {
+      let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+      state.token = token
+      state.requests.insert(.orders)
+      
+      return effects
+    }
+    
+    return .none
   case .ordersUpdated:
     guard state.requests.contains(.orders) else { preconditionFailure() }
     
     state.requests.remove(.orders)
     
-    return .none
+    return .merge(
+      .cancel(id: RequestingCancelOrdersID()),
+      .cancel(id: RequestingCompleteOrdersID())
+    )
   case .placesUpdated:
     guard state.requests.contains(.places) else { preconditionFailure() }
     
@@ -237,29 +263,76 @@ public let requestReducer = Reducer<
     
     return .none
   case let .cancelOrder(o):
-    guard case let request = Request.cancelOrder(o), !state.requests.contains(request) else { preconditionFailure() }
+    guard let order = state.orders.filter({
+      guard $0.id == o.id, case .ongoing = $0.status else { return false }
+      return true
+    }).first else { preconditionFailure() }
     
-    return requestByRefreshingToken(request)
+    state.orders.remove(order)
+    state.orders.insert(order |> \.status *< .cancelling)
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: cancelOrder(o))
+    state.token = token
+    
+    return effects
   case let .completeOrder(o):
-    guard case let request = Request.completeOrder(o), !state.requests.contains(request) else { preconditionFailure() }
+    guard let order = state.orders.filter({
+      guard $0.id == o.id, case .ongoing = $0.status else { return false }
+      return true
+    }).first else { preconditionFailure() }
     
-    return requestByRefreshingToken(request)
+    state.orders.remove(order)
+    state.orders.insert(order |> \.status *< .completing)
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: completeOrder(o))
+    state.token = token
+    
+    return effects
   case let .tokenUpdated(.success(t)):
+    guard state.token == .refreshing else { preconditionFailure() }
+    
     state.token = .valid(t)
     
-    return .merge(state.requests.map { requestEffect(request: $0, token: t) })
+    return .merge(
+      state.requests.map(requestEffect(t))
+      +
+      state.orders.compactMap { o in
+        switch o.status {
+        case .cancelling: return t |> cancelOrder(o)
+        case .completing: return t |> completeOrder(o)
+        default:          return nil
+        }
+      }
+    )
   case .tokenUpdated(.failure):
+    guard state.token == .refreshing else { preconditionFailure() }
+    
+    let effects = Effect<RequestAction, Never>.merge(
+      state.requests.map(cancelRequest(request:))
+      +
+        [
+          .cancel(id: RequestingCancelOrdersID()),
+          .cancel(id: RequestingCompleteOrdersID()),
+        ]
+    )
+    
     state.token = .none
-    
-    let r = state.requests
     state.requests = []
+    state.orders = state.orders.map { o in
+        switch o.status {
+        case .cancelling,
+             .completing: return o |> \.status *< .ongoing(.unfocused)
+        default:          return o
+        }
+      }
+      |> Set.init
     
-    return .merge(r.map(cancelRequest(request:)))
+    return effects
   }
 }
 
-struct RequestingCancelOrderID: Hashable { let orderID: Order.ID }
-struct RequestingCompleteOrderID: Hashable { let orderID: Order.ID }
+struct RequestingCancelOrdersID: Hashable {}
+struct RequestingCompleteOrdersID: Hashable {}
 struct RequestingOrdersID: Hashable {}
 struct RequestingHistoryID: Hashable {}
 struct RequestingPlacesID: Hashable {}
@@ -271,7 +344,7 @@ let cancelOrderEffect = { (
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   cancelOrder
-    .cancellable(id: RequestingCancelOrderID(orderID: orderID))
+    .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
     .receive(on: mainQueue)
     .map(RequestAction.orderCanceled)
     .eraseToEffect()
@@ -283,7 +356,7 @@ let completeOrderEffect = { (
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   completeOrder
-    .cancellable(id: RequestingCompleteOrderID(orderID: orderID))
+    .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
     .receive(on: mainQueue)
     .map(RequestAction.orderCompleted)
     .eraseToEffect()

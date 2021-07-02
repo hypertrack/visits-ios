@@ -92,6 +92,17 @@ extension Order.Visited {
   }
 }
 
+public func selectOrder(id: Order.ID, from orders: Set<Order>) -> (Order?, Set<Order>) {
+  (
+    orders.firstIndex(where: { $0.id == id }).map { orders[$0] },
+    orders.filter { $0.id != id }
+  )
+}
+
+public func insertOrder(_ o: Order?, into orders: Set<Order>) -> Set<Order> {
+  o.map { Set.insert($0)(orders) } ?? orders
+}
+
 // MARK: - Foundation
 
 extension Order: Equatable {}

@@ -1,9 +1,9 @@
 import AppArchitecture
 import Combine
 import ComposableArchitecture
-import Utility
 import StateRestorationEnvironment
 import Types
+import Utility
 
 
 // MARK: - State
@@ -75,18 +75,4 @@ private extension StorageState {
     locationAlways: .notRequested,
     pushStatus: .dialogSplash(.notShown)
   )
-}
-
-private func resultSuccess<Success, Failure>(_ r: Result<Success, Failure>) -> Success? {
-  switch r {
-  case let .success(s): return s
-  case     .failure:    return nil
-  }
-}
-
-private func resultFailure<Success, Failure>(_ r: Result<Success, Failure>) -> Failure? {
-  switch r {
-  case     .success:    return nil
-  case let .failure(f): return f
-  }
 }
