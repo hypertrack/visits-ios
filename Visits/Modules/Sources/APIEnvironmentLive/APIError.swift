@@ -17,21 +17,26 @@ func callAPI<Success: Decodable, Failure: Decodable>(
     .mapError { APIError<Failure>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Failure>> in
       let response = response as! HTTPURLResponse
+      
       let parsingError: ParsingError
-      do {
-        return Just(try decoder.decode(Success.self, from: data))
-          .setFailureType(to: APIError<Failure>.self)
-          .eraseToAnyPublisher()
-      } catch DecodingError.dataCorrupted(let context) {
-        parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
-      } catch DecodingError.keyNotFound(let key, let context) {
-        parsingError = .init(stringLiteral: "Key \"\(key.stringValue)\" not found at path: \(codingPath(context.codingPath))")
-      } catch DecodingError.typeMismatch(_, let context) {
-        parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
-      } catch DecodingError.valueNotFound(let value, let context) {
-        parsingError = .init(stringLiteral: "Value of type \"\(String(describing: value))\" not found at path: \(codingPath(context.codingPath))")
-      } catch {
-        parsingError = .init(stringLiteral: "Unrecognized decoding error: \(error)")
+      if (200..<300).contains(response.statusCode) {
+        do {
+          return Just(try decoder.decode(Success.self, from: data))
+            .setFailureType(to: APIError<Failure>.self)
+            .eraseToAnyPublisher()
+        } catch DecodingError.dataCorrupted(let context) {
+          parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
+        } catch DecodingError.keyNotFound(let key, let context) {
+          parsingError = .init(stringLiteral: "Key \"\(key.stringValue)\" not found at path: \(codingPath(context.codingPath))")
+        } catch DecodingError.typeMismatch(_, let context) {
+          parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
+        } catch DecodingError.valueNotFound(let value, let context) {
+          parsingError = .init(stringLiteral: "Value of type \"\(String(describing: value))\" not found at path: \(codingPath(context.codingPath))")
+        } catch {
+          parsingError = .init(stringLiteral: "Unrecognized decoding error: \(error)")
+        }
+      } else {
+        parsingError = .init(stringLiteral: "Received unexpected status code \(response.statusCode)")
       }
       
       if let failure = try? decoder.decode(Failure.self, from: data) {
@@ -67,21 +72,26 @@ func callAPI<Success: Decodable>(
     .mapError { APIError<Never>.network($0) }
     .flatMap { data, response -> AnyPublisher<Success, APIError<Never>> in
       let response = response as! HTTPURLResponse
+      
       let parsingError: ParsingError
-      do {
-        return Just(try decoder.decode(Success.self, from: data))
-          .setFailureType(to: APIError<Never>.self)
-          .eraseToAnyPublisher()
-      } catch DecodingError.dataCorrupted(let context) {
-        parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
-      } catch DecodingError.keyNotFound(let key, let context) {
-        parsingError = .init(stringLiteral: "Key \"\(key.stringValue)\" not found at path: \(codingPath(context.codingPath))")
-      } catch DecodingError.typeMismatch(_, let context) {
-        parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
-      } catch DecodingError.valueNotFound(let value, let context) {
-        parsingError = .init(stringLiteral: "Value of type \"\(String(describing: value))\" not found at path: \(codingPath(context.codingPath))")
-      } catch {
-        parsingError = .init(stringLiteral: "Unrecognized decoding error: \(error)")
+      if (200..<300).contains(response.statusCode) {
+        do {
+          return Just(try decoder.decode(Success.self, from: data))
+            .setFailureType(to: APIError<Never>.self)
+            .eraseToAnyPublisher()
+        } catch DecodingError.dataCorrupted(let context) {
+          parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
+        } catch DecodingError.keyNotFound(let key, let context) {
+          parsingError = .init(stringLiteral: "Key \"\(key.stringValue)\" not found at path: \(codingPath(context.codingPath))")
+        } catch DecodingError.typeMismatch(_, let context) {
+          parsingError = .init(stringLiteral: "\(context.debugDescription) Path: \(codingPath(context.codingPath))")
+        } catch DecodingError.valueNotFound(let value, let context) {
+          parsingError = .init(stringLiteral: "Value of type \"\(String(describing: value))\" not found at path: \(codingPath(context.codingPath))")
+        } catch {
+          parsingError = .init(stringLiteral: "Unrecognized decoding error: \(error)")
+        }
+      } else {
+        parsingError = .init(stringLiteral: "Received unexpected status code \(response.statusCode)")
       }
       
       if let failure = try? decoder.decode(HyperTrackAPIError.self, from: data) {
