@@ -12,6 +12,7 @@ public struct APIEnvironment {
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
+  public var updateOrderNote: (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
   public init(
     cancelOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
@@ -21,7 +22,8 @@ public struct APIEnvironment {
     getPlaces: @escaping  (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
-    signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
+    signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>,
+    updateOrderNote: @escaping (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
     self.cancelOrder = cancelOrder
     self.completeOrder = completeOrder
@@ -31,5 +33,6 @@ public struct APIEnvironment {
     self.getToken = getToken
     self.reverseGeocode = reverseGeocode
     self.signIn = signIn
+    self.updateOrderNote = updateOrderNote
   }
 }

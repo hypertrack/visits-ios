@@ -11,7 +11,8 @@ public extension APIEnvironment {
     getPlaces: getPlaces(_:_:_:),
     getToken: getToken(_:_:),
     reverseGeocode: reverseGeocode(_:),
-    signIn: signIn(_:_:)
+    signIn: signIn(_:_:),
+    updateOrderNote: updateOrderNote(_:_:_:_:_:)
   )
 }
 

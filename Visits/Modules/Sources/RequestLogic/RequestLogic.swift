@@ -2,7 +2,6 @@ import AppArchitecture
 import ComposableArchitecture
 import Utility
 import Types
-import APIEnvironmentLive
 
 
 // MARK: - State
@@ -52,6 +51,7 @@ public struct RequestEnvironment {
   public var getPlaces: (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
+  public var updateOrderNote: (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
   public init(
     cancelOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
@@ -60,7 +60,8 @@ public struct RequestEnvironment {
     getOrders: @escaping (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
-    reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>
+    reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
+    updateOrderNote: @escaping (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
     self.cancelOrder = cancelOrder
     self.completeOrder = completeOrder
@@ -69,6 +70,7 @@ public struct RequestEnvironment {
     self.getPlaces = getPlaces
     self.getToken = getToken
     self.reverseGeocode = reverseGeocode
+    self.updateOrderNote = updateOrderNote
   }
 }
 
@@ -84,10 +86,10 @@ public let requestReducer = Reducer<
   let deID = state.deviceID
   
   func cancelOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in cancelOrderEffect(o.id, environment.cancelOrder(t, pk, deID, o), environment.mainQueue) }
+    { t in cancelOrderEffect(o, environment.cancelOrder(t, pk, deID, o), { note in environment.updateOrderNote(t, pk, deID, o, note) }, environment.mainQueue) }
   }
   func completeOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in completeOrderEffect(o.id, environment.completeOrder(t, pk, deID, o), environment.mainQueue) }
+    { t in completeOrderEffect(o, environment.completeOrder(t, pk, deID, o), { note in environment.updateOrderNote(t, pk, deID, o, note) }, environment.mainQueue) }
   }
   func getOrders(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getOrdersEffect(environment.getOrders(t, pk, deID), environment.mainQueue)
@@ -339,27 +341,55 @@ struct RequestingPlacesID: Hashable {}
 struct RequestingTokenID: Hashable {}
 
 let cancelOrderEffect = { (
-  orderID: Order.ID,
+  order: Order,
   cancelOrder: Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
-) in
-  cancelOrder
-    .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
-    .receive(on: mainQueue)
-    .map(RequestAction.orderCanceled)
-    .eraseToEffect()
+) ->  Effect<RequestAction, Never> in
+  if let note = order.note {
+    return updateOrderNote(note)
+      .flatMap { (o: Order, r: Result<Terminal, APIError<Token.Expired>>) -> Effect<RequestAction, Never> in
+        switch r {
+        case     .success:    return cancelOrder.map(RequestAction.orderCanceled)
+        case let .failure(e): return .init(value: .orderCanceled(o, .failure(e)))
+        }
+      }
+      .receive(on: mainQueue)
+      .eraseToEffect()
+      .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
+  } else {
+    return cancelOrder
+      .receive(on: mainQueue)
+      .map(RequestAction.orderCanceled)
+      .eraseToEffect()
+      .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
+  }
 }
 
 let completeOrderEffect = { (
-  orderID: Order.ID,
+  order: Order,
   completeOrder: Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
-) in
-  completeOrder
-    .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
-    .receive(on: mainQueue)
-    .map(RequestAction.orderCompleted)
-    .eraseToEffect()
+) ->  Effect<RequestAction, Never> in
+  if let note = order.note {
+    return updateOrderNote(note)
+      .flatMap { (o: Order, r: Result<Terminal, APIError<Token.Expired>>) -> Effect<RequestAction, Never> in
+        switch r {
+        case     .success:    return completeOrder.map(RequestAction.orderCompleted)
+        case let .failure(e): return .init(value: .orderCompleted(o, .failure(e)))
+        }
+      }
+      .receive(on: mainQueue)
+      .eraseToEffect()
+      .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
+  } else {
+    return completeOrder
+      .receive(on: mainQueue)
+      .map(RequestAction.orderCompleted)
+      .eraseToEffect()
+      .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
+  }
 }
 
 let getOrdersEffect = { (

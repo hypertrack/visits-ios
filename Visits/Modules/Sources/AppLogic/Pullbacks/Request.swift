@@ -124,13 +124,14 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
 private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RequestEnvironment> {
   e.map { e in
     .init(
-      cancelOrder:    e.api.cancelOrder,
-      completeOrder:  e.api.completeOrder,
-      getHistory:     e.api.getHistory,
-      getOrders:      e.api.getOrders,
-      getPlaces:      e.api.getPlaces,
-      getToken:       e.api.getToken,
-      reverseGeocode: e.api.reverseGeocode
+      cancelOrder:     e.api.cancelOrder,
+      completeOrder:   e.api.completeOrder,
+      getHistory:      e.api.getHistory,
+      getOrders:       e.api.getOrders,
+      getPlaces:       e.api.getPlaces,
+      getToken:        e.api.getToken,
+      reverseGeocode:  e.api.reverseGeocode,
+      updateOrderNote: e.api.updateOrderNote
     )
   }
 }
