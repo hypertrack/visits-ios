@@ -10,13 +10,22 @@ public enum MapAction: Equatable {
   case enableAutoZoom
 }
 
+// MARK: - Environment
+
+public struct MapEnvironment {
+  public var capture: (CaptureMessage) -> Effect<Never, Never>
+  
+  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>) {
+    self.capture = capture
+  }
+}
 // MARK: - Reducer
 
 public let mapReducer = Reducer<
   MapState,
   MapAction,
-  Void
-> { state, action, _ in
+  MapEnvironment
+> { state, action, environment in
   switch action {
   case .regionWillChange, .regionDidChange:
     guard state.autoZoom == .enabled else { return .none }
@@ -25,7 +34,7 @@ public let mapReducer = Reducer<
     
     return .none
   case .enableAutoZoom:
-    guard state.autoZoom == .disabled else { preconditionFailure() }
+    guard state.autoZoom == .disabled else { return environment.capture("Can't enable auto zoom if it's enabled").fireAndForget() }
     
     state.autoZoom = .enabled
     

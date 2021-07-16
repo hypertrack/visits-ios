@@ -28,15 +28,12 @@ public enum OrdersAction: Equatable {
 // MARK: - Environment
 
 public struct OrdersEnvironment {
+  public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var notifySuccess: () -> Effect<Never, Never>
   public var openMap: (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   
-  public init(
-    notifySuccess: @escaping () -> Effect<Never, Never>,
-    openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
-  ) {
-    self.notifySuccess = notifySuccess
-    self.openMap = openMap
+  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>, openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>) {
+    self.capture = capture; self.notifySuccess = notifySuccess; self.openMap = openMap
   }
 }
 
@@ -49,6 +46,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
     environment: { e in
       e.map { e in
         .init(
+          capture: e.capture,
           notifySuccess: e.notifySuccess,
           openMap: e.openMap
         )
@@ -67,7 +65,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       
       return .none
     case .deselectOrder:
-      guard let o = state.selected else { return .none }
+      guard let o = state.selected else { return environment.capture("Can't deselect the order if none selected").fireAndForget() }
       
       state.orders = state.orders |> Set.insert(o)
       state.selected = nil
@@ -88,20 +86,12 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
   }
 )
 
-func combine(_ os: Set<Order>, _ o: Order?) -> Set<Order> {
+private func combine(_ os: Set<Order>, _ o: Order?) -> Set<Order> {
   o.map { Set.insert($0)(os) } ?? os
 }
 
-func selectOrder(os: Set<Order>, selected: Order?, toSelect: Order.ID) -> (Set<Order>, Order?) {
+private func selectOrder(os: Set<Order>, selected: Order?, toSelect: Order.ID) -> (Set<Order>, Order?) {
   let os = combine(os, selected)
   let o: Order? = os.firstIndex(where: { $0.id.string == toSelect.string }).map { os[$0] }
   return (os.filter { $0.id.string != toSelect.string }, o)
-}
-
-func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
-  .init(rawValue: source.rawValue)
-}
-
-func rewrapDictionary<A, B, C, D, E, F>(_ dict: Dictionary<Tagged<A, B>, Tagged<C, D>>) -> Dictionary<Tagged<E, B>, Tagged<F, D>> {
-  Dictionary(uniqueKeysWithValues: dict.map { (rewrap($0), rewrap($1)) })
 }

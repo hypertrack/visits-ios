@@ -12,7 +12,7 @@ let appStartupP: Reducer<
 > = appStartupReducer.pullback(
   state: appStartupStateAffine,
   action: appStartupActionPrism,
-  environment: constant(())
+  environment: \.errorReporting.capture >>> AppStartupEnvironment.init(capture:)
 )
 
 func appStartedState(_ appState: AppState) -> Terminal? {

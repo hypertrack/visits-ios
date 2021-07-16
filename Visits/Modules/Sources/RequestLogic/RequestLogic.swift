@@ -45,6 +45,7 @@ public enum RequestAction: Equatable {
 
 public struct RequestEnvironment {
   public var cancelOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var getHistory: (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
@@ -55,6 +56,7 @@ public struct RequestEnvironment {
   
   public init(
     cancelOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     getHistory: @escaping (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
@@ -64,6 +66,7 @@ public struct RequestEnvironment {
     updateOrderNote: @escaping (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
     self.cancelOrder = cancelOrder
+    self.capture = capture
     self.completeOrder = completeOrder
     self.getHistory = getHistory
     self.getOrders = getOrders
@@ -214,7 +217,8 @@ public let requestReducer = Reducer<
     
     return getToken
   case let .orderCanceled(o, r):
-    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .cancelling }).first else { preconditionFailure() }
+    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .cancelling }).first
+    else { return environment.capture("Can't process order cancellation because there is no order or its status is not .cancelling").fireAndForget() }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
@@ -229,7 +233,8 @@ public let requestReducer = Reducer<
     
     return .none
   case let .orderCompleted(o, r):
-    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .completing }).first else { preconditionFailure() }
+    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .completing }).first
+    else { return environment.capture("Can't process order completion because there is no order or its status is not .completing").fireAndForget() }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
@@ -244,7 +249,8 @@ public let requestReducer = Reducer<
     
     return .none
   case .ordersUpdated:
-    guard state.requests.contains(.orders) else { preconditionFailure() }
+    guard state.requests.contains(.orders)
+    else { return environment.capture("Orders updated but there is no request to update orders").fireAndForget() }
     
     state.requests.remove(.orders)
     
@@ -253,13 +259,15 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingCompleteOrdersID())
     )
   case .placesUpdated:
-    guard state.requests.contains(.places) else { preconditionFailure() }
+    guard state.requests.contains(.places)
+    else { return environment.capture("Places updated but there is no request to update places").fireAndForget() }
     
     state.requests.remove(.places)
     
     return .none
   case .historyUpdated:
-    guard state.requests.contains(.history) else { preconditionFailure() }
+    guard state.requests.contains(.history)
+    else { return environment.capture("History updated but there is no request to update history").fireAndForget() }
     
     state.requests.remove(.history)
     
@@ -268,7 +276,8 @@ public let requestReducer = Reducer<
     guard let order = state.orders.filter({
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
-    }).first else { preconditionFailure() }
+    }).first
+    else { return environment.capture("Can't cancel order when there is no order with this id and in .ongoing status").fireAndForget() }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< .cancelling)
@@ -281,7 +290,8 @@ public let requestReducer = Reducer<
     guard let order = state.orders.filter({
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
-    }).first else { preconditionFailure() }
+    }).first
+    else { return environment.capture("Can't complete order when there is no order with this id and in .ongoing status").fireAndForget() }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< .completing)
@@ -291,7 +301,8 @@ public let requestReducer = Reducer<
     
     return effects
   case let .tokenUpdated(.success(t)):
-    guard state.token == .refreshing else { preconditionFailure() }
+    guard state.token == .refreshing
+    else { return environment.capture("Token updated but there is no request to update it").fireAndForget() }
     
     state.token = .valid(t)
     
@@ -307,7 +318,8 @@ public let requestReducer = Reducer<
       }
     )
   case .tokenUpdated(.failure):
-    guard state.token == .refreshing else { preconditionFailure() }
+    guard state.token == .refreshing
+    else { return environment.capture("Token updated but there is no request to update it").fireAndForget() }
     
     let effects = Effect<RequestAction, Never>.merge(
       state.requests.map(cancelRequest(request:))

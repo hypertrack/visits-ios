@@ -125,6 +125,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
   e.map { e in
     .init(
       cancelOrder:     e.api.cancelOrder,
+      capture:         e.errorReporting.capture,
       completeOrder:   e.api.completeOrder,
       getHistory:      e.api.getHistory,
       getOrders:       e.api.getOrders,

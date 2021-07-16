@@ -67,6 +67,7 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
 private func toOrdersEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<OrdersEnvironment> {
   e.map { e in
     .init(
+      capture: e.errorReporting.capture,
       notifySuccess: e.hapticFeedback.notifySuccess,
       openMap: e.maps.openMap
     )
