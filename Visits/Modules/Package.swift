@@ -26,7 +26,7 @@ let targets: [Target] = [
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Types"]),
-  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types"]),
+  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types", "Utility"]),
   .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types"]),
@@ -77,7 +77,8 @@ let targets: [Target] = [
 
 let testTargets: [Target] = [
   .testTarget(name: "APIEnvironmentLiveTests",     dependencies: ["APIEnvironmentLive", "Utility"]),
-  .testTarget(name: "TypesTests",                  dependencies: ["Types"])
+  .testTarget(name: "TypesTests",                  dependencies: ["Types"]),
+  .testTarget(name: "UtilityTests",                dependencies: ["Utility"])
 ]
 
 let package = Package(

@@ -3,6 +3,7 @@ import Foundation
 import GLKit
 import NonEmpty
 import Types
+import Utility
 
 
 let snakeCaseDecoder: JSONDecoder = {
@@ -10,19 +11,6 @@ let snakeCaseDecoder: JSONDecoder = {
   decoder.keyDecodingStrategy = .convertFromSnakeCase
   return decoder
 }()
-
-struct DynamicKey: CodingKey {
-  var intValue: Int?
-  var stringValue: String
-  
-  init?(intValue: Int) {
-    self.intValue = intValue
-    self.stringValue = "\(intValue)"
-  }
-  init?(stringValue: String) {
-    self.stringValue = stringValue
-  }
-}
 
 func decodeGeofenceShape<CodingKey>(
   radius: UInt?,
