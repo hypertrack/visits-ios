@@ -20,6 +20,7 @@ public struct PlacesScreen: View {
   }
   public enum Action {
     case refresh
+    case addPlace
   }
   
   let state: State
@@ -46,7 +47,7 @@ public struct PlacesScreen: View {
         .if(state.integrationStatus == .integrated) { view in
           view.toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-              Button(action: {}) {
+              Button(action: { send(.addPlace) }) {
                 Image(systemName: "plus")
               }
             }

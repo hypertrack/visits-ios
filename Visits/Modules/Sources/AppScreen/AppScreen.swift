@@ -1,3 +1,4 @@
+import AddPlaceView
 import BlockerScreen
 import ComposableArchitecture
 import LoadingScreen
@@ -41,6 +42,7 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case blocker(Blocker.State)
     case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
+    case addPlace
   }
   
   public enum Action {
@@ -84,6 +86,8 @@ public struct AppScreen: View {
             sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) }
           )
+        case .addPlace:
+          AddPlaceView()
         }
       }
       .modifier(let: viewStore.errorAlert) { view, _ in

@@ -95,6 +95,11 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
         case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
         case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
+          if m.addPlace != .none {
+            screen = .addPlace
+            break
+          }
+          
           let ord: OrderOrOrders
           switch m.selectedOrder {
           case     .none:        ord = .orders(m.orders)
@@ -180,6 +185,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .map(.enableAutoZoom): return .mapEnableAutoZoom
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
+  case .places(.addPlace): return .addPlace
   case let .errorAlert(ea):
     return .errorAlert(ea)
   case let .errorReportingAlert(era):

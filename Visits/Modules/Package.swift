@@ -11,7 +11,8 @@ let targets: [Target] = [
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
   .target(name: "Utility"),
   // Screen
-  .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AddPlaceView",                    dependencies: [architecture, "Types", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapScreen",                       dependencies: ["Types"]),
@@ -47,7 +48,8 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
+  .target(name: "AddPlaceLogic",                   dependencies: [architecture, "Types", "Utility"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityStartupLogic",       dependencies: [architecture, "Types"]),
