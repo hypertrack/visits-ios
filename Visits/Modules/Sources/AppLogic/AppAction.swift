@@ -49,6 +49,8 @@ public enum AppAction: Equatable {
   case updatePlaces
   // Adding Place
   case addPlace
+  case cancelAddPlace
+  case updatedAddPlaceCoordinate(Coordinate)
   // Integration Entities
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   // Profile

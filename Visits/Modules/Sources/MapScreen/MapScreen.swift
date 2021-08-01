@@ -50,7 +50,6 @@ public struct MapView: View {
             AutoZoomButton(
               sendEnableAutoZoom: {
                 send(.enableAutoZoom)
-              
               }
             )
               .padding(.trailing, 16)

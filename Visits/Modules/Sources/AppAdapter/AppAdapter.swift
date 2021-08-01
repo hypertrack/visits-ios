@@ -95,8 +95,8 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
         case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
         case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
-          if m.addPlace != .none {
-            screen = .addPlace
+          if let flow = m.addPlace {
+            screen = .addPlace(flow)
             break
           }
           
@@ -186,6 +186,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
   case .places(.addPlace): return .addPlace
+  case .addPlace(.cancelAddPlace): return .cancelAddPlace
+  case let .addPlace(.updatedAddPlaceCoordinate(c)): return .updatedAddPlaceCoordinate(c)
   case let .errorAlert(ea):
     return .errorAlert(ea)
   case let .errorReportingAlert(era):

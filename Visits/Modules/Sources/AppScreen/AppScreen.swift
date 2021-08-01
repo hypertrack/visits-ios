@@ -42,10 +42,11 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case blocker(Blocker.State)
     case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
-    case addPlace
+    case addPlace(AddPlaceFlow)
   }
   
   public enum Action {
+    case addPlace(AddPlaceView.Action)
     case signIn(SignInScreen.Action)
     case blocker(Blocker.Action)
     case orders(OrdersScreen.Action)
@@ -86,8 +87,20 @@ public struct AppScreen: View {
             sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) }
           )
-        case .addPlace:
-          AddPlaceView()
+        case let .addPlace(flow):
+          AddPlaceView(
+            store: store.scope(
+              state: { state in
+                .init(flow: flow)
+              },
+              action: { a in
+                switch a {
+                case     .cancelAddPlace:               return .addPlace(.cancelAddPlace)
+                case let .updatedAddPlaceCoordinate(c): return .addPlace(.updatedAddPlaceCoordinate(c))
+                }
+              }
+            )
+          )
         }
       }
       .modifier(let: viewStore.errorAlert) { view, _ in
