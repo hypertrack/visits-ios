@@ -10,10 +10,12 @@ public struct PlacesScreen: View {
   public struct State {
     let places: Set<Place>
     let refreshing: Bool
+    let integrationStatus: IntegrationStatus
     
-    public init(places: Set<Place>, refreshing: Bool) {
+    public init(places: Set<Place>, refreshing: Bool, integrationStatus: IntegrationStatus) {
       self.places = places
       self.refreshing = refreshing
+      self.integrationStatus = integrationStatus
     }
   }
   public enum Action {
@@ -38,6 +40,15 @@ public struct PlacesScreen: View {
           ToolbarItem(placement: .navigationBarLeading) {
             RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
               send(.refresh)
+            }
+          }
+        }
+        .if(state.integrationStatus == .integrated) { view in
+          view.toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              Button(action: {}) {
+                Image(systemName: "plus")
+              }
             }
           }
         }
@@ -224,7 +235,7 @@ extension DateFormatter {
 
 struct PlacesScreen_Previews: PreviewProvider {
   static var previews: some View {
-    PlacesScreen(state: .init(places: [], refreshing: false), send: {_ in })
+    PlacesScreen(state: .init(places: [], refreshing: false, integrationStatus: .integrated), send: {_ in })
     PlacesScreen(
       state: .init(
         places: [
@@ -325,7 +336,7 @@ struct PlacesScreen_Previews: PreviewProvider {
               .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
             ]
           )
-        ], refreshing: false
+        ], refreshing: false, integrationStatus: .integrated
       ), send: {_ in }
     )
     .preferredColorScheme(.light)

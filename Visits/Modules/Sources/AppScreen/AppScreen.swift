@@ -173,7 +173,13 @@ struct MainBlock: View {
         .tag(TabSelection.orders)
       }
       
-      PlacesScreen(state: .init(places: state.places, refreshing: state.requests.contains(Request.places)), send: sendPlaces)
+      PlacesScreen(
+        state: .init(
+          places: state.places,
+          refreshing: state.requests.contains(Request.places),
+          integrationStatus: state.integrationStatus),
+        send: sendPlaces
+      )
         .tabItem {
           Image(systemName: "mappin.and.ellipse")
           Text("Places")
