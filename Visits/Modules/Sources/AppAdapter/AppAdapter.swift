@@ -187,6 +187,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .places(.refresh): return .updatePlaces
   case .places(.addPlace): return .addPlace
   case .addPlace(.cancelAddPlace): return .cancelAddPlace
+  case .addPlace(.confirmAddPlaceCoordinate): return .confirmAddPlaceCoordinate
   case let .addPlace(.updatedAddPlaceCoordinate(c)): return .updatedAddPlaceCoordinate(c)
   case let .errorAlert(ea):
     return .errorAlert(ea)

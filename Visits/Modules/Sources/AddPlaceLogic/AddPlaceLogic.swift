@@ -17,6 +17,7 @@ public struct AddPlaceState: Equatable {
 public enum AddPlaceAction: Equatable {
   case addPlace
   case cancelAddPlace
+  case confirmAddPlaceCoordinate
   case updatedAddPlaceCoordinate(Coordinate)
 }
 
@@ -40,7 +41,7 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, AddPlaceEnvi
     guard state.flow == nil
     else { return environment.capture("Can't add place when already adding place").fireAndForget() }
     
-    state.flow = .init(placeCoordinate: state.history?.coordinates.last)
+    state.flow = .choosingCoordinate(state.history?.coordinates.last)
     
     return .none
   case .cancelAddPlace:
@@ -50,11 +51,18 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, AddPlaceEnvi
     state.flow = nil
     
     return .none
+  case .confirmAddPlaceCoordinate:
+    guard case let .choosingCoordinate(c) = state.flow, let c = c
+    else { return environment.capture("Trying to confirm a place coordinate without coordinate").fireAndForget() }
+    
+    state.flow = .choosingIntegration(c)
+    
+    return .none
   case let .updatedAddPlaceCoordinate(c):
     guard let flow = state.flow
     else { return environment.capture("Trying to update the place coordinate when not adding place").fireAndForget() }
     
-    state.flow = flow |> \.placeCoordinate *< c
+    state.flow = .choosingCoordinate(c)
     
     return .none
   }

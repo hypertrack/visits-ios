@@ -31,6 +31,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     switch a {
     case     .addPlace:                     return .addPlace
     case     .cancelAddPlace:               return .cancelAddPlace
+    case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
     case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
     default:                                return nil
     }
@@ -39,6 +40,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     switch a {
     case     .addPlace:                     return .addPlace
     case     .cancelAddPlace:               return .cancelAddPlace
+    case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
     case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
     }
   }

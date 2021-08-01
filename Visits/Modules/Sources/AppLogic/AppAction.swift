@@ -50,6 +50,7 @@ public enum AppAction: Equatable {
   // Adding Place
   case addPlace
   case cancelAddPlace
+  case confirmAddPlaceCoordinate
   case updatedAddPlaceCoordinate(Coordinate)
   // Integration Entities
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)

@@ -97,6 +97,7 @@ public struct AppScreen: View {
                 switch a {
                 case     .cancelAddPlace:               return .addPlace(.cancelAddPlace)
                 case let .updatedAddPlaceCoordinate(c): return .addPlace(.updatedAddPlaceCoordinate(c))
+                case     .confirmAddPlaceCoordinate:    return .addPlace(.confirmAddPlaceCoordinate)
                 }
               }
             )
