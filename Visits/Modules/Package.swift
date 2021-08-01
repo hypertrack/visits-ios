@@ -47,7 +47,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityStartupLogic",       dependencies: [architecture, "Types"]),
@@ -57,6 +57,7 @@ let targets: [Target] = [
   .target(name: "ErrorAlertLogic",                 dependencies: [architecture, "Utility", "Types"]),
   .target(name: "FirstRunLogic",                   dependencies: [architecture, "Types"]),
   .target(name: "HistoryLogic",                    dependencies: [architecture, "Types"]),
+  .target(name: "IntegrationLogic",                dependencies: [architecture, "Types"]),
   .target(name: "MapLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "ManualReportLogic",               dependencies: [architecture, "Types"]),
   .target(name: "OrderLogic",                      dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),

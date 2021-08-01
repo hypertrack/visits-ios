@@ -20,6 +20,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   placesP,
   profileP,
   historyP,
+  integrationP,
   requestP,
   appVisibilityP,
   tabP,
