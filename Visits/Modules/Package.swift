@@ -4,10 +4,11 @@ import PackageDescription
 
 let architecture = Target.Dependency.product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 let nonEmpty = Target.Dependency.product(name: "NonEmpty", package: "swift-nonempty")
+let tagged = Target.Dependency.product(name: "Tagged", package: "swift-tagged")
 
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Utility"]),
-  .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", "Tagged"]),
+  .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
   .target(name: "Utility"),
   // Screen
   .target(name: "AppScreen",                       dependencies: [architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
@@ -25,18 +26,18 @@ let targets: [Target] = [
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapEnvironmentLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Types"]),
-  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", "Tagged", "Types", "Utility"]),
+  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", tagged, "Types", "Utility"]),
   .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types", "Validated"]),
-  .target(name: "BranchEnvironmentLive",           dependencies: ["Branch", "BranchEnvironment", "LogEnvironment", "Tagged", "Utility", "Validated"]),
+  .target(name: "BranchEnvironmentLive",           dependencies: ["Branch", "BranchEnvironment", "LogEnvironment", tagged, "Utility", "Validated"]),
   .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
-  .target(name: "ErrorReportingEnvironment",       dependencies: [architecture, nonEmpty, "Tagged", "Types"]),
+  .target(name: "ErrorReportingEnvironment",       dependencies: [architecture, nonEmpty, tagged, "Types"]),
   .target(name: "ErrorReportingEnvironmentLive",   dependencies: ["ErrorReportingEnvironment", "LogEnvironment", "Sentry"]),
   .target(name: "HapticFeedbackEnvironment",       dependencies: [architecture]),
   .target(name: "HapticFeedbackEnvironmentLive",   dependencies: ["HapticFeedbackEnvironment", "LogEnvironment"]),
   .target(name: "HyperTrackEnvironment",           dependencies: [architecture, "Utility", "Types"]),
-  .target(name: "HyperTrackEnvironmentLive",       dependencies: ["HyperTrack", "HyperTrackEnvironment", "LogEnvironment", nonEmpty, "Tagged"]),
+  .target(name: "HyperTrackEnvironmentLive",       dependencies: ["HyperTrack", "HyperTrackEnvironment", "LogEnvironment", nonEmpty, tagged]),
   .target(name: "LogEnvironment",                  dependencies: [architecture]),
   .target(name: "MapEnvironment",                  dependencies: [architecture, "Utility", "Types"]),
   .target(name: "MapEnvironmentLive",              dependencies: ["LogEnvironment", "MapEnvironment"]),
@@ -46,7 +47,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", "Tagged", "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityStartupLogic",       dependencies: [architecture, "Types"]),
@@ -59,7 +60,7 @@ let targets: [Target] = [
   .target(name: "MapLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "ManualReportLogic",               dependencies: [architecture, "Types"]),
   .target(name: "OrderLogic",                      dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
-  .target(name: "OrdersLogic",                     dependencies: ["AppArchitecture", architecture, nonEmpty, "OrderLogic", "Utility", "Tagged", "Types"]),
+  .target(name: "OrdersLogic",                     dependencies: ["AppArchitecture", architecture, nonEmpty, "OrderLogic", "Utility", tagged, "Types"]),
   .target(name: "PlacesLogic",                     dependencies: [architecture, "Types"]),
   .target(name: "ProfileLogic",                    dependencies: ["AppArchitecture", "Types"]),
   .target(name: "RequestLogic",                    dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
@@ -94,7 +95,7 @@ let package = Package(
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.3.1")),
     .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
-    .package(name: "Tagged",     url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.5.0")),
+    .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.6.0")),
     .package(name: "Validated",  url: "https://github.com/pointfreeco/swift-validated.git",                   .exact("0.2.1"))
   ],
   targets: targets + testTargets
