@@ -109,6 +109,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             m.history,
             m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
             m.profile,
+            m.integrationStatus,
             deID,
             m.tab,
             o.version

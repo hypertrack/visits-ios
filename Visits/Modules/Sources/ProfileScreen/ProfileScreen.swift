@@ -8,16 +8,19 @@ public struct ProfileScreen: View {
   public struct State {
     public let profile: Profile
     public let deviceID: DeviceID
+    public let integrationStatus: IntegrationStatus
     public let appVersion: AppVersion
     
     
     public init(
       profile: Profile,
       deviceID: DeviceID,
+      integrationStatus: IntegrationStatus,
       appVersion: AppVersion
     ) {
       self.profile = profile
       self.deviceID = deviceID
+      self.integrationStatus = integrationStatus
       self.appVersion = appVersion
     }
   }
@@ -59,6 +62,12 @@ public struct ProfileScreen: View {
           }
         }
         
+        Section(header: Text("Integration")) {
+          TextRow("Status", text: integrationStatusString(state.integrationStatus)) {
+            send(.copyTextPressed($0))
+          }
+        }
+        
         Section(header: Text("App")) {
           TextRow("Version", text: state.appVersion.rawValue) {
             send(.copyTextPressed($0))
@@ -67,6 +76,15 @@ public struct ProfileScreen: View {
       }
       .navigationBarTitle(Text("Profile"), displayMode: .automatic)
     }
+  }
+}
+
+func integrationStatusString(_ integrationStatus: IntegrationStatus) -> NonEmptyString {
+  switch integrationStatus {
+  case .unknown:       return "Unknown"
+  case .requesting:    return "Updating"
+  case .integrated:    return "Integrated"
+  case .notIntegrated: return "Not Integrated"
   }
 }
 
@@ -156,6 +174,7 @@ struct ProfileScreen_Previews: PreviewProvider {
       state: .init(
         profile: .init(name: "Example", metadata: ["email": "email@example.com", "phone_number": "+123456789", "deivce-info": 123]),
         deviceID: "DeviceID",
+        integrationStatus: .requesting,
         appVersion: "1.2.3 (45)"
       )
     )

@@ -40,7 +40,7 @@ public struct AppScreen: View {
     case loading
     case signIn(SignInState)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
@@ -74,9 +74,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(m, s, p, r, h, mv, pr, deID, sel, ver):
+        case let .main(m, s, p, r, h, mv, pr, i, deID, sel, ver):
           MainBlock(
-            state: (m, s, p, r, h, mv, pr, deID, sel, ver),
+            state: (m, s, p, r, h, mv, pr, i, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -105,6 +105,7 @@ struct MainBlock: View {
     history: History?,
     orders: Set<Order>,
     profile: Profile,
+    integrationStatus: IntegrationStatus,
     deviceID: DeviceID,
     tabSelection: TabSelection,
     version: AppVersion
@@ -199,6 +200,7 @@ struct MainBlock: View {
         state: .init(
           profile: state.profile,
           deviceID: state.deviceID,
+          integrationStatus: state.integrationStatus,
           appVersion: state.version
         ),
         send: sendProfile
