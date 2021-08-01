@@ -69,7 +69,8 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
                            && m.requests         == []
                            && m.token            == nil
                            && m.history          == nil
-                           && m.profile.metadata == [:]:
+                           && m.profile.metadata == [:]
+                           && m.integrationStatus == nil:
         flow = .main(m.places, m.tab, m.publishableKey, m.profile.name)
       default:
         return nil
