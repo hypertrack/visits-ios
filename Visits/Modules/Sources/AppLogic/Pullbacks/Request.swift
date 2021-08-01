@@ -36,6 +36,7 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
       return .init(
         requests: m.requests,
         orders: m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
+        integrationStatus: m.integrationStatus,
         deviceID: deID,
         publishableKey: m.publishableKey,
         token: m.token
@@ -62,6 +63,7 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
             <> \.selectedOrder *< selectedOrder
             <> \.publishableKey *< d.publishableKey
             <> \.requests *< d.requests
+            <> \.integrationStatus *< d.integrationStatus
             <> \.token *< d.token
         )
         return s |> \.flow *< main
@@ -76,51 +78,53 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
 private let requestActionPrism = Prism<AppAction, RequestAction>(
   extract: { a in
     switch a {
-    case let .appVisibilityChanged(v):               return .appVisibilityChanged(v)
-    case let .cancelOrder(o):                        return .cancelOrder(o)
-    case let .checkOutOrder(o):                      return .completeOrder(o)
-    case let .historyUpdated(r):                     return .historyUpdated(r)
-    case     .generated(.entered(.mainUnlocked)):    return .mainUnlocked
-    case let .orderCancelFinished(o, r):             return .orderCanceled(o, r)
-    case let .orderCompleteFinished(o, r):           return .orderCompleted(o, r)
-    case let .ordersUpdated(os):                     return .ordersUpdated(os)
-    case let .placesUpdated(ps):                     return .placesUpdated(ps)
-    case let .profileUpdated(p):                     return .profileUpdated(p)
-    case     .receivedPushNotification:              return .receivedPushNotification
-    case     .startTracking:                         return .startTracking
-    case     .stopTracking:                          return .stopTracking
-    case     .switchToMap:                           return .switchToMap
-    case     .switchToOrders:                        return .switchToOrders
-    case     .switchToPlaces:                        return .switchToPlaces
-    case     .switchToProfile:                       return .switchToProfile
-    case let .tokenUpdated(r):                       return .tokenUpdated(r)
-    case     .updateOrders:                          return .updateOrders
-    case     .updatePlaces:                          return .updatePlaces
-    default:                                         return nil
+    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
+    case let .cancelOrder(o):                     return .cancelOrder(o)
+    case let .checkOutOrder(o):                   return .completeOrder(o)
+    case let .historyUpdated(r):                  return .historyUpdated(r)
+    case let .integrationEntitiesUpdated(r):      return .integrationEntitiesUpdated(r)
+    case     .generated(.entered(.mainUnlocked)): return .mainUnlocked
+    case let .orderCancelFinished(o, r):          return .orderCanceled(o, r)
+    case let .orderCompleteFinished(o, r):        return .orderCompleted(o, r)
+    case let .ordersUpdated(os):                  return .ordersUpdated(os)
+    case let .placesUpdated(ps):                  return .placesUpdated(ps)
+    case let .profileUpdated(p):                  return .profileUpdated(p)
+    case     .receivedPushNotification:           return .receivedPushNotification
+    case     .startTracking:                      return .startTracking
+    case     .stopTracking:                       return .stopTracking
+    case     .switchToMap:                        return .switchToMap
+    case     .switchToOrders:                     return .switchToOrders
+    case     .switchToPlaces:                     return .switchToPlaces
+    case     .switchToProfile:                    return .switchToProfile
+    case let .tokenUpdated(r):                    return .tokenUpdated(r)
+    case     .updateOrders:                       return .updateOrders
+    case     .updatePlaces:                       return .updatePlaces
+    default:                                      return nil
     }
   },
   embed: { a in
     switch a {
-    case let .appVisibilityChanged(v):  return .appVisibilityChanged(v)
-    case let .cancelOrder(o):           return .cancelOrder(o)
-    case let .completeOrder(o):         return .checkOutOrder(o)
-    case let .historyUpdated(r):        return .historyUpdated(r)
-    case     .mainUnlocked:             return .generated(.entered(.mainUnlocked))
-    case let .orderCanceled(o, r):      return .orderCancelFinished(o, r)
-    case let .orderCompleted(o, r):     return .orderCompleteFinished(o, r)
-    case let .ordersUpdated(os):        return .ordersUpdated(os)
-    case let .placesUpdated(ps):        return .placesUpdated(ps)
-    case let .profileUpdated(p):        return .profileUpdated(p)
-    case     .receivedPushNotification: return .receivedPushNotification
-    case     .startTracking:            return .startTracking
-    case     .stopTracking:             return .stopTracking
-    case     .switchToMap:              return .switchToMap
-    case     .switchToOrders:           return .switchToOrders
-    case     .switchToPlaces:           return .switchToPlaces
-    case     .switchToProfile:          return .switchToProfile
-    case let .tokenUpdated(r):          return .tokenUpdated(r)
-    case     .updateOrders:             return .updateOrders
-    case     .updatePlaces:             return .updatePlaces
+    case let .appVisibilityChanged(v):       return .appVisibilityChanged(v)
+    case let .cancelOrder(o):                return .cancelOrder(o)
+    case let .completeOrder(o):              return .checkOutOrder(o)
+    case let .historyUpdated(r):             return .historyUpdated(r)
+    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
+    case     .mainUnlocked:                  return .generated(.entered(.mainUnlocked))
+    case let .orderCanceled(o, r):           return .orderCancelFinished(o, r)
+    case let .orderCompleted(o, r):          return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(os):             return .ordersUpdated(os)
+    case let .placesUpdated(ps):             return .placesUpdated(ps)
+    case let .profileUpdated(p):             return .profileUpdated(p)
+    case     .receivedPushNotification:      return .receivedPushNotification
+    case     .startTracking:                 return .startTracking
+    case     .stopTracking:                  return .stopTracking
+    case     .switchToMap:                   return .switchToMap
+    case     .switchToOrders:                return .switchToOrders
+    case     .switchToPlaces:                return .switchToPlaces
+    case     .switchToProfile:               return .switchToProfile
+    case let .tokenUpdated(r):               return .tokenUpdated(r)
+    case     .updateOrders:                  return .updateOrders
+    case     .updatePlaces:                  return .updatePlaces
     }
   }
 )
@@ -128,16 +132,17 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
 private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<RequestEnvironment> {
   e.map { e in
     .init(
-      cancelOrder:     e.api.cancelOrder,
-      capture:         e.errorReporting.capture,
-      completeOrder:   e.api.completeOrder,
-      getHistory:      e.api.getHistory,
-      getOrders:       e.api.getOrders,
-      getPlaces:       e.api.getPlaces,
-      getProfile:      e.api.getProfile,
-      getToken:        e.api.getToken,
-      reverseGeocode:  e.api.reverseGeocode,
-      updateOrderNote: e.api.updateOrderNote
+      cancelOrder:            e.api.cancelOrder,
+      capture:                e.errorReporting.capture,
+      completeOrder:          e.api.completeOrder,
+      getHistory:             e.api.getHistory,
+      getIntegrationEntities: e.api.getIntegrationEntities,
+      getOrders:              e.api.getOrders,
+      getPlaces:              e.api.getPlaces,
+      getProfile:             e.api.getProfile,
+      getToken:               e.api.getToken,
+      reverseGeocode:         e.api.reverseGeocode,
+      updateOrderNote:        e.api.updateOrderNote
     )
   }
 }

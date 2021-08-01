@@ -9,12 +9,13 @@ import Types
 public struct RequestState: Equatable {
   public var requests: Set<Request>
   public var orders: Set<Order>
+  public var integrationStatus: IntegrationStatus
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
   
-  public init(requests: Set<Request>, orders: Set<Order>, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
-    self.requests = requests; self.orders = orders; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
+  public init(requests: Set<Request>, orders: Set<Order>, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+    self.requests = requests; self.orders = orders; self.integrationStatus = integrationStatus; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
   }
 }
 
@@ -25,6 +26,7 @@ public enum RequestAction: Equatable {
   case cancelOrder(Order)
   case completeOrder(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
+  case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
@@ -50,6 +52,7 @@ public struct RequestEnvironment {
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
+  public var getIntegrationEntities: (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
   public var getPlaces: (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
@@ -62,6 +65,7 @@ public struct RequestEnvironment {
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
+    getIntegrationEntities: @escaping (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
@@ -73,6 +77,7 @@ public struct RequestEnvironment {
     self.capture = capture
     self.completeOrder = completeOrder
     self.getHistory = getHistory
+    self.getIntegrationEntities = getIntegrationEntities
     self.getOrders = getOrders
     self.getPlaces = getPlaces
     self.getProfile = getProfile
@@ -111,6 +116,10 @@ public let requestReducer = Reducer<
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getHistoryEffect(environment.getHistory(t, deID, environment.date()), environment.mainQueue)
   }
+  func getIntegrationEntities(_ t: Token.Value) -> Effect<RequestAction, Never> {
+    getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 1, ""), environment.mainQueue)
+  }
+  
   let getToken = getTokenEffect(environment.getToken(pk, deID), environment.mainQueue)
   
   func requestEffect(_ t: Token.Value) -> (Request) -> Effect<RequestAction, Never> {
@@ -148,15 +157,19 @@ public let requestReducer = Reducer<
        .receivedPushNotification,
        .mainUnlocked,
        .startTracking:
+    let isIntegrationCheckPending = state.integrationStatus == .unknown
+    
     let (token, effects) = requestOrRefreshToken(state.token) { t in
       .merge(
         state.requests.symmetricDifference(Request.allCases)
           .map(requestEffect(t))
+          + [(isIntegrationCheckPending ? getIntegrationEntities(t) : .none)]
       )
     }
     
     state.token = token
     state.requests = Set(Request.allCases)
+    state.integrationStatus = isIntegrationCheckPending ? .requesting : state.integrationStatus
     
     return effects
   case .appVisibilityChanged(.offScreen):
@@ -230,6 +243,7 @@ public let requestReducer = Reducer<
   case .ordersUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
+       .integrationEntitiesUpdated(.failure(.error)),
        .profileUpdated(.failure(.error)),
        .orderCompleted(_, .failure(.error)),
        .orderCanceled(_, .failure(.error)):
@@ -299,6 +313,8 @@ public let requestReducer = Reducer<
     state.requests.remove(.profile)
     
     return .none
+  case .integrationEntitiesUpdated:
+    return .none
   case let .cancelOrder(o):
     guard let order = state.orders.filter({
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
@@ -343,6 +359,8 @@ public let requestReducer = Reducer<
         default:          return nil
         }
       }
+      +
+      (state.integrationStatus == .requesting ? [getIntegrationEntities(t)] : [])
     )
   case .tokenUpdated(.failure):
     guard state.token == .refreshing
@@ -355,6 +373,8 @@ public let requestReducer = Reducer<
           .cancel(id: RequestingCancelOrdersID()),
           .cancel(id: RequestingCompleteOrdersID()),
         ]
+      +
+        (state.integrationStatus == .requesting ? [.cancel(id: RequestingIntegrationEntitiesID())] : [])
     )
     
     state.token = .none
@@ -367,6 +387,7 @@ public let requestReducer = Reducer<
         }
       }
       |> Set.init
+    state.integrationStatus = state.integrationStatus == .requesting ? .unknown : state.integrationStatus
     
     return effects
   }
@@ -376,6 +397,7 @@ struct RequestingCancelOrdersID: Hashable {}
 struct RequestingCompleteOrdersID: Hashable {}
 struct RequestingOrdersID: Hashable {}
 struct RequestingHistoryID: Hashable {}
+struct RequestingIntegrationEntitiesID: Hashable {}
 struct RequestingPlacesID: Hashable {}
 struct RequestingProfileID: Hashable {}
 struct RequestingTokenID: Hashable {}
@@ -462,6 +484,17 @@ let getHistoryEffect = { (
     .cancellable(id: RequestingHistoryID())
     .receive(on: mainQueue)
     .map(RequestAction.historyUpdated)
+    .eraseToEffect()
+}
+
+let getIntegrationEntitiesEffect = { (
+  getIntegrationEntities: Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) in
+  getIntegrationEntities
+    .cancellable(id: RequestingIntegrationEntitiesID())
+    .receive(on: mainQueue)
+    .map(RequestAction.integrationEntitiesUpdated)
     .eraseToEffect()
 }
 

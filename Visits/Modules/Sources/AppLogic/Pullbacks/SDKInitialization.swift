@@ -68,7 +68,7 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
                            && m.history == nil
                            && m.tab == .defaultTab
                            && m.requests.isEmpty
-                           && m.integrationStatus == nil
+                           && m.integrationStatus == .unknown
                            && m.token == nil:
         flow = .initialized(m.profile)
         publishableKey = m.publishableKey
