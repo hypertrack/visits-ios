@@ -7,6 +7,7 @@ public extension APIEnvironment {
     cancelOrder: cancelOrder(_:_:_:),
     completeOrder: completeOrder(_:_:_:),
     getHistory: getHistory(_:_:_:),
+    getIntegrationEntities: getIntegrationEntities(_:_:_:),
     getOrders: getOrders(_:_:),
     getPlaces: getPlaces(_:_:),
     getProfile: getProfile(_:_:),
