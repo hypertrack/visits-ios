@@ -1,17 +1,22 @@
 import ComposableArchitecture
 import Types
+import Utility
 
 
 // MARK: - State
 
-public enum SDKInitializationState: Equatable {
-  case uninitialized(DriverID, SDKUninitializedSource)
-  case initialized(SDKStatusUpdate)
-}
-
-public enum SDKUninitializedSource: Equatable {
-  case signIn(Password)
-  case driverID
+public struct SDKInitializationState: Equatable {
+  public var sdk: SDKStatusUpdate
+  public var status: Status
+  
+  public enum Status: Equatable {
+    case uninitialized(Email, Password)
+    case initialized(Profile)
+  }
+  
+  public init(sdk: SDKStatusUpdate, status: SDKInitializationState.Status) {
+    self.sdk = sdk; self.status = status
+  }
 }
 
 // MARK: - Action
@@ -23,10 +28,15 @@ public enum SDKInitializationAction: Equatable {
 // MARK: - Environment
 
 public struct SDKInitializationEnvironment {
-  public var setDriverID: (DriverID) -> Effect<Never, Never>
+  public var setName: (Name) -> Effect<Never, Never>
+  public var setMetadata: (JSON.Object) -> Effect<Never, Never>
 
-  public init(setDriverID: @escaping (DriverID) -> Effect<Never, Never>) {
-    self.setDriverID = setDriverID
+  public init(
+    setName: @escaping (Name) -> Effect<Never, Never>,
+    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>
+  ) {
+    self.setName = setName
+    self.setMetadata = setMetadata
   }
 }
 
@@ -39,11 +49,20 @@ public let sdkInitializationReducer = Reducer<
 > { state, action, environment in
   switch action {
   case let .initialize(sdk):
-    guard case let .uninitialized(driverID, _) = state else { return .none }
+    guard case let .uninitialized(email, _) = state.status else { return .none }
     
-    state = .initialized(sdk)
     
-    return environment.setDriverID(driverID)
-      .fireAndForget()
+    let name = emailToName(email)
+    let metadata: JSON.Object = ["email": .string(email.string)]
+    
+    state.sdk = sdk
+    state.status = .initialized(.init(name: name, metadata: metadata))
+    
+    return .merge(
+      environment.setName(name)
+        .fireAndForget(),
+      environment.setMetadata(metadata)
+        .fireAndForget()
+    )
   }
 }

@@ -15,7 +15,8 @@ public struct HyperTrackEnvironment {
   public var requestAlwaysLocationPermissions: () -> Effect<Never, Never>
   public var requestWhenInUseLocationPermissions: () -> Effect<Never, Never>
   public var requestMotionPermissions: () -> Effect<SDKStatusUpdate, Never>
-  public var setDriverID: (DriverID) -> Effect<Never, Never>
+  public var setName: (Name) -> Effect<Never, Never>
+  public var setMetadata: (JSON.Object) -> Effect<Never, Never>
   public var startTracking: () -> Effect<Never, Never>
   public var stopTracking: () -> Effect<Never, Never>
   public var subscribeToStatusUpdates: () -> Effect<SDKStatusUpdate, Never>
@@ -32,7 +33,8 @@ public struct HyperTrackEnvironment {
     requestAlwaysLocationPermissions: @escaping () -> Effect<Never, Never>,
     requestWhenInUseLocationPermissions: @escaping () -> Effect<Never, Never>,
     requestMotionPermissions: @escaping () -> Effect<SDKStatusUpdate, Never>,
-    setDriverID: @escaping (DriverID) -> Effect<Never, Never>,
+    setName: @escaping (Name) -> Effect<Never, Never>,
+    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
     startTracking: @escaping () -> Effect<Never, Never>,
     stopTracking: @escaping () -> Effect<Never, Never>,
     subscribeToStatusUpdates: @escaping () -> Effect<SDKStatusUpdate, Never>,
@@ -48,7 +50,8 @@ public struct HyperTrackEnvironment {
     self.requestAlwaysLocationPermissions = requestAlwaysLocationPermissions
     self.requestWhenInUseLocationPermissions = requestWhenInUseLocationPermissions
     self.requestMotionPermissions = requestMotionPermissions
-    self.setDriverID = setDriverID
+    self.setName = setName
+    self.setMetadata = setMetadata
     self.startTracking = startTracking
     self.stopTracking = stopTracking
     self.subscribeToStatusUpdates = subscribeToStatusUpdates

@@ -1,6 +1,5 @@
 import BlockerScreen
 import ComposableArchitecture
-import DriverIDScreen
 import LoadingScreen
 import MapKit
 import MapScreen
@@ -40,14 +39,12 @@ public struct AppScreen: View {
   public enum Screen {
     case loading
     case signIn(SignInState)
-    case driverID(DriverIDState.Status)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, DriverID, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, DeviceID, TabSelection, AppVersion)
   }
   
   public enum Action {
     case signIn(SignInScreen.Action)
-    case driverID(DriverIDScreen.Action)
     case blocker(Blocker.Action)
     case orders(OrdersScreen.Action)
     case order(OrderScreen.Action)
@@ -73,17 +70,13 @@ public struct AppScreen: View {
           SignInScreen(state: s) {
             viewStore.send(.signIn($0))
           }
-        case let .driverID(s):
-          DriverIDScreen(state: s) {
-            viewStore.send(.driverID($0))
-          }
         case let .blocker(s):
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(m, s, p, r, h, mv, drID, deID, sel, ver):
+        case let .main(m, s, p, r, h, mv, pr, deID, sel, ver):
           MainBlock(
-            state: (m, s, p, r, h, mv, drID, deID, sel, ver),
+            state: (m, s, p, r, h, mv, pr, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -111,7 +104,7 @@ struct MainBlock: View {
     requests: Set<Request>,
     history: History?,
     orders: Set<Order>,
-    driverID: DriverID,
+    profile: Profile,
     deviceID: DeviceID,
     tabSelection: TabSelection,
     version: AppVersion
@@ -204,7 +197,7 @@ struct MainBlock: View {
       
       ProfileScreen(
         state: .init(
-          driverID: state.driverID,
+          profile: state.profile,
           deviceID: state.deviceID,
           appVersion: state.version
         ),

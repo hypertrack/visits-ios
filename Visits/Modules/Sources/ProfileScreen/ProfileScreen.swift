@@ -1,21 +1,22 @@
 import NonEmpty
 import SwiftUI
 import Types
+import Utility
 import Views
 
 public struct ProfileScreen: View {
   public struct State {
-    public let driverID: DriverID
+    public let profile: Profile
     public let deviceID: DeviceID
     public let appVersion: AppVersion
     
     
     public init(
-      driverID: DriverID,
+      profile: Profile,
       deviceID: DeviceID,
       appVersion: AppVersion
     ) {
-      self.driverID = driverID
+      self.profile = profile
       self.deviceID = deviceID
       self.appVersion = appVersion
     }
@@ -40,11 +41,21 @@ public struct ProfileScreen: View {
     NavigationView {
       Form {
         Section(header: Text("Name")) {
-          TextRow("ID", text: state.driverID.rawValue) {
+          TextRow("Name", text: state.profile.name.rawValue) {
             send(.copyTextPressed($0))
           }
           TextRow("Device ID", text: state.deviceID.rawValue) {
             send(.copyTextPressed($0))
+          }
+        }
+        
+        if case let dictionary = dictionary(from: state.profile.metadata), !dictionary.isEmpty {
+          Section(header: Text("Profile")) {
+            ForEach(dictionary.map { key, value in (key, value) }.sorted(by: <), id: \.0) { (key, value) in
+              TextRow(key, text: value) {
+                send(.copyTextPressed($0))
+              }
+            }
           }
         }
         
@@ -55,6 +66,31 @@ public struct ProfileScreen: View {
         }
       }
       .navigationBarTitle(Text("Profile"), displayMode: .automatic)
+    }
+  }
+}
+
+func dictionary(from object: JSON.Object) -> [NonEmptyString: NonEmptyString] {
+  object.reduce(into: [:]) { (result: inout [NonEmptyString: NonEmptyString], element: (key: String, value: JSON)) in
+    let key = element.key
+      .capitalized
+      .replacingOccurrences(of: "-", with: " ")
+      .replacingOccurrences(of: "_", with: " ")
+    if let nonEmptyKey = NonEmptyString(rawValue: key) {
+      switch element.value {
+      case let .string(string):
+        if let nonEmptyValue = NonEmptyString(rawValue: string) {
+          result[nonEmptyKey] = nonEmptyValue
+        }
+      case let .number(number):
+        if let nonEmptyValue = NonEmptyString(rawValue: String(number)) {
+          result[nonEmptyKey] = nonEmptyValue
+        }
+      case let .bool(bool):
+        result[nonEmptyKey] = bool ? "Yes" : "No"
+      default:
+        break
+      }
     }
   }
 }
@@ -118,7 +154,7 @@ struct ProfileScreen_Previews: PreviewProvider {
   static var previews: some View {
     ProfileScreen(
       state: .init(
-        driverID: "DriverID",
+        profile: .init(name: "Example", metadata: ["email": "email@example.com", "phone_number": "+123456789", "deivce-info": 123]),
         deviceID: "DeviceID",
         appVersion: "1.2.3 (45)"
       )

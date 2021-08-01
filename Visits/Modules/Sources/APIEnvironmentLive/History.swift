@@ -9,7 +9,6 @@ import Types
 
 func getHistory(
   _ token: Token.Value,
-  _ pk: PublishableKey,
   _ dID: DeviceID,
   _ date: Date
 ) -> Effect<Result<History, APIError<Token.Expired>>, Never> {

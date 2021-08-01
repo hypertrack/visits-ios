@@ -29,6 +29,7 @@ public enum RequestAction: Equatable {
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
+  case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
   case receivedPushNotification
   case startTracking
@@ -36,6 +37,7 @@ public enum RequestAction: Equatable {
   case switchToMap
   case switchToOrders
   case switchToPlaces
+  case switchToProfile
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
@@ -44,26 +46,28 @@ public enum RequestAction: Equatable {
 // MARK: - Environment
 
 public struct RequestEnvironment {
-  public var cancelOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var cancelOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var capture: (CaptureMessage) -> Effect<Never, Never>
-  public var completeOrder: (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
-  public var getHistory: (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
-  public var getOrders: (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
-  public var getPlaces: (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
+  public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
+  public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
+  public var getPlaces: (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
+  public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
-  public var updateOrderNote: (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var updateOrderNote: (Token.Value, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
   public init(
-    cancelOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    cancelOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
-    completeOrder: @escaping (Token.Value, PublishableKey, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
-    getHistory: @escaping (Token.Value, PublishableKey, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
-    getOrders: @escaping (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
-    getPlaces: @escaping (Token.Value, PublishableKey, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
+    completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
+    getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
+    getPlaces: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
+    getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
-    updateOrderNote: @escaping (Token.Value, PublishableKey, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+    updateOrderNote: @escaping (Token.Value, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
     self.cancelOrder = cancelOrder
     self.capture = capture
@@ -71,6 +75,7 @@ public struct RequestEnvironment {
     self.getHistory = getHistory
     self.getOrders = getOrders
     self.getPlaces = getPlaces
+    self.getProfile = getProfile
     self.getToken = getToken
     self.reverseGeocode = reverseGeocode
     self.updateOrderNote = updateOrderNote
@@ -89,28 +94,32 @@ public let requestReducer = Reducer<
   let deID = state.deviceID
   
   func cancelOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in cancelOrderEffect(o, environment.cancelOrder(t, pk, deID, o), { note in environment.updateOrderNote(t, pk, deID, o, note) }, environment.mainQueue) }
+    { t in cancelOrderEffect(o, environment.cancelOrder(t, deID, o), { note in environment.updateOrderNote(t, deID, o, note) }, environment.mainQueue) }
   }
   func completeOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in completeOrderEffect(o, environment.completeOrder(t, pk, deID, o), { note in environment.updateOrderNote(t, pk, deID, o, note) }, environment.mainQueue) }
+    { t in completeOrderEffect(o, environment.completeOrder(t, deID, o), { note in environment.updateOrderNote(t, deID, o, note) }, environment.mainQueue) }
   }
   func getOrders(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getOrdersEffect(environment.getOrders(t, pk, deID), environment.mainQueue)
+    getOrdersEffect(environment.getOrders(t, deID), environment.mainQueue)
   }
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getPlacesEffect(environment.getPlaces(t, pk, deID), environment.mainQueue)
+    getPlacesEffect(environment.getPlaces(t, deID), environment.mainQueue)
+  }
+  func getProfile(_ t: Token.Value) -> Effect<RequestAction, Never> {
+    getProfileEffect(environment.getProfile(t, deID), environment.mainQueue)
   }
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getHistoryEffect(environment.getHistory(t, pk, deID, environment.date()), environment.mainQueue)
+    getHistoryEffect(environment.getHistory(t, deID, environment.date()), environment.mainQueue)
   }
   let getToken = getTokenEffect(environment.getToken(pk, deID), environment.mainQueue)
   
   func requestEffect(_ t: Token.Value) -> (Request) -> Effect<RequestAction, Never> {
     { r in
       switch r {
-      case     .history:          return getHistory(t)
-      case     .orders:           return getOrders(t)
-      case     .places:           return getPlaces(t)
+      case .history:  return getHistory(t)
+      case .orders:   return getOrders(t)
+      case .places:   return getPlaces(t)
+      case .profile:  return getProfile(t)
       }
     }
   }
@@ -118,9 +127,10 @@ public let requestReducer = Reducer<
   func cancelRequest(request r: Request) -> Effect<RequestAction, Never> {
     let id: AnyHashable
     switch r {
-    case     .history:          id = RequestingHistoryID()
-    case     .orders:           id = RequestingOrdersID()
-    case     .places:           id = RequestingPlacesID()
+    case .history:  id = RequestingHistoryID()
+    case .orders:   id = RequestingOrdersID()
+    case .places:   id = RequestingPlacesID()
+    case .profile:  id = RequestingProfileID()
     }
     return .cancel(id: id)
   }
@@ -208,9 +218,19 @@ public let requestReducer = Reducer<
     state.requests.insert(.places)
     
     return effects
+  case .switchToProfile:
+    guard !state.requests.contains(.profile) else { return .none }
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: .profile |> flip(requestEffect))
+    
+    state.token = token
+    state.requests.insert(.profile)
+    
+    return effects
   case .ordersUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
+       .profileUpdated(.failure(.error)),
        .orderCompleted(_, .failure(.error)),
        .orderCanceled(_, .failure(.error)):
     state.token = .refreshing
@@ -270,6 +290,13 @@ public let requestReducer = Reducer<
     else { return environment.capture("History updated but there is no request to update history").fireAndForget() }
     
     state.requests.remove(.history)
+    
+    return .none
+  case .profileUpdated:
+    guard state.requests.contains(.profile)
+    else { return environment.capture("Profile updated but there is no request to update profile").fireAndForget() }
+    
+    state.requests.remove(.profile)
     
     return .none
   case let .cancelOrder(o):
@@ -350,6 +377,7 @@ struct RequestingCompleteOrdersID: Hashable {}
 struct RequestingOrdersID: Hashable {}
 struct RequestingHistoryID: Hashable {}
 struct RequestingPlacesID: Hashable {}
+struct RequestingProfileID: Hashable {}
 struct RequestingTokenID: Hashable {}
 
 let cancelOrderEffect = { (
@@ -434,6 +462,17 @@ let getHistoryEffect = { (
     .cancellable(id: RequestingHistoryID())
     .receive(on: mainQueue)
     .map(RequestAction.historyUpdated)
+    .eraseToEffect()
+}
+
+let getProfileEffect = { (
+  getProfile: Effect<Result<Profile, APIError<Token.Expired>>, Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) in
+  getProfile
+    .cancellable(id: RequestingProfileID())
+    .receive(on: mainQueue)
+    .map(RequestAction.profileUpdated)
     .eraseToEffect()
 }
 

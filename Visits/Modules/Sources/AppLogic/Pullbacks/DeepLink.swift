@@ -23,18 +23,18 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
     case     .generated(.entered(.operational)): return .subscribeToDeepLinks
     case     .deepLinkFirstRunWaitingComplete:   return .firstRunWaitingComplete
     case let .deepLinkOpened(u):                 return .deepLinkOpened(u)
-    case let .applyFullDeepLink(pk, drID, su):   return .applyFullDeepLink(pk, drID, su)
-    case let .applyPartialDeepLink(pk):          return .applyPartialDeepLink(pk)
+    case let .deepLinkFailed(e):                 return .deepLinkFailed(e)
+    case let .applyFullDeepLink(d, sdk):         return .applyFullDeepLink(d, sdk)
     default:                                     return nil
     }
   },
   embed: { d in
     switch d {
-    case     .subscribeToDeepLinks:            return .generated(.entered(.operational))
-    case     .firstRunWaitingComplete:         return .deepLinkFirstRunWaitingComplete
-    case let .deepLinkOpened(u):               return .deepLinkOpened(u)
-    case let .applyFullDeepLink(pk, drID, su): return .applyFullDeepLink(pk, drID, su)
-    case let .applyPartialDeepLink(pk):        return .applyPartialDeepLink(pk)
+    case     .subscribeToDeepLinks:              return .generated(.entered(.operational))
+    case     .firstRunWaitingComplete:           return .deepLinkFirstRunWaitingComplete
+    case let .deepLinkOpened(u):                 return .deepLinkOpened(u)
+    case let .deepLinkFailed(e):                 return .deepLinkFailed(e)
+    case let .applyFullDeepLink(d, sdk):         return .applyFullDeepLink(d, sdk)
     }
   }
 )
@@ -44,7 +44,8 @@ private func toDeepLinkEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sy
     .init(
       handleDeepLink:       e.deepLink.handleDeepLink,
       makeSDK:              e.hyperTrack.makeSDK,
-      setDriverID:          e.hyperTrack.setDriverID,
+      setName:              e.hyperTrack.setName,
+      setMetadata:          e.hyperTrack.setMetadata,
       subscribeToDeepLinks: e.deepLink.subscribeToDeepLinks
     )
   }

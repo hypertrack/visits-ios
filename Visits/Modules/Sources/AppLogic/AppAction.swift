@@ -8,8 +8,8 @@ public enum AppAction: Equatable {
   // DeepLink
   case deepLinkOpened(URL)
   case deepLinkFirstRunWaitingComplete
-  case applyFullDeepLink(PublishableKey, DriverID, SDKStatusUpdate)
-  case applyPartialDeepLink(PublishableKey)
+  case deepLinkFailed(NonEmptyArray<NonEmptyString>)
+  case applyFullDeepLink(DeepLink, SDKStatusUpdate)
   // OS
   case copyToPasteboard(NonEmptyString)
   case osFinishedLaunching
@@ -23,9 +23,6 @@ public enum AppAction: Equatable {
   case passwordChanged(Password?)
   case signIn
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
-  // DriverID
-  case driverIDChanged(DriverID?)
-  case setDriverID
   // Map
   case mapRegionWillChange
   case mapRegionDidChange
@@ -50,6 +47,8 @@ public enum AppAction: Equatable {
   // Places
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
   case updatePlaces
+  // Profile
+  case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   // TabView
   case switchToOrders
   case switchToPlaces

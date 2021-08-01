@@ -226,7 +226,6 @@ private let artsCenter = Place(
 
 private let publishableKey = PublishableKey(rawValue: "Key")
 private let deviceID = DeviceID(rawValue: "UNIQUE-ID")
-private let driverID = DriverID(rawValue: "user@company.com")
 private let permissions = Permissions(
   locationAccuracy: .full,
   locationPermissions: .authorizedAlways,
@@ -257,5 +256,5 @@ private let main = MainState(
   places: [],
   tab: .orders,
   publishableKey: publishableKey,
-  driverID: driverID
+  profile: .init(name: "User", metadata: ["email": "user@company.com"])
 )

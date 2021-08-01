@@ -1,12 +1,14 @@
 import ComposableArchitecture
 import Types
+import Validated
+
 
 public struct BranchEnvironment {
-  public var subscribeToDeepLinks: () -> Effect<(PublishableKey, DriverID?), Never>
+  public var subscribeToDeepLinks: () -> Effect<Validated<DeepLink, NonEmptyString>, Never>
   public var handleDeepLink: (URL) -> Effect<Never, Never>
   
   public init(
-    subscribeToDeepLinks: @escaping () -> Effect<(PublishableKey, DriverID?), Never>,
+    subscribeToDeepLinks: @escaping () -> Effect<Validated<DeepLink, NonEmptyString>, Never>,
     handleDeepLink: @escaping (URL) -> Effect<Never, Never>
   ) {
     self.subscribeToDeepLinks = subscribeToDeepLinks

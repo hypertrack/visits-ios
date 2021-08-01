@@ -85,12 +85,14 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .orderCompleteFinished(o, r):           return .orderCompleted(o, r)
     case let .ordersUpdated(os):                     return .ordersUpdated(os)
     case let .placesUpdated(ps):                     return .placesUpdated(ps)
+    case let .profileUpdated(p):                     return .profileUpdated(p)
     case     .receivedPushNotification:              return .receivedPushNotification
     case     .startTracking:                         return .startTracking
     case     .stopTracking:                          return .stopTracking
     case     .switchToMap:                           return .switchToMap
     case     .switchToOrders:                        return .switchToOrders
     case     .switchToPlaces:                        return .switchToPlaces
+    case     .switchToProfile:                       return .switchToProfile
     case let .tokenUpdated(r):                       return .tokenUpdated(r)
     case     .updateOrders:                          return .updateOrders
     case     .updatePlaces:                          return .updatePlaces
@@ -108,12 +110,14 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .orderCompleted(o, r):     return .orderCompleteFinished(o, r)
     case let .ordersUpdated(os):        return .ordersUpdated(os)
     case let .placesUpdated(ps):        return .placesUpdated(ps)
+    case let .profileUpdated(p):        return .profileUpdated(p)
     case     .receivedPushNotification: return .receivedPushNotification
     case     .startTracking:            return .startTracking
     case     .stopTracking:             return .stopTracking
     case     .switchToMap:              return .switchToMap
     case     .switchToOrders:           return .switchToOrders
     case     .switchToPlaces:           return .switchToPlaces
+    case     .switchToProfile:          return .switchToProfile
     case let .tokenUpdated(r):          return .tokenUpdated(r)
     case     .updateOrders:             return .updateOrders
     case     .updatePlaces:             return .updatePlaces
@@ -130,6 +134,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getHistory:      e.api.getHistory,
       getOrders:       e.api.getOrders,
       getPlaces:       e.api.getPlaces,
+      getProfile:      e.api.getProfile,
       getToken:        e.api.getToken,
       reverseGeocode:  e.api.reverseGeocode,
       updateOrderNote: e.api.updateOrderNote

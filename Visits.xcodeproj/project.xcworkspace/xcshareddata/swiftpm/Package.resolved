@@ -74,6 +74,15 @@
         }
       },
       {
+        "package": "Validated",
+        "repositoryURL": "https://github.com/pointfreeco/swift-validated.git",
+        "state": {
+          "branch": null,
+          "revision": "e9685ce68943c9e9d26f9f999c64823dea3ef0e7",
+          "version": "0.2.1"
+        }
+      },
+      {
         "package": "xctest-dynamic-overlay",
         "repositoryURL": "https://github.com/pointfreeco/xctest-dynamic-overlay",
         "state": {

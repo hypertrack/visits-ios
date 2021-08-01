@@ -1,10 +1,12 @@
 public enum JSON {
-  indirect case object([String: JSON])
+  indirect case object(Object)
   indirect case array([JSON])
   case string(String)
   case number(Double)
   case bool(Bool)
   case null
+  
+  public typealias Object = [String: JSON]
 }
 
 extension JSON: Equatable {}

@@ -8,7 +8,7 @@ import Types
 
 // MARK: - Get
 
-func getOrders(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never> {
+func getOrders(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never> {
   logEffect("getHistory")
   
   return getTrips(auth: token, deviceID: deID)
@@ -27,7 +27,7 @@ func getOrders(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID) -> 
 
 // MARK: - Cancel
 
-func cancelOrder(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("cancelOrder \(o.id)")
   
   return callAPI(
@@ -41,7 +41,7 @@ func cancelOrder(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID, _
 
 // MARK: - Complete
 
-func completeOrder(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("completeOrder \(o.id)")
   
   return callAPI(
@@ -70,7 +70,7 @@ func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order
 
 // MARK: - Update Note
 
-func updateOrderNote(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID, _ o: Order, _ note: Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ note: Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("update order \(o.id) note: \(String(describing: o.note))")
   
   return callAPI(

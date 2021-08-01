@@ -26,6 +26,38 @@ public extension Email {
   }
 }
 
+public func emailToName(_ email: Email) -> Name {
+  nonEmptyStringToName(email.rawValue)
+}
+
+public func nonEmptyStringToName(_ nonEmptyString: NonEmptyString) -> Name {
+  if nonEmptyString.contains("@") {
+    return .init(
+      rawValue: .init(
+        rawValue: String(
+          nonEmptyString.prefix(while: { $0 != "@" })
+        )
+        .capitalizingFirstLetter()
+      )!
+    )
+  } else {
+    return .init(rawValue: nonEmptyString)
+  }
+}
+
+extension String {
+  func capitalizingFirstLetter() -> String {
+    return prefix(1).capitalized + dropFirst()
+  }
+  
+  mutating func capitalizeFirstLetter() {
+    self = self.capitalizingFirstLetter()
+  }
+}
+
+public typealias PhoneNumber = Tagged<PhoneNumberTag, NonEmptyString>
+public enum PhoneNumberTag {}
+
 public typealias Password = Tagged<PasswordTag, NonEmptyString>
 public enum PasswordTag {}
 

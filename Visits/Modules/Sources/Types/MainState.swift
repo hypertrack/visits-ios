@@ -1,3 +1,6 @@
+import Utility
+
+
 public struct MainState: Equatable {
   public var map: MapState
   public var orders: Set<Order>
@@ -6,11 +9,11 @@ public struct MainState: Equatable {
   public var history: History?
   public var tab: TabSelection
   public var publishableKey: PublishableKey
-  public var driverID: DriverID
+  public var profile: Profile
   public var requests: Set<Request>
   public var token: Token?
   
-  public init(map: MapState, orders: Set<Order>, selectedOrder: Order? = nil, places: Set<Place>, history: History? = nil, tab: TabSelection, publishableKey: PublishableKey, driverID: DriverID, requests: Set<Request> = [], token: Token? = nil) {
-    self.map = map; self.orders = orders; self.selectedOrder = selectedOrder; self.places = places; self.history = history; self.tab = tab; self.publishableKey = publishableKey; self.driverID = driverID; self.requests = requests; self.token = token
+  public init(map: MapState, orders: Set<Order>, selectedOrder: Order? = nil, places: Set<Place>, history: History? = nil, tab: TabSelection, publishableKey: PublishableKey, profile: Profile, requests: Set<Request> = [], token: Token? = nil) {
+    self.map = map; self.orders = orders; self.selectedOrder = selectedOrder; self.places = places; self.history = history; self.tab = tab; self.publishableKey = publishableKey; self.profile = profile; self.requests = requests; self.token = token
   }
 }

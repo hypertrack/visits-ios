@@ -2,7 +2,6 @@ import AppLogic
 import AppScreen
 import BlockerScreen
 import ComposableArchitecture
-import DriverIDScreen
 import LoadingScreen
 import MapScreen
 import OrderScreen
@@ -69,8 +68,6 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     case .firstRun: screen = .loading
     case let .signIn(s):
       screen = .signIn(s)
-    case let .driverID(driverID):
-      screen = .driverID(driverID.status)
     case let .main(m):
       
       switch o.sdk.status {
@@ -111,7 +108,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             m.requests,
             m.history,
             m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
-            m.driverID,
+            m.profile,
             deID,
             m.tab,
             o.version
@@ -145,10 +142,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .signIn(.passwordTapped): return .focusPassword
   case .signIn(.signInTapped): return .signIn
   case .signIn(.tappedOutsideFocus): return .dismissFocus
-  case .driverID(.buttonTapped): return .setDriverID
-  case let .driverID(.driverIDChanged(d)) where d.isEmpty: return .driverIDChanged(nil)
-  case let .driverID(.driverIDChanged(d)): return .driverIDChanged(.init(stringLiteral: d))
-  case .driverID(.nextEnterKeyboardButtonTapped): return .setDriverID
   case .blocker(.deletedButtonTapped): return .startTracking
   case .blocker(.invalidPublishableKeyButtonTapped): return .startTracking
   case .blocker(.stoppedButtonTapped): return .startTracking

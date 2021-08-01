@@ -26,16 +26,11 @@ private func toStorageState(_ o: OperationalState) -> StorageState {
     flow = .firstRun
   case let .signIn(.entering(e)): flow = .signIn(e.email)
   case let .signIn(.entered(e)): flow = .signIn(e.email)
-  case let .driverID(d):
-    switch d.status {
-    case let .entering(drID): flow = .driverID(drID, d.publishableKey)
-    case let .entered(drID): flow = .driverID(drID, d.publishableKey)
-    }
   case let .main(m): flow = .main(
     m.places,
     m.tab,
     m.publishableKey,
-    m.driverID
+    m.profile.name
   )
   }
   return .init(

@@ -15,7 +15,8 @@ public extension HyperTrackEnvironment {
     requestAlwaysLocationPermissions: { .none },
     requestWhenInUseLocationPermissions: { .none },
     requestMotionPermissions: { .none },
-    setDriverID: { _ in .none},
+    setName: { _ in .none},
+    setMetadata: { _ in .none},
     startTracking: { .none },
     stopTracking: { .none },
     subscribeToStatusUpdates: { .none },
@@ -62,7 +63,8 @@ public extension HyperTrackEnvironment {
         
         return Effect(value: .init(permissions: p, status: s))
       },
-      setDriverID: noop.setDriverID,
+      setName: noop.setName,
+      setMetadata: noop.setMetadata,
       startTracking: {
         s = .unlocked(deviceID, .running)
         statusUpdateSubject.send(.init(permissions: p, status: s))

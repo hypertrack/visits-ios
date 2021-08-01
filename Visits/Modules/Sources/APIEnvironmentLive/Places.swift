@@ -9,7 +9,7 @@ import Tagged
 import Types
 
 
-func getPlaces(_ token: Token.Value, _ pk: PublishableKey, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never> {
+func getPlaces(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never> {
   logEffect("getPlaces")
   
   return getGeofences(auth: token, deviceID: deID)

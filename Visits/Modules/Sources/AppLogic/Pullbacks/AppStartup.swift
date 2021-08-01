@@ -63,15 +63,14 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
                                          && eg.focus    == nil
                                          && eg.error    == nil:
         flow = .signIn(eg.email)
-      case let .driverID(d):
-        switch d.status {
-        case let .entering(drID):
-          flow = .driverID(drID, d.publishableKey)
-        default:
-          return .none
-        }
-      case let .main(m):
-        flow = .main(m.places, m.tab, m.publishableKey, m.driverID)
+      case let .main(m) where m.map              == .initialState
+                           && m.orders           == []
+                           && m.selectedOrder    == nil
+                           && m.requests         == []
+                           && m.token            == nil
+                           && m.history          == nil
+                           && m.profile.metadata == [:]:
+        flow = .main(m.places, m.tab, m.publishableKey, m.profile.name)
       default:
         return nil
       }
@@ -103,10 +102,8 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
         flow = .firstRun
       case let .signIn(e):
         flow = .signIn(.entering(.init(email: e)))
-      case let .driverID(drID, pk):
-        flow = .driverID(.init(status: .entering(drID), publishableKey: pk))
-      case let .main(ps, ts, pk, drID):
-        flow = .main(.init(map: .initialState, orders: [], places: ps, tab: ts, publishableKey: pk, driverID: drID))
+      case let .main(ps, ts, pk, n):
+        flow = .main(.init(map: .initialState, orders: [], places: ps, tab: ts, publishableKey: pk, profile: .init(name: n, metadata: [:])))
       }
       return .operational(
         .init(

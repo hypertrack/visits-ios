@@ -78,22 +78,19 @@ public extension HyperTrackEnvironment {
         }
       }
     },
-    setDriverID: { drID in
+    setName: { name in
       .fireAndForget {
-        logEffect("setDriverID: \(drID.string)")
-        if let ht = ht {
-          ht.setDeviceMetadata(
-            HyperTrack.Metadata(
-              dictionary: [C.driverID.rawValue: drID.string]
-            )!
-          )
-          if drID.string.contains("@") {
-            let name = String(drID.string.prefix(while: { $0 != "@" })).capitalizingFirstLetter()
-            ht.setDeviceName(name)
-          } else {
-            ht.setDeviceName(drID.string)
-          }
-        }
+        logEffect("setName: \(name.string)")
+        
+        ht?.setDeviceName(name.string)
+      }
+    },
+    setMetadata: { metadata in
+      .fireAndForget {
+        let jsonString = String(data: try! JSONEncoder().encode(metadata), encoding: .utf8)!
+        logEffect("setMetadata: \(jsonString)")
+        
+        ht?.setDeviceMetadata(HyperTrack.Metadata(jsonString: jsonString)!)
       }
     },
     startTracking: {
@@ -244,14 +241,4 @@ func statusUpdate(_ state: SDKUnlockedStatus? = nil) -> SDKStatusUpdate {
 
 func servicesAvailability() -> UntrackableReason? {
   CMMotionActivityManager.isActivityAvailable() ? nil : .motionActivityServicesUnavalible
-}
-
-extension String {
-  func capitalizingFirstLetter() -> String {
-    return prefix(1).capitalized + dropFirst()
-  }
-  
-  mutating func capitalizeFirstLetter() {
-    self = self.capitalizingFirstLetter()
-  }
 }

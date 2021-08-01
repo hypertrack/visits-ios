@@ -2,8 +2,7 @@ public struct StorageState: Equatable {
   public enum Flow: Equatable {
     case firstRun
     case signIn(Email?)
-    case driverID(DriverID?, PublishableKey)
-    case main(Set<Place>, TabSelection, PublishableKey, DriverID)
+    case main(Set<Place>, TabSelection, PublishableKey, Name)
   }
   
   public var experience: Experience
@@ -26,14 +25,12 @@ public struct StorageState: Equatable {
 
 public enum StoredScreen {
   case firstRun
-  case signUp
   case signIn
-  case driverID
   case main
 }
 
 public struct StateRestorationError: Error, Equatable {
-  public var driverID: DriverID?
+  public var name: Name?
   public var email: Email?
   public var experience: Experience?
   public var locationAlways: LocationAlwaysPermissions?
@@ -44,7 +41,7 @@ public struct StateRestorationError: Error, Equatable {
   public var tabSelection: TabSelection?
   
   public init(
-    driverID: DriverID? = nil,
+    name: Name? = nil,
     email: Email? = nil,
     experience: Experience? = nil,
     locationAlways: LocationAlwaysPermissions? = nil,
@@ -54,7 +51,7 @@ public struct StateRestorationError: Error, Equatable {
     screen: StoredScreen? = nil,
     tabSelection: TabSelection? = nil
   ) {
-    self.driverID = driverID
+    self.name = name
     self.email = email
     self.experience = experience
     self.locationAlways = locationAlways

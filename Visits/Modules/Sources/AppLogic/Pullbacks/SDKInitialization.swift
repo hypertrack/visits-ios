@@ -13,8 +13,7 @@ let sdkInitializationP: Reducer<
 > = sdkInitializationReducer.pullback(
   state: sdkInitializationStateAffine,
   action: sdkInitializationActionPrism,
-  environment: \.hyperTrack.setDriverID
-    >>> SDKInitializationEnvironment.init(setDriverID:)
+  environment: toSDKInitializationEnvironment
 )
 
 private let sdkInitializationStateAffine = sdkInitializationStatePrism ** sdkInitializationStateLens
@@ -36,9 +35,8 @@ private let sdkInitializationActionPrism: Prism<AppAction, SDKInitializationActi
 
 private struct SDKInitializationDomain {
   var alert: Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?
-  var driverID: DriverID
   var experience: Experience
-  var flow: SDKInitializationFlowDomain
+  var flow: SDKInitializationState.Status
   var locationAlways: LocationAlwaysPermissions
   var publishableKey: PublishableKey
   var pushStatus: PushStatus
@@ -47,47 +45,31 @@ private struct SDKInitializationDomain {
   var visibility: AppVisibility
 }
 
-private enum SDKInitializationFlowDomain {
-  case signIn(Password)
-  case driverID
-  case initialized
-}
-
 private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomain>(
   extract: { appState in
     switch appState {
     case let .operational(s):
-      let flow: SDKInitializationFlowDomain
-      let driverID: DriverID
+      let flow: SDKInitializationState.Status
       let publishableKey: PublishableKey
       
       switch s.flow {
       case let .signIn(.entered(ed)):
         switch ed.request {
         case let .success(pk):
-          flow = .signIn(ed.password)
-          driverID = rewrap(ed.email)
+          flow = .uninitialized(ed.email, ed.password)
           publishableKey = pk
         default:
           return nil
         }
-      case let .driverID(d):
-        switch d.status {
-        case let .entered(drID):
-          flow = .driverID
-          driverID = drID
-          publishableKey = d.publishableKey
-        default:
-          return nil
-        }
-      case let .main(m) where m.orders == []
+      case let .main(m) where m.map == .initialState
+                           && m.orders == []
                            && m.selectedOrder == nil
                            && m.places == []
+                           && m.history == nil
                            && m.tab == .defaultTab
                            && m.requests.isEmpty
                            && m.token == nil:
-        flow = .initialized
-        driverID = m.driverID
+        flow = .initialized(m.profile)
         publishableKey = m.publishableKey
       default:
         return nil
@@ -95,7 +77,6 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
      
       return .init(
         alert: s.alert,
-        driverID: driverID,
         experience: s.experience,
         flow: flow,
         locationAlways: s.locationAlways,
@@ -112,16 +93,14 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
   embed: { d in
     let flow: AppFlow
     switch d.flow {
-    case let .signIn(p):
+    case let .uninitialized(e, p):
       flow = .signIn(
         .entered(
-          .init(email: rewrap(d.driverID), password: p, request: .success(d.publishableKey))
+          .init(email: e, password: p, request: .success(d.publishableKey))
         )
       )
-    case .driverID:
-      flow = .driverID(.init(status: .entered(d.driverID), publishableKey: d.publishableKey))
-    case .initialized:
-      flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: d.publishableKey, driverID: d.driverID))
+    case let .initialized(p):
+      flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: d.publishableKey, profile: p))
     }
     
     return .operational(
@@ -141,39 +120,16 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
 
 private let sdkInitializationStateLens = Lens<SDKInitializationDomain, SDKInitializationState>(
   get: { s in
-    switch s.flow {
-    case let .signIn(p):     return .uninitialized(s.driverID, .signIn(p))
-    case     .driverID:      return .uninitialized(s.driverID, .driverID)
-    case     .initialized:   return .initialized(s.sdk)
-    }
+    .init(sdk: s.sdk, status: s.flow)
   },
   set: { s in
-    { d in
-      let flow: SDKInitializationFlowDomain
-      let driverID: DriverID
-      let statusUpdate: SDKStatusUpdate
-      
-      switch s {
-      case let .uninitialized(drID, source):
-        switch source {
-        case let .signIn(p):     flow = .signIn(p)
-        case     .driverID:      flow = .driverID
-        }
-        driverID = drID
-        statusUpdate = d.sdk
-      case let .initialized(sdk):
-        flow = .initialized
-        driverID = d.driverID
-        statusUpdate = sdk
-      }
-      
-      return d |> \.flow *< flow
-        <> \.driverID *< driverID
-        <> \.sdk *< statusUpdate
-    }
+    \.flow *< s.status <> \.sdk *< s.sdk
   }
 )
 
-private func rewrap<Source, Value, Destination>(_ source: Tagged<Source, Value>) -> Tagged<Destination, Value> {
-  .init(rawValue: source.rawValue)
+private func toSDKInitializationEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SDKInitializationEnvironment {
+  .init(
+    setName: e.hyperTrack.setName,
+    setMetadata: e.hyperTrack.setMetadata
+  )
 }

@@ -26,9 +26,9 @@ public extension StateRestorationEnvironment {
             publishableKey: ud.string(forKey: RestorationKey.publishableKey.rawValue)
               >>- NonEmptyString.init(rawValue:)
               <¡> PublishableKey.init(rawValue:),
-            driverID: ud.string(forKey: RestorationKey.driverID.rawValue)
+            name: ud.string(forKey: RestorationKey.name.rawValue)
               >>- NonEmptyString.init(rawValue:)
-              <¡> DriverID.init(rawValue:),
+              <¡> Name.init(rawValue:),
             places: (ud.object(forKey: RestorationKey.places.rawValue) as? Data)
               >>- { try? JSONDecoder().decode(Set<Place>.self, from: $0) },
             tabSelection: ud.string(forKey: RestorationKey.tabSelection.rawValue)
@@ -58,22 +58,18 @@ public extension StateRestorationEnvironment {
         var places: Data? = nil
         var tabSelection: String? = nil
         var publishableKey: String? = nil
-        var driverID: String? = nil
+        var name: String? = nil
         switch s.flow {
         case .firstRun:
           screen = StoredScreen.prism.embed(.firstRun).rawValue
         case let .signIn(e):
           screen = StoredScreen.prism.embed(.signIn).rawValue
           email = e?.string
-        case let .driverID(dID, pk):
-          screen = StoredScreen.prism.embed(.driverID).rawValue
-          driverID = dID <¡> \.string
-          publishableKey = pk <¡> \.string
-        case let .main(p, s, pk, dID):
+        case let .main(p, s, pk, n):
           screen = StoredScreen.prism.embed(.main).rawValue
           places = try? JSONEncoder().encode(p)
           tabSelection = TabSelection.prism.embed(s).rawValue
-          driverID = dID <¡> \.string
+          name = n <¡> \.string
           publishableKey = pk <¡> \.string
         }
         
@@ -82,7 +78,7 @@ public extension StateRestorationEnvironment {
         ud.set(places, forKey: RestorationKey.places.rawValue)
         ud.set(tabSelection, forKey: RestorationKey.tabSelection.rawValue)
         ud.set(publishableKey, forKey: RestorationKey.publishableKey.rawValue)
-        ud.set(driverID, forKey: RestorationKey.driverID.rawValue)
+        ud.set(name, forKey: RestorationKey.name.rawValue)
         
         ud.set(PushStatus.prism.embed(s.pushStatus).rawValue, forKey: RestorationKey.pushStatus.rawValue)
         ud.set(Experience.prism.embed(s.experience).rawValue, forKey: RestorationKey.experience.rawValue)
@@ -96,43 +92,21 @@ func restoredStateFrom(
   screen: StoredScreen?,
   email: Email?,
   publishableKey: PublishableKey?,
-  driverID: DriverID?,
+  name: Name?,
   places: Set<Place>?,
   tabSelection: TabSelection?,
   pushStatus: PushStatus?,
   experience: Experience?,
   locationAlways: LocationAlwaysPermissions?
 ) -> Result<StorageState?, StateRestorationError> {
-  switch (screen, email, publishableKey, driverID, places, tabSelection, pushStatus, experience, locationAlways) {
+  switch (screen, email, publishableKey, name, places, tabSelection, pushStatus, experience, locationAlways) {
   
   // Latest, onboarded app on the main screen
-  case let (.main, _, .some(publishableKey), .some(driverID), places, tabSelection, pushStatus, experience, locationAlways):
+  case let (.main, _, .some(publishableKey), .some(name), places, tabSelection, pushStatus, experience, locationAlways):
     return .success(
       StorageState(
         experience: experience ?? .regular,
-        flow: .main(places ?? [], tabSelection ?? .defaultTab, publishableKey, driverID),
-        locationAlways: locationAlways ?? .notRequested,
-        pushStatus: pushStatus ?? .dialogSplash(.notShown)
-      )
-    )
-    
-  // Latest app on Driver ID screen
-  case let (.driverID, _, .some(publishableKey), driverID, _, _, pushStatus, experience, locationAlways):
-    return .success(
-      .init(
-        experience: experience ?? .firstRun,
-        flow: .driverID(driverID, publishableKey),
-        locationAlways: locationAlways ?? .notRequested,
-        pushStatus: pushStatus ?? .dialogSplash(.notShown)
-      )
-    )
-    
-  // Old app on Sign Up screen
-  case let (.signUp, email, _, _, _, _, pushStatus, experience, locationAlways):
-    return .success(
-      .init(
-        experience: experience ?? .firstRun,
-        flow: .signIn(email),
+        flow: .main(places ?? [], tabSelection ?? .defaultTab, publishableKey, name),
         locationAlways: locationAlways ?? .notRequested,
         pushStatus: pushStatus ?? .dialogSplash(.notShown)
       )
@@ -161,22 +135,11 @@ func restoredStateFrom(
     )
     
   // Old app that got to deliveries screen.
-  case let (.none, _, .some(publishableKey), .some(driverID), _, _, _, _, _):
+  case let (.none, _, .some(publishableKey), .some(name), _, _, _, _, _):
     return .success(
       .init(
         experience: .regular,
-        flow: .main([], .defaultTab, publishableKey, driverID),
-        locationAlways: .notRequested,
-        pushStatus: .dialogSplash(.notShown)
-      )
-    )
-    
-  // Old app that only got to the DriverID screen
-  case let (.none, _, .some(publishableKey), .none, _, _, _, _, _):
-    return .success(
-      .init(
-        experience: .regular,
-        flow: .driverID(nil, publishableKey),
+        flow: .main([], .defaultTab, publishableKey, name),
         locationAlways: .notRequested,
         pushStatus: .dialogSplash(.notShown)
       )
@@ -190,7 +153,7 @@ func restoredStateFrom(
   default:
     return .failure(
       .init(
-        driverID: driverID,
+        name: name,
         email: email,
         experience: experience,
         locationAlways: locationAlways,
@@ -205,7 +168,7 @@ func restoredStateFrom(
 }
 
 enum RestorationKey: String, CaseIterable {
-  case driverID = "Hp6XdOsXsw"
+  case name = "Hp6XdOsXsw"
   case email = "sXwAlVbnPT"
   case experience = "lQDSheJivt"
   case locationAlways = "wpZz4e12Ro"
@@ -292,9 +255,7 @@ extension Experience {
 }
 
 extension StoredScreen {
-  private static let signUpKey: NonEmptyString = "signUp"
   private static let signInKey: NonEmptyString = "signIn"
-  private static let driverIDKey: NonEmptyString = "driverID"
   private static let mainKey: NonEmptyString = "visits"
   private static let firstRunKey: NonEmptyString = "firstRun"
   
@@ -302,9 +263,7 @@ extension StoredScreen {
     extract: { key in
       switch key {
       case firstRunKey:    return .firstRun
-      case signUpKey:   return .signUp
       case signInKey:   return .signIn
-      case driverIDKey: return .driverID
       case mainKey:     return .main
       default:          return nil
       }
@@ -312,9 +271,7 @@ extension StoredScreen {
     embed: { storedScreen in
       switch storedScreen {
       case .firstRun:   return firstRunKey
-      case .signUp:     return signUpKey
       case .signIn:     return signInKey
-      case .driverID:   return driverIDKey
       case .main:       return mainKey
       }
     }

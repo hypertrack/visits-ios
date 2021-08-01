@@ -1,7 +1,9 @@
 import AppArchitecture
 import ComposableArchitecture
-import Utility
+import NonEmpty
 import Types
+import Utility
+import Validated
 
 
 // MARK: - State
@@ -22,8 +24,8 @@ public enum DeepLinkAction: Equatable {
   case subscribeToDeepLinks
   case firstRunWaitingComplete
   case deepLinkOpened(URL)
-  case applyFullDeepLink(PublishableKey, DriverID, SDKStatusUpdate)
-  case applyPartialDeepLink(PublishableKey)
+  case deepLinkFailed(NonEmptyArray<NonEmptyString>)
+  case applyFullDeepLink(DeepLink, SDKStatusUpdate)
 }
 
 // MARK: - Environment
@@ -31,18 +33,21 @@ public enum DeepLinkAction: Equatable {
 public struct DeepLinkEnvironment {
   public var handleDeepLink: (URL) -> Effect<Never, Never>
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
-  public var setDriverID: (DriverID) -> Effect<Never, Never>
-  public var subscribeToDeepLinks: () -> Effect<(PublishableKey, DriverID?), Never>
+  public var setName: (Name) -> Effect<Never, Never>
+  public var setMetadata: (JSON.Object) -> Effect<Never, Never>
+  public var subscribeToDeepLinks: () -> Effect<Validated<DeepLink, NonEmptyString>, Never>
   
   public init(
     handleDeepLink: @escaping (URL) -> Effect<Never, Never>,
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
-    setDriverID: @escaping (DriverID) -> Effect<Never, Never>,
-    subscribeToDeepLinks: @escaping () -> Effect<(PublishableKey, DriverID?), Never>
+    setName: @escaping (Name) -> Effect<Never, Never>,
+    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
+    subscribeToDeepLinks: @escaping () -> Effect<Validated<DeepLink, NonEmptyString>, Never>
   ) {
     self.handleDeepLink = handleDeepLink
     self.makeSDK = makeSDK
-    self.setDriverID = setDriverID
+    self.setName = setName
+    self.setMetadata = setMetadata
     self.subscribeToDeepLinks = subscribeToDeepLinks
   }
 }
@@ -55,18 +60,21 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
     struct DeepLinkSubscription: Hashable {}
     
     let subscribe = environment.subscribeToDeepLinks()
-      .flatMap { (pk: PublishableKey, drID: DriverID?) -> Effect<DeepLinkAction, Never> in
-        guard let drID = drID else {
-          return Effect(value: .applyPartialDeepLink(pk))
+      .flatMap { (validated: Validated<DeepLink, NonEmptyString>) -> Effect<DeepLinkAction, Never> in
+        switch validated {
+        case let .valid(deepLink):
+          return environment.makeSDK(deepLink.publishableKey)
+            .flatMap { (sdk: SDKStatusUpdate) -> Effect<DeepLinkAction, Never> in
+              .merge(
+                Effect(value: .applyFullDeepLink(deepLink, sdk)),
+                environment.setName(deepLink.name).fireAndForget(),
+                environment.setMetadata(deepLink.metadata).fireAndForget()
+              )
+            }
+            .eraseToEffect()
+        case let .invalid(errors):
+          return Effect(value: DeepLinkAction.deepLinkFailed(errors))
         }
-        return environment.makeSDK(pk)
-          .flatMap { (sdk: SDKStatusUpdate) -> Effect<DeepLinkAction, Never> in
-            .merge(
-              Effect(value: .applyFullDeepLink(pk, drID, sdk)),
-              environment.setDriverID(drID).fireAndForget()
-            )
-          }
-          .eraseToEffect()
       }
       .receive(on: environment.mainQueue)
       .eraseToEffect()
@@ -91,17 +99,62 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
   case let .deepLinkOpened(url):
     
     return environment.handleDeepLink(url).fireAndForget()
-  
-  case let .applyFullDeepLink(pk, drID, sdk):
+  case .deepLinkFailed:
+    return .none
+  case let .applyFullDeepLink(deepLink, sdk):
    
-    state.flow = .main(.init(map: .initialState, orders: [], places: [], tab: .defaultTab, publishableKey: pk, driverID: drID))
+    state.flow = .main(
+      .init(
+        map: .initialState,
+        orders: [],
+        places: [],
+        tab: .defaultTab,
+        publishableKey: deepLink.publishableKey,
+        profile: .init(name: deepLink.name, metadata: deepLink.metadata)
+      )
+    )
     state.sdk = sdk
     
     return .none
-  case let .applyPartialDeepLink(pk):
-    
-    state.flow = .driverID(.init(status: .entering(nil), publishableKey: pk))
-    
-    return .none
+  }
+}
+
+extension DeepLink {
+  var name: Name {
+    switch self.variant {
+    case let .new(tEmailPhoneNumber, metadata):
+      if case let .string(name) = metadata["name"], let nonEmptyName = NonEmptyString(rawValue: name) {
+        return .init(rawValue: nonEmptyName)
+      }
+      return these(emailToName)(phoneNumberToName)(curry(emailAndPhoneNumberToName))(tEmailPhoneNumber)
+    case let .old(driverID):
+      return nonEmptyStringToName(driverID.rawValue)
+    }
+  }
+  
+  var metadata: JSON.Object {
+    switch self.variant {
+    case .new(let tEmailPhoneNumber, var meta):
+      switch tEmailPhoneNumber {
+      case let .this(e):
+        meta["email"] = .string(e.string)
+      case let .that(p):
+        meta["phone_number"] = .string(p.string)
+      case let .both(e, p):
+        meta["email"] = .string(e.string)
+        meta["phone_number"] = .string(p.string)
+      }
+      return meta
+    case let .old(driverID):
+      return ["driver_id": .string(driverID.string)]
+    }
+  }
+  
+  func phoneNumberToName(_ phoneNumber: PhoneNumber) -> Name {
+    .init(rawValue: phoneNumber.rawValue)
+  }
+  
+  func emailAndPhoneNumberToName(_ email: Email, phoneNumber: PhoneNumber) -> Name {
+    emailToName(email)
   }
 }
