@@ -90,7 +90,7 @@ let package = Package(
   },
   dependencies: [
     .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.39.4")),
-    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.18.0")),
+    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.23.0")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.3.1")),
     .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
