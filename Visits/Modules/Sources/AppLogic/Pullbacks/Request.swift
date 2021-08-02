@@ -81,6 +81,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
     case let .cancelOrder(o):                     return .cancelOrder(o)
     case let .checkOutOrder(o):                   return .completeOrder(o)
+    case let .createPlace(c, ie):            return .createPlace(c, ie)
     case let .historyUpdated(r):                  return .historyUpdated(r)
     case let .integrationEntitiesUpdated(r):      return .integrationEntitiesUpdated(r)
     case     .generated(.entered(.mainUnlocked)): return .mainUnlocked
@@ -99,6 +100,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .tokenUpdated(r):                    return .tokenUpdated(r)
     case     .updateOrders:                       return .updateOrders
     case     .updatePlaces:                       return .updatePlaces
+    case let .updateIntegrations(s):         return .updateIntegrations(s)
     default:                                      return nil
     }
   },
@@ -107,6 +109,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .appVisibilityChanged(v):       return .appVisibilityChanged(v)
     case let .cancelOrder(o):                return .cancelOrder(o)
     case let .completeOrder(o):              return .checkOutOrder(o)
+    case let .createPlace(c, ie):            return .createPlace(c, ie)
     case let .historyUpdated(r):             return .historyUpdated(r)
     case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
     case     .mainUnlocked:                  return .generated(.entered(.mainUnlocked))
@@ -125,6 +128,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .tokenUpdated(r):               return .tokenUpdated(r)
     case     .updateOrders:                  return .updateOrders
     case     .updatePlaces:                  return .updatePlaces
+    case let .updateIntegrations(s):         return .updateIntegrations(s)
     }
   }
 )

@@ -26,6 +26,8 @@ public enum RequestAction: Equatable {
   case cancelOrder(Order)
   case completeOrder(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
+  case createPlace(Coordinate, IntegrationEntity)
+  case updateIntegrations(Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
@@ -116,8 +118,8 @@ public let requestReducer = Reducer<
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getHistoryEffect(environment.getHistory(t, deID, environment.date()), environment.mainQueue)
   }
-  func getIntegrationEntities(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 1, ""), environment.mainQueue)
+  func getIntegrationEntities(_ t: Token.Value, _ s: Search) -> Effect<RequestAction, Never> {
+    getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 50, s), environment.mainQueue)
   }
   
   let getToken = getTokenEffect(environment.getToken(pk, deID), environment.mainQueue)
@@ -163,7 +165,7 @@ public let requestReducer = Reducer<
       .merge(
         state.requests.symmetricDifference(Request.allCases)
           .map(requestEffect(t))
-          + [(isIntegrationCheckPending ? getIntegrationEntities(t) : .none)]
+          + [(isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none)]
       )
     }
     
@@ -313,7 +315,22 @@ public let requestReducer = Reducer<
     state.requests.remove(.profile)
     
     return .none
+  case let .updateIntegrations(s):
+    guard case .integrated = state.integrationStatus
+    else { return environment.capture("Trying to search for integrations without an integrated status").fireAndForget() }
+    
+    let (token, effects) = requestOrRefreshToken(state.token) { t in getIntegrationEntities(t, s) }
+    
+    state.token = token
+    state.integrationStatus = .integrated(.refreshing(s))
+    
+    return effects
   case .integrationEntitiesUpdated:
+    
+    if case .integrated(.refreshing) = state.integrationStatus {
+      state.integrationStatus = .integrated(.notRefreshing)
+    }
+    
     return .none
   case let .cancelOrder(o):
     guard let order = state.orders.filter({
@@ -349,6 +366,13 @@ public let requestReducer = Reducer<
     
     state.token = .valid(t)
     
+    let requestIntegration: Effect<RequestAction, Never>
+    switch state.integrationStatus {
+    case     .requesting:                 requestIntegration = getIntegrationEntities(t, "")
+    case let .integrated(.refreshing(s)): requestIntegration = getIntegrationEntities(t, s)
+    default:                              requestIntegration = .none
+    }
+    
     return .merge(
       state.requests.map(requestEffect(t))
       +
@@ -360,11 +384,17 @@ public let requestReducer = Reducer<
         }
       }
       +
-      (state.integrationStatus == .requesting ? [getIntegrationEntities(t)] : [])
+      [requestIntegration]
     )
   case .tokenUpdated(.failure):
     guard state.token == .refreshing
     else { return environment.capture("Token updated but there is no request to update it").fireAndForget() }
+    
+    let cancelIntegrationRequest: Effect<RequestAction, Never>
+    switch state.integrationStatus {
+    case     .requesting, .integrated(.refreshing): cancelIntegrationRequest = .cancel(id: RequestingIntegrationEntitiesID())
+    default:                                        cancelIntegrationRequest = .none
+    }
     
     let effects = Effect<RequestAction, Never>.merge(
       state.requests.map(cancelRequest(request:))
@@ -374,7 +404,7 @@ public let requestReducer = Reducer<
           .cancel(id: RequestingCompleteOrdersID()),
         ]
       +
-        (state.integrationStatus == .requesting ? [.cancel(id: RequestingIntegrationEntitiesID())] : [])
+        []
     )
     
     state.token = .none
@@ -387,9 +417,15 @@ public let requestReducer = Reducer<
         }
       }
       |> Set.init
-    state.integrationStatus = state.integrationStatus == .requesting ? .unknown : state.integrationStatus
+    switch state.integrationStatus {
+    case .requesting:              state.integrationStatus = .unknown
+    case .integrated(.refreshing): state.integrationStatus = .integrated(.notRefreshing)
+    default:                       break
+    }
     
     return effects
+  case .createPlace(_, _):
+    return .none
   }
 }
 
@@ -492,7 +528,7 @@ let getIntegrationEntitiesEffect = { (
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getIntegrationEntities
-    .cancellable(id: RequestingIntegrationEntitiesID())
+    .cancellable(id: RequestingIntegrationEntitiesID(), cancelInFlight: true)
     .receive(on: mainQueue)
     .map(RequestAction.integrationEntitiesUpdated)
     .eraseToEffect()

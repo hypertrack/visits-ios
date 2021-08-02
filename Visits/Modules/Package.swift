@@ -49,7 +49,7 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
   .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapEnvironment", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
-  .target(name: "AddPlaceLogic",                   dependencies: [architecture, "Types", "Utility"]),
+  .target(name: "AddPlaceLogic",                   dependencies: ["AppArchitecture", architecture, "Types", "Utility"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityStartupLogic",       dependencies: [architecture, "Types"]),

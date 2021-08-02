@@ -29,19 +29,33 @@ private let addPlaceMainStateLens = Lens<MainState, AddPlaceState>(
 private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
   extract: { a in
     switch a {
-    case     .addPlace:                     return .addPlace
-    case     .cancelAddPlace:               return .cancelAddPlace
-    case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
-    case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
-    default:                                return nil
+    case     .addPlace:                      return .addPlace
+    case     .cancelAddPlace:                return .cancelAddPlace
+    case     .cancelChoosingCompany:         return .cancelChoosingCompany
+    case     .confirmAddPlaceCoordinate:     return .confirmAddPlaceCoordinate
+    case let .createPlace(c, ie):            return .createPlace(c, ie)
+    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
+    case     .searchForIntegrations:         return .searchForIntegrations
+    case let .selectedIntegration(ie):       return .selectedIntegration(ie)
+    case let .updateIntegrations(s):         return .updateIntegrations(s)
+    case let .updateIntegrationsSearch(s):   return .updateIntegrationsSearch(s)
+    case let .updatedAddPlaceCoordinate(c):  return .updatedAddPlaceCoordinate(c)
+    default:                                 return nil
     }
   },
   embed: { a in
     switch a {
-    case     .addPlace:                     return .addPlace
-    case     .cancelAddPlace:               return .cancelAddPlace
-    case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
-    case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
+    case     .addPlace:                      return .addPlace
+    case     .cancelAddPlace:                return .cancelAddPlace
+    case     .cancelChoosingCompany:         return .cancelChoosingCompany
+    case     .confirmAddPlaceCoordinate:     return .confirmAddPlaceCoordinate
+    case let .createPlace(c, ie):            return .createPlace(c, ie)
+    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
+    case     .searchForIntegrations:         return .searchForIntegrations
+    case let .selectedIntegration(ie):       return .selectedIntegration(ie)
+    case let .updateIntegrations(s):         return .updateIntegrations(s)
+    case let .updateIntegrationsSearch(s):   return .updateIntegrationsSearch(s)
+    case let .updatedAddPlaceCoordinate(c):  return .updatedAddPlaceCoordinate(c)
     }
   }
 )

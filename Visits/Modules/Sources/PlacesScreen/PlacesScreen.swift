@@ -34,6 +34,13 @@ public struct PlacesScreen: View {
     self.send = send
   }
   
+  var integrated: Bool {
+    if case .integrated = state.integrationStatus {
+      return true
+    }
+    return false
+  }
+  
   public var body: some View {
     NavigationView {
       PlacesList(placesToDisplay: state.placesToDisplay)
@@ -44,7 +51,7 @@ public struct PlacesScreen: View {
             }
           }
         }
-        .if(state.integrationStatus == .integrated) { view in
+        .if(integrated) { view in
           view.toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
               Button(action: { send(.addPlace) }) {
@@ -236,7 +243,7 @@ extension DateFormatter {
 
 struct PlacesScreen_Previews: PreviewProvider {
   static var previews: some View {
-    PlacesScreen(state: .init(places: [], refreshing: false, integrationStatus: .integrated), send: {_ in })
+    PlacesScreen(state: .init(places: [], refreshing: false, integrationStatus: .integrated(.notRefreshing)), send: {_ in })
     PlacesScreen(
       state: .init(
         places: [
@@ -337,7 +344,7 @@ struct PlacesScreen_Previews: PreviewProvider {
               .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
             ]
           )
-        ], refreshing: false, integrationStatus: .integrated
+        ], refreshing: false, integrationStatus: .integrated(.notRefreshing)
       ), send: {_ in }
     )
     .preferredColorScheme(.light)

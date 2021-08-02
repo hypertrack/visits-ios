@@ -98,6 +98,10 @@ public struct AppScreen: View {
                 case     .cancelAddPlace:               return .addPlace(.cancelAddPlace)
                 case let .updatedAddPlaceCoordinate(c): return .addPlace(.updatedAddPlaceCoordinate(c))
                 case     .confirmAddPlaceCoordinate:    return .addPlace(.confirmAddPlaceCoordinate)
+                case     .cancelChoosingCompany:        return .addPlace(.cancelChoosingCompany)
+                case let .updateIntegrationsSearch(s):  return .addPlace(.updateIntegrationsSearch(s))
+                case     .searchForIntegrations:        return .addPlace(.searchForIntegrations)
+                case let .selectedIntegration(ie):      return .addPlace(.selectedIntegration(ie))
                 }
               }
             )

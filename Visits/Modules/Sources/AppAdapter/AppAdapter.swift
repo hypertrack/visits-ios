@@ -194,6 +194,10 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .errorReportingAlert(era):
     return .errorReportingAlert(era)
   case let .profile(.copyTextPressed(t)): return .copyToPasteboard(t)
+  case .addPlace(.cancelChoosingCompany): return .cancelChoosingCompany
+  case let .addPlace(.updateIntegrationsSearch(s)): return .updateIntegrationsSearch(s)
+  case .addPlace(.searchForIntegrations): return .searchForIntegrations
+  case let .addPlace(.selectedIntegration(ie)): return .selectedIntegration(ie)
   }
 }
 

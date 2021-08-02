@@ -14,7 +14,7 @@ public let integrationReducer = Reducer<IntegrationStatus, IntegrationAction, Vo
   switch action {
   case let .integrationEntitiesUpdated(.success(ies)):
     switch (state, ies.first) {
-    case (.requesting, .some), (.unknown, .some): state = .integrated
+    case (.requesting, .some), (.unknown, .some): state = .integrated(.notRefreshing)
     case (.requesting, .none), (.unknown, .none): state = .notIntegrated
     default: break
     }
