@@ -1,7 +1,8 @@
 import MapKit
-import Utility
+import NonEmpty
 import SwiftUI
 import Types
+import Utility
 import Views
 
 
@@ -21,6 +22,7 @@ public struct PlacesScreen: View {
   public enum Action {
     case refresh
     case addPlace
+    case copyToPasteboard(NonEmptyString)
   }
   
   let state: State
@@ -43,7 +45,10 @@ public struct PlacesScreen: View {
   
   public var body: some View {
     NavigationView {
-      PlacesList(placesToDisplay: state.placesToDisplay)
+      PlacesList(
+        placesToDisplay: state.placesToDisplay,
+        copy: { send(.copyToPasteboard($0)) }
+      )
         .toolbar {
           ToolbarItem(placement: .navigationBarLeading) {
             RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
@@ -68,6 +73,7 @@ public struct PlacesScreen: View {
 
 struct PlacesList: View {
   let placesToDisplay: [PlacesSection]
+  let copy: (NonEmptyString) -> Void
   
   var body: some View {
     ZStack {
@@ -76,7 +82,7 @@ struct PlacesList: View {
           Section(header: Text(section.header).font(.subheadline)) {
             ForEach(section.places, id: \.place.id) { placeAndTime in
               NavigationLink(
-                destination: PlaceScreen(state: .init(place: placeAndTime.place))
+                destination: PlaceScreen(state: .init(place: placeAndTime.place), copy: copy)
               ) {
                 PlaceView(placeAndTime: placeAndTime)
               }
@@ -311,7 +317,7 @@ struct PlacesScreen_Previews: PreviewProvider {
               fullAddress: "Market Square, 1301 Market St, San Francisco, CA  94103, United States"
             ),
             createdAt: .init(rawValue: ISO8601DateFormatter().date(from: "2020-03-30T10:42:03Z")!),
-            currentlyInside: .init(entry: .init(rawValue: ISO8601DateFormatter().date(from: "2020-04-01T19:27:00Z")!), duration: 0),
+            currentlyInside: .init(id: "1", entry: .init(rawValue: ISO8601DateFormatter().date(from: "2020-04-01T19:27:00Z")!), duration: 0),
             metadata: ["name":"Home"],
             shape: .circle(
               .init(
@@ -407,9 +413,11 @@ public struct PlaceScreen: View {
   }
   
   let state: State
+  let copy: (NonEmptyString) -> Void
   
-  public init(state: State) {
+  public init(state: State, copy: @escaping (NonEmptyString) -> Void) {
     self.state = state
+    self.copy = copy
   }
   
   public var body: some View {
@@ -423,7 +431,11 @@ public struct PlaceScreen: View {
           subTitle: state.place.id.string,
           leadingPadding: 24,
           isCopyButtonEnabled: true,
-          { str in }
+          {
+            if let ns = NonEmptyString(rawValue: $0) {
+              copy(ns)
+            }
+          }
         )
         .padding(.top, 8)
         if let address = state.place.address.anyAddressFullBias?.rawValue {
@@ -432,7 +444,11 @@ public struct PlaceScreen: View {
             subTitle: address,
             leadingPadding: 24,
             isCopyButtonEnabled: true,
-            { str in }
+            {
+              if let ns = NonEmptyString(rawValue: $0) {
+                copy(ns)
+              }
+            }
           )
           .padding(.top, 8)
         }
@@ -444,15 +460,21 @@ public struct PlaceScreen: View {
             subTitle: contents.string,
             leadingPadding: 24,
             isCopyButtonEnabled: true,
-            { str in }
+            {
+              if let ns = NonEmptyString(rawValue: $0) {
+                copy(ns)
+              }
+            }
           )
         }
         .padding(.top, 8)
         if let entry = state.place.currentlyInside {
           VisitView(
+            id: entry.id.rawValue,
             entry: entry.entry.rawValue,
             exit: nil,
-            duration: entry.duration.rawValue
+            duration: entry.duration.rawValue,
+            copy: copy
           )
           .padding(.horizontal)
           .padding(.top)
@@ -468,9 +490,11 @@ public struct PlaceScreen: View {
         }
         ForEach(state.place.visits) { visit in
           VisitView(
+            id: visit.id.rawValue,
             entry: visit.entry.rawValue,
             exit: visit.exit.rawValue,
-            duration: visit.duration.rawValue
+            duration: visit.duration.rawValue,
+            copy: copy
           )
           .padding(.horizontal)
           .padding(.top)
@@ -519,7 +543,8 @@ struct PlaceScreen_Previews: PreviewProvider {
             .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
           ]
         )
-      )
+      ),
+      copy: { _ in }
     )
     .preferredColorScheme(.dark)
   }
@@ -543,9 +568,11 @@ struct TimelinePieceView<Content: View>: View {
 }
 
 struct VisitView: View {
+  let id: NonEmptyString
   let entry: Date
   let exit: Date?
   let duration: UInt
+  let copy: (NonEmptyString) -> Void
   
   var body: some View {
     TimelinePieceView {
@@ -563,6 +590,14 @@ struct VisitView: View {
               .font(.subheadline)
               .foregroundColor(Color(.secondaryLabel))
           }
+        }
+        Spacer()
+        Button {
+          copy(id)
+        } label: {
+          Image(systemName: "doc.on.doc")
+            .font(.system(size: 24, weight: .light))
+            .foregroundColor(Color(.secondaryLabel))
         }
       }
     }
@@ -662,9 +697,11 @@ func visitDateTimestamp(entry: Date, exit: Date?) -> String {
 struct VisitView_Previews: PreviewProvider {
   static var previews: some View {
     VisitView(
+      id: "1",
       entry: Date() + (-200000),
       exit: Date(),
-      duration: 20000
+      duration: 20000,
+      copy: { _ in }
     )
   }
 }

@@ -79,6 +79,7 @@ extension Place {
       case let .entered(en):
         return .right(
           .init(
+            id: wrap(marker.id),
             entry: wrap(en),
             duration: wrap(marker.duration),
             route: marker.routeTo.map(wrapRoute)

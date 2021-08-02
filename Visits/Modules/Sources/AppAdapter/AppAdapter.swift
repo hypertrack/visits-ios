@@ -198,6 +198,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .addPlace(.updateIntegrationsSearch(s)): return .updateIntegrationsSearch(s)
   case .addPlace(.searchForIntegrations): return .searchForIntegrations
   case let .addPlace(.selectedIntegration(ie)): return .selectedIntegration(ie)
+  case let .places(.copyToPasteboard(s)): return .copyToPasteboard(s)
   }
 }
 

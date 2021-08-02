@@ -61,20 +61,24 @@ public struct Place {
   }
   
   public struct Entry {
+    public var id: ID
     public var entry: EntryTimestamp
     public var duration: Duration
     public var route: Route?
     
     public init(
-      entry: Place.Entry.EntryTimestamp,
-      duration: Place.Entry.Duration,
+      id: ID,
+      entry: EntryTimestamp,
+      duration: Duration,
       route: Place.Route? = nil
     ) {
+      self.id = id
       self.entry = entry
       self.duration = duration
       self.route = route
     }
     
+    public typealias ID                = Tagged<(Entry, id: ()),        NonEmptyString>
     public typealias EntryTimestamp    = Tagged<(Entry, entry: ()),     Date>
     public typealias Duration          = Tagged<(Entry, duration: ()),  UInt>
   }
