@@ -41,6 +41,7 @@ func geofencesRequest(auth token: Token.Value, deviceID: DeviceID, paginationTok
   components.queryItems = [
     URLQueryItem(name: "device_id", value: "\(deviceID)"),
     URLQueryItem(name: "include_archived", value: "false"),
+    URLQueryItem(name: "sort_nearest", value: "true"),
     URLQueryItem(name: "include_markers", value: "true")
   ]
   if let paginationToken = paginationToken, let queryItems = components.queryItems {
