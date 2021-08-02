@@ -46,7 +46,7 @@ public struct AddPlaceView: View {
         ChoosingCompanyView(
           store: store.scope(
             state: { _ in
-              .init(search: s, integrationEntities: ies)
+              .init(search: s, integrationEntities: ies, refreshing: r == .refreshing)
             },
             action: { a in
               switch a {
@@ -59,7 +59,23 @@ public struct AddPlaceView: View {
           )
         )
       case let .addingPlace(c, ie, _, _):
-        EmptyView()
+        VStack(spacing: 0) {
+          AppleMapView(coordinate: c.coordinate2D, span: 150)
+            .frame(height: 250)
+          ContentCell(
+            title: "Company",
+            subTitle: ie.name.string,
+            leadingPadding: 24,
+            isCopyButtonEnabled: true,
+            { str in }
+          )
+          .padding(.top, 8)
+          Spacer()
+          ProgressView("Creating Place")
+            .padding()
+          Spacer()
+        }
+        .edgesIgnoringSafeArea(.top)
       }
     }
   }
@@ -69,6 +85,7 @@ private struct ChoosingCompanyView: View {
   struct State: Equatable {
     var search: Search
     var integrationEntities: [IntegrationEntity]
+    var refreshing: Bool
   }
   
   public enum Action: Equatable {
@@ -98,13 +115,20 @@ private struct ChoosingCompanyView: View {
             }
           )
         )
-          .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-              Button(action: { viewStore.send(.cancelChoosingCompany) }) {
-                Image(systemName: "arrow.backward")
-              }
+        .toolbar {
+          ToolbarItem(placement: .navigationBarLeading) {
+            Button(action: { viewStore.send(.cancelChoosingCompany) }) {
+              Image(systemName: "arrow.backward")
             }
           }
+        }
+        .if(viewStore.refreshing) { view in
+          view.toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              RefreshButton(state: .refreshing) {}
+            }
+          }
+        }
       }
     }
   }

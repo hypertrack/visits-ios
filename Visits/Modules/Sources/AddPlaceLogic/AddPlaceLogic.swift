@@ -26,6 +26,7 @@ public enum AddPlaceAction: Equatable {
   case updateIntegrations(Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case createPlace(Coordinate, IntegrationEntity)
+  case placeCreated(Result<Terminal, APIError<Token.Expired>>)
 }
 
 // MARK: - Environment
@@ -118,6 +119,16 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, AddPlaceEnvi
   case .updateIntegrations:
     return .none
   case .createPlace:
+    return .none
+  case let .placeCreated(r):
+    guard case let .addingPlace(c, _, s, ies) = state.flow
+    else { return environment.capture("Place creation returned when user wan't on the waiting screen").fireAndForget() }
+    
+    switch r {
+    case .success: state.flow = nil
+    case .failure: state.flow = .choosingIntegration(c, s, .notRefreshing, ies)
+    }
+    
     return .none
   }
 }

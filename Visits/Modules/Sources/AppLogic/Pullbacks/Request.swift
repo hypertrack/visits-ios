@@ -100,7 +100,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .tokenUpdated(r):                    return .tokenUpdated(r)
     case     .updateOrders:                       return .updateOrders
     case     .updatePlaces:                       return .updatePlaces
-    case let .updateIntegrations(s):         return .updateIntegrations(s)
+    case let .updateIntegrations(s):              return .updateIntegrations(s)
+    case let .placeCreated(r):                    return .placeCreated(r)
     default:                                      return nil
     }
   },
@@ -129,6 +130,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .updateOrders:                  return .updateOrders
     case     .updatePlaces:                  return .updatePlaces
     case let .updateIntegrations(s):         return .updateIntegrations(s)
+    case let .placeCreated(r):               return .placeCreated(r)
     }
   }
 )
@@ -139,6 +141,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       cancelOrder:            e.api.cancelOrder,
       capture:                e.errorReporting.capture,
       completeOrder:          e.api.completeOrder,
+      createPlace:            e.api.createPlace,
       getHistory:             e.api.getHistory,
       getIntegrationEntities: e.api.getIntegrationEntities,
       getOrders:              e.api.getOrders,

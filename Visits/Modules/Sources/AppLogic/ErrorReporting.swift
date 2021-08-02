@@ -97,6 +97,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       case let .signedIn(.failure(e)):                 error = toNever(e)
       case let .ordersUpdated(.failure(e)),
            let .placesUpdated(.failure(e)),
+           let .placeCreated(.failure(e)),
            let .profileUpdated(.failure(e)),
            let .historyUpdated(.failure(e)):           error = toNever(e)
       case let .orderCancelFinished(_, .failure(e)),

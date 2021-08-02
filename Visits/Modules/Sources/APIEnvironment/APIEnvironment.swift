@@ -6,6 +6,7 @@ import Utility
 public struct APIEnvironment {
   public var cancelOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var createPlace: (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Terminal, APIError<Token.Expired>>, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders:  (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
@@ -19,6 +20,7 @@ public struct APIEnvironment {
   public init(
     cancelOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    createPlace: @escaping (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Terminal, APIError<Token.Expired>>, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping  (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
@@ -31,6 +33,7 @@ public struct APIEnvironment {
   ) {
     self.cancelOrder = cancelOrder
     self.completeOrder = completeOrder
+    self.createPlace = createPlace
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
     self.getOrders = getOrders

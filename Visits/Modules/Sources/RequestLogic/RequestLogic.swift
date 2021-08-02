@@ -27,6 +27,7 @@ public enum RequestAction: Equatable {
   case completeOrder(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
   case createPlace(Coordinate, IntegrationEntity)
+  case placeCreated(Result<Terminal, APIError<Token.Expired>>)
   case updateIntegrations(Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case mainUnlocked
@@ -53,6 +54,7 @@ public struct RequestEnvironment {
   public var cancelOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var createPlace: (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Terminal, APIError<Token.Expired>>, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
@@ -66,6 +68,7 @@ public struct RequestEnvironment {
     cancelOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    createPlace: @escaping (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Terminal, APIError<Token.Expired>>, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
@@ -78,6 +81,7 @@ public struct RequestEnvironment {
     self.cancelOrder = cancelOrder
     self.capture = capture
     self.completeOrder = completeOrder
+    self.createPlace = createPlace
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
     self.getOrders = getOrders
@@ -224,7 +228,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.orders)
     
     return effects
-  case .updatePlaces, .switchToPlaces:
+  case .updatePlaces, .switchToPlaces, .placeCreated(.success):
     guard !state.requests.contains(.places) else { return .none }
     
     let (token, effects) = requestOrRefreshToken(state.token, request: .places |> flip(requestEffect))
@@ -245,6 +249,7 @@ public let requestReducer = Reducer<
   case .ordersUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
+       .placeCreated(.failure(.error)),
        .integrationEntitiesUpdated(.failure(.error)),
        .profileUpdated(.failure(.error)),
        .orderCompleted(_, .failure(.error)),
@@ -424,7 +429,19 @@ public let requestReducer = Reducer<
     }
     
     return effects
-  case .createPlace(_, _):
+  case let .createPlace(c, ie):
+    guard case let .some(token) = state.token
+    else { return environment.capture("Trying to create a place without a token").fireAndForget() }
+    
+    if case let .valid(token) = token {
+      return createPlaceEffect(
+        environment.createPlace(token, state.deviceID, c, ie),
+        environment.mainQueue
+      )
+    }
+    
+    return .none
+  case .placeCreated:
     return .none
   }
 }
@@ -435,6 +452,7 @@ struct RequestingOrdersID: Hashable {}
 struct RequestingHistoryID: Hashable {}
 struct RequestingIntegrationEntitiesID: Hashable {}
 struct RequestingPlacesID: Hashable {}
+struct RequestingCreatePlaceID: Hashable {}
 struct RequestingProfileID: Hashable {}
 struct RequestingTokenID: Hashable {}
 
@@ -509,6 +527,17 @@ func getPlacesEffect(
     .cancellable(id: RequestingPlacesID())
     .receive(on: mainQueue)
     .map(RequestAction.placesUpdated)
+    .eraseToEffect()
+}
+
+func createPlaceEffect(
+  _ createPlace: Effect<Result<Terminal, APIError<Token.Expired>>, Never>,
+  _ mainQueue: AnySchedulerOf<DispatchQueue>
+) -> Effect<RequestAction, Never> {
+  createPlace
+    .cancellable(id: RequestingCreatePlaceID(), cancelInFlight: true)
+    .receive(on: mainQueue)
+    .map(RequestAction.placeCreated)
     .eraseToEffect()
 }
 

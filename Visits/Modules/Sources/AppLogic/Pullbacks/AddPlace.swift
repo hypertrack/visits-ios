@@ -34,6 +34,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     case     .cancelChoosingCompany:         return .cancelChoosingCompany
     case     .confirmAddPlaceCoordinate:     return .confirmAddPlaceCoordinate
     case let .createPlace(c, ie):            return .createPlace(c, ie)
+    case let .placeCreated(r):               return .placeCreated(r)
     case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
     case     .searchForIntegrations:         return .searchForIntegrations
     case let .selectedIntegration(ie):       return .selectedIntegration(ie)
@@ -50,6 +51,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     case     .cancelChoosingCompany:         return .cancelChoosingCompany
     case     .confirmAddPlaceCoordinate:     return .confirmAddPlaceCoordinate
     case let .createPlace(c, ie):            return .createPlace(c, ie)
+    case let .placeCreated(r):               return .placeCreated(r)
     case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
     case     .searchForIntegrations:         return .searchForIntegrations
     case let .selectedIntegration(ie):       return .selectedIntegration(ie)
