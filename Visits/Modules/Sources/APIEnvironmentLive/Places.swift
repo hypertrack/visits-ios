@@ -18,18 +18,17 @@ func getPlaces(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Plac
 }
 
 func getGeofences(auth token: Token.Value, deviceID: DeviceID) -> AnyPublisher<[Geofence], APIError<Token.Expired>> {
-  paginate(
-    getPage: { pagination in
-      callAPI(
-        request: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: pagination),
-        success: GeofencePage.self,
-        failure: Token.Expired.self
-      )
-    },
-    valuesFromPage: \.geofences,
-    paginationFromPage: \.paginationToken
+  callAPI(
+    request: geofencesRequest(auth: token, deviceID: deviceID, paginationToken: nil),
+    success: GeofencePage.self,
+    failure: Token.Expired.self
   )
-  
+  .map { gs in
+    gs.geofences.filter { g in
+      g.deviceID == accountGeofenceDeviceID
+   || g.deviceID == deviceID.rawValue
+    }
+  }
   .eraseToAnyPublisher()
 }
 
@@ -39,7 +38,6 @@ func geofencesRequest(auth token: Token.Value, deviceID: DeviceID, paginationTok
   components.host = "live-app-backend.htprod.hypertrack.com"
   components.path = "/client/geofences"
   components.queryItems = [
-    URLQueryItem(name: "device_id", value: "\(deviceID)"),
     URLQueryItem(name: "include_archived", value: "false"),
     URLQueryItem(name: "sort_nearest", value: "true"),
     URLQueryItem(name: "include_markers", value: "true")
@@ -129,6 +127,7 @@ struct GeofencePage {
 
 struct Geofence {
   let id: NonEmptyString
+  let deviceID: NonEmptyString
   let address: String
   let createdAt: Date
   let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
@@ -149,9 +148,12 @@ extension GeofencePage: Decodable {
   }
 }
 
+let accountGeofenceDeviceID: NonEmptyString = "00000000-0000-0000-0000-000000000000"
+
 extension Geofence: Decodable {
   enum CodingKeys: String, CodingKey {
     case id = "geofence_id"
+    case deviceID = "device_id"
     case address
     case createdAt = "created_at"
     case geometry
@@ -164,6 +166,8 @@ extension Geofence: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
     id = try values.decode(NonEmptyString.self, forKey: .id)
+    
+    deviceID = (try? values.decode(NonEmptyString.self, forKey: .deviceID)) ?? accountGeofenceDeviceID
     
     address = (try? values.decodeIfPresent(String.self, forKey: .address)) ?? ""
     
