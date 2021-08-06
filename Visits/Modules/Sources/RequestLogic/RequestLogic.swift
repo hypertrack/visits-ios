@@ -293,8 +293,7 @@ public let requestReducer = Reducer<
     
     return .none
   case .ordersUpdated:
-    guard state.requests.contains(.orders)
-    else { return environment.capture("Orders updated but there is no request to update orders").fireAndForget() }
+    guard state.requests.contains(.orders) else { return .none }
     
     state.requests.remove(.orders)
     
@@ -303,22 +302,19 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingCompleteOrdersID())
     )
   case .placesUpdated:
-    guard state.requests.contains(.places)
-    else { return environment.capture("Places updated but there is no request to update places").fireAndForget() }
+    guard state.requests.contains(.places) else { return .none }
     
     state.requests.remove(.places)
     
     return .none
   case .historyUpdated:
-    guard state.requests.contains(.history)
-    else { return environment.capture("History updated but there is no request to update history").fireAndForget() }
+    guard state.requests.contains(.history) else { return .none }
     
     state.requests.remove(.history)
     
     return .none
   case .profileUpdated:
-    guard state.requests.contains(.profile)
-    else { return environment.capture("Profile updated but there is no request to update profile").fireAndForget() }
+    guard state.requests.contains(.profile) else { return .none }
     
     state.requests.remove(.profile)
     
@@ -345,7 +341,7 @@ public let requestReducer = Reducer<
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
     }).first
-    else { return environment.capture("Can't cancel order when there is no order with this id and in .ongoing status").fireAndForget() }
+    else { return .none }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< .cancelling)
@@ -359,7 +355,7 @@ public let requestReducer = Reducer<
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
     }).first
-    else { return environment.capture("Can't complete order when there is no order with this id and in .ongoing status").fireAndForget() }
+    else { return .none }
     
     state.orders.remove(order)
     state.orders.insert(order |> \.status *< .completing)
@@ -369,8 +365,7 @@ public let requestReducer = Reducer<
     
     return effects
   case let .tokenUpdated(.success(t)):
-    guard state.token == .refreshing
-    else { return environment.capture("Token updated but there is no request to update it").fireAndForget() }
+    guard state.token == .refreshing else { return .none }
     
     state.token = .valid(t)
     
@@ -395,8 +390,7 @@ public let requestReducer = Reducer<
       [requestIntegration]
     )
   case .tokenUpdated(.failure):
-    guard state.token == .refreshing
-    else { return environment.capture("Token updated but there is no request to update it").fireAndForget() }
+    guard state.token == .refreshing else { return .none }
     
     let cancelIntegrationRequest: Effect<RequestAction, Never>
     switch state.integrationStatus {
