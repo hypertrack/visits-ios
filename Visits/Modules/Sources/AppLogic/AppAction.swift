@@ -27,8 +27,10 @@ public enum AppAction: Equatable {
   case mapRegionWillChange
   case mapRegionDidChange
   case mapEnableAutoZoom
-  // Token
+  // Requests
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
+  case cancelAllRequests
+  case refreshAllRequests
   // Orders
   case selectOrder(Order)
   case updateOrders

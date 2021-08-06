@@ -25,6 +25,8 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
     case let .deepLinkOpened(u):                 return .deepLinkOpened(u)
     case let .deepLinkFailed(e):                 return .deepLinkFailed(e)
     case let .applyFullDeepLink(d, sdk):         return .applyFullDeepLink(d, sdk)
+    case     .cancelAllRequests:                 return .cancelAllRequests
+    case     .refreshAllRequests:                return .refreshAllRequests
     default:                                     return nil
     }
   },
@@ -35,6 +37,8 @@ private let deepLinkActionPrism = Prism<AppAction, DeepLinkAction>(
     case let .deepLinkOpened(u):                 return .deepLinkOpened(u)
     case let .deepLinkFailed(e):                 return .deepLinkFailed(e)
     case let .applyFullDeepLink(d, sdk):         return .applyFullDeepLink(d, sdk)
+    case     .cancelAllRequests:                 return .cancelAllRequests
+    case     .refreshAllRequests:                return .refreshAllRequests
     }
   }
 )

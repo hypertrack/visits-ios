@@ -26,6 +26,8 @@ public enum DeepLinkAction: Equatable {
   case deepLinkOpened(URL)
   case deepLinkFailed(NonEmptyArray<NonEmptyString>)
   case applyFullDeepLink(DeepLink, SDKStatusUpdate)
+  case cancelAllRequests
+  case refreshAllRequests
 }
 
 // MARK: - Environment
@@ -115,6 +117,12 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
     )
     state.sdk = sdk
     
+    return .concatenate(
+      Effect(value: .cancelAllRequests),
+      Effect(value: .refreshAllRequests)
+    )
+  case .cancelAllRequests,
+       .refreshAllRequests:
     return .none
   }
 }

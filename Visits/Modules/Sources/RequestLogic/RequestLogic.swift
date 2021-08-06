@@ -23,6 +23,7 @@ public struct RequestState: Equatable {
 
 public enum RequestAction: Equatable {
   case appVisibilityChanged(AppVisibility)
+  case cancelAllRequests
   case cancelOrder(Order)
   case completeOrder(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
@@ -37,6 +38,7 @@ public enum RequestAction: Equatable {
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
   case receivedPushNotification
+  case refreshAllRequests
   case startTracking
   case stopTracking
   case switchToMap
@@ -162,7 +164,8 @@ public let requestReducer = Reducer<
   case .appVisibilityChanged(.onScreen),
        .receivedPushNotification,
        .mainUnlocked,
-       .startTracking:
+       .startTracking,
+       .refreshAllRequests:
     let isIntegrationCheckPending = state.integrationStatus == .unknown
     
     let (token, effects) = requestOrRefreshToken(state.token) { t in
@@ -443,6 +446,31 @@ public let requestReducer = Reducer<
     return .none
   case .placeCreated:
     return .none
+  case .cancelAllRequests:
+    
+    state.token = .none
+    state.requests = []
+    state.orders = state.orders.map { o in
+        switch o.status {
+        case .cancelling,
+             .completing: return o |> \.status *< .ongoing(.unfocused)
+        default:          return o
+        }
+      }
+      |> Set.init
+    state.integrationStatus = .unknown
+    
+    return .merge(
+      .cancel(id: RequestingCancelOrdersID()),
+      .cancel(id: RequestingCompleteOrdersID()),
+      .cancel(id: RequestingOrdersID()),
+      .cancel(id: RequestingHistoryID()),
+      .cancel(id: RequestingIntegrationEntitiesID()),
+      .cancel(id: RequestingPlacesID()),
+      .cancel(id: RequestingCreatePlaceID()),
+      .cancel(id: RequestingProfileID()),
+      .cancel(id: RequestingTokenID())
+    )
   }
 }
 
