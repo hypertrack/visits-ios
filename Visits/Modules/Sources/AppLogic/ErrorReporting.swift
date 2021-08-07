@@ -10,10 +10,6 @@ import Types
 extension Reducer where State == AppState, Action == AppAction, Environment == SystemEnvironment<AppEnvironment> {
   func reportErrors() -> Reducer {
     .init { state, action, environment in
-      let previousState = state
-      let globalEffects = self.run(&state, action, environment)
-      let nextState = state
-      
       let report = environment.errorReporting
       
       var effects: [Effect<AppAction, Never>] = []
@@ -26,6 +22,25 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         run(report.startErrorMonitoring())
       }
       
+      func addAsyncBreadcrumb(_ type: BreadcrumbType, _ f: @escaping @autoclosure () -> String?) -> Effect<Never, Never> {
+        Effect<String?, Never>.future { callback in
+          callback(.success(f()))
+        }
+        .compactMap(identity)
+        .compactMap(NonEmptyString.init(rawValue:))
+        .map(BreadcrumbMessage.init(rawValue:))
+        .subscribe(on: environment.backgroundQueue)
+        .receive(on: environment.mainQueue)
+        .flatMap(type |> curry(report.addBreadcrumb))
+        .eraseToEffect()
+      }
+      
+      run(addAsyncBreadcrumb(.action, debugOutput(action)))
+      
+      let previousState = state
+      let globalEffects = self.run(&state, action, environment)
+      let nextState = state
+      
       switch (deviceID(from: previousState), deviceID(from: nextState)) {
       case let (.none, .some(deID)):
         run(report.updateUser(deID))
@@ -35,38 +50,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         break
       }
       
-      func debugPrint(action: AppAction, previousState: AppState, nextState: AppState) -> Effect<(String, String?), Never> {
-        .future { callback in
-          let actionOutput = debugOutput(action)
-          let stateOutput = debugDiff(previousState, nextState).map { "\($0)\n" }
-          callback(.success((actionOutput, stateOutput)))
-        }
-      }
-      
-      run(
-        debugPrint(action: action, previousState: previousState, nextState: nextState)
-          .flatMap{ (action: String, state: String?) -> Effect<Never, Never> in
-            let actionBreadcrumb =  NonEmptyString.init(rawValue: action)
-            let stateBreadcrumb = state >>- NonEmptyString.init(rawValue:)
-            
-            switch (actionBreadcrumb, stateBreadcrumb) {
-            case let (.some(a), .some(s)):
-              return .concatenate(
-                report.addBreadcrumb(.action, .init(rawValue: a)),
-                report.addBreadcrumb(.state, .init(rawValue: s))
-              )
-            case let (.some(a), .none):
-              return report.addBreadcrumb(.action, .init(rawValue: a))
-            case let (.none, .some(s)):
-              return report.addBreadcrumb(.state, .init(rawValue: s))
-            case (.none, .none):
-              return .none
-            }
-          }
-          .subscribe(on: environment.backgroundQueue)
-          .receive(on: environment.mainQueue)
-          .eraseToEffect()
-      )
+      run(addAsyncBreadcrumb(.state, debugDiff(previousState, nextState)))
       
       func isNotAboutInternetConnection(_ e: APIError<Never>) -> Bool {
         if case let .network(urlError) = e {
@@ -120,7 +104,10 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
         run(report.capture(.init(rawValue: "Manual Report \(environment.uuid().uuidString)")))
       }
       
-      return .merge(globalEffects, .concatenate(effects))
+      return .merge(
+        globalEffects,
+        .concatenate(effects)
+      )
     }
   }
 }
