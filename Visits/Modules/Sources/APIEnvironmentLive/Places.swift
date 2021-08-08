@@ -28,6 +28,9 @@ func getGeofences(auth token: Token.Value, deviceID: DeviceID) -> AnyPublisher<[
       g.deviceID == accountGeofenceDeviceID
    || g.deviceID == deviceID.rawValue
     }
+    .map { g in
+      g |> \.markers *< g.markers.filter { $0.deviceID == deviceID.rawValue }
+    }
   }
   .eraseToAnyPublisher()
 }
@@ -133,7 +136,7 @@ struct Geofence {
   let createdAt: Date
   let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
   let shape: GeofenceShape
-  let markers: [GeofenceMarker]
+  var markers: [GeofenceMarker]
 }
 
 extension GeofencePage: Decodable {
@@ -208,6 +211,7 @@ extension GeofenceMarkerContainer: Decodable {
 
 struct GeofenceMarker {
   let id: NonEmptyString
+  let deviceID: NonEmptyString
   let createdAt: Date
   let visitStatus: VisitStatus
   let routeTo: RouteTo?
@@ -240,6 +244,7 @@ extension RouteTo: Decodable {
 extension GeofenceMarker: Decodable {
   enum CodingKeys: String, CodingKey {
     case id = "marker_id"
+    case deviceID = "device_id"
     case createdAt = "created_at"
     case arrival
     case duration
@@ -251,6 +256,8 @@ extension GeofenceMarker: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
     id = try values.decode(NonEmptyString.self, forKey: .id)
+    
+    deviceID = try values.decode(NonEmptyString.self, forKey: .deviceID)
     
     createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
