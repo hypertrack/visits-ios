@@ -1,3 +1,4 @@
+import MapDetailView
 import NonEmpty
 import SwiftUI
 import Types
@@ -15,7 +16,7 @@ struct PlaceScreen: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 0) {
-        AppleMapView(coordinate: state.place.shape.centerCoordinate.coordinate2D, span: 150)
+        MapDetailView(object: .place(state.place))
           .frame(height: 250)
           .onTapGesture(perform: {})
         ContentCell(

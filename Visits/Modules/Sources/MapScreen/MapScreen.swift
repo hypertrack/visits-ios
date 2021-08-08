@@ -114,11 +114,11 @@ struct MapViewRepresentable: UIViewRepresentable {
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-      return annotationViewForAnnotation(annotation, onMapView: mapView)
+      annotationViewForAnnotation(annotation, onMapView: mapView)
     }
     
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-      return rendererForOverlay(overlay)!
+      rendererForOverlay(overlay)!
     }
     
     func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {

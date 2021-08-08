@@ -75,8 +75,7 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, AddPlaceEnvi
     
     return .none
   case let .selectPlace(p):
-    guard case .choosingCoordinate = state.flow
-    else { return environment.capture("Trying to select a when not on the choosing place coordinate map view").fireAndForget() }
+    guard case .choosingCoordinate = state.flow else { return .none }
     
     state.flow = nil
     

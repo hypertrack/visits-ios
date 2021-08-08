@@ -7,8 +7,7 @@ public func putOrders(
   orders: Set<Order>,
   onMapView mapView: MKMapView
 ) {
-  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? OrderAnnotation })
-  remove(overlay: OrderCircle.self, fromMapView: mapView)
+  removeOrdersFrom(mapView: mapView)
   
   for order in orders {
     mapView.addAnnotation(OrderAnnotation(order: order))
@@ -21,6 +20,13 @@ public func putOrders(
       mapView.addOverlay(destinationOverlay)
     }
   }
+}
+
+// MARK: Remove
+
+public func removeOrdersFrom(mapView: MKMapView) {
+  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? OrderAnnotation })
+  remove(overlay: OrderCircle.self, fromMapView: mapView)
 }
 
 class OrderCircle: MKCircle {
@@ -223,9 +229,7 @@ public func putPlaces(
   places: Set<Place>,
   onMapView mapView: MKMapView
 ) {
-  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? PlaceAnnotation })
-  remove(overlay: PlaceCircle.self, fromMapView: mapView)
-  remove(overlay: PlacePolygon.self, fromMapView: mapView)
+  removePlacesFrom(mapView: mapView)
   
   for place in places {
     mapView.addAnnotation(PlaceAnnotation(place: place))
@@ -247,6 +251,14 @@ public func putPlaces(
       mapView.addOverlay(placeOverlay)
     }
   }
+}
+
+// MARK: Remove
+
+public func removePlacesFrom(mapView: MKMapView) {
+  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? PlaceAnnotation })
+  remove(overlay: PlaceCircle.self, fromMapView: mapView)
+  remove(overlay: PlacePolygon.self, fromMapView: mapView)
 }
 
 // MARK: Place
@@ -407,7 +419,7 @@ extension Array where Element: AnyObject {
 
 // MARK: Remove
 
-func removeDeviceFrom(mapView: MKMapView) {
+public func removeDeviceFrom(mapView: MKMapView) {
   remove(annotation: DeviceAnnotation.self, fromMapView: mapView)
 }
 

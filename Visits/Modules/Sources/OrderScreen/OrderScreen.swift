@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import MapDetailView
 import NonEmpty
 import SwiftUI
 import Types
@@ -96,6 +97,7 @@ public struct OrderScreen: View {
     ) {
       ZStack {
         InformationView(
+          order: state,
           coordinate: state.location,
           address: state.address.anyAddressStreetBias?.rawValue ?? "",
           metadata: metadata,
@@ -173,6 +175,7 @@ struct StatusView: View {
 }
 
 struct InformationView: View {
+  let order: Order
   let coordinate: Coordinate
   let address: String
   let metadata: [OrderScreen.Metadata]
@@ -190,7 +193,7 @@ struct InformationView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 0) {
-        AppleMapView(coordinate: coordinate.coordinate2D, span: 150)
+        MapDetailView(object: .order(order))
           .frame(height: 160)
           .padding(.top, 44)
           .onTapGesture(perform: mapTapped)

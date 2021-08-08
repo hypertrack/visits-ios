@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import MapDetailView
 import MapKit
 import SwiftUI
 import Types
@@ -63,7 +64,17 @@ public struct AddPlaceView: View {
         )
       case let .addingPlace(c, ie, _, _):
         VStack(spacing: 0) {
-          AppleMapView(coordinate: c.coordinate2D, span: 150)
+          MapDetailView(
+            object: .place(
+              .init(
+                id: "Temp",
+                address: .none,
+                createdAt: .init(rawValue: Date()),
+                shape: .circle(.init(center: c, radius: 150)),
+                visits: []
+              )
+            )
+          )
             .frame(height: 250)
           ContentCell(
             title: "Name",
