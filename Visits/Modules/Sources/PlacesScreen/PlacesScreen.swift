@@ -102,14 +102,6 @@ struct PlacesList: View {
   }
 }
 
-extension Sequence {
-  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-    return sorted { a, b in
-      return a[keyPath: keyPath] < b[keyPath: keyPath]
-    }
-  }
-}
-
 struct PrimaryRow: View {
   let text: String
   
@@ -195,55 +187,6 @@ extension PlacesScreen.State {
       )
     }
     return sections
-  }
-}
-
-extension Place {
-  var name: String? {
-    if let name = metadata["name"] {
-      return name.string
-    }
-    if let nameKey = metadata.keys.first(where: { $0.string.contains("name") }),
-       let name = metadata[nameKey]  {
-      return name.string
-    }
-    return nil
-  }
-  
-  var fallbackTitle: String {
-    if Calendar.current.isDate(createdAt.rawValue, equalTo: Date(), toGranularity: .day) {
-      return "Place created @ \(DateFormatter.stringTime(createdAt.rawValue))"
-    } else {
-      return "Place created @ \(DateFormatter.stringDate(createdAt.rawValue)), \(DateFormatter.stringTime(createdAt.rawValue))"
-    }
-  }
-  var numberOfVisits: UInt {
-    switch currentlyInside {
-    case .some: return UInt(1 + visits.count)
-    case .none: return UInt(visits.count)
-    }
-  }
-}
-
-extension DateFormatter {
-  static func stringTime(_ date: Date) -> String {
-    let dateFormat = DateFormatter()
-    dateFormat.locale = Locale(identifier: "en_US_POSIX")
-    dateFormat.dateFormat = "h:mm a"
-    return dateFormat.string(from: date)
-  }
-}
-
-extension DateFormatter {
-  static func stringDate(_ date: Date) -> String {
-    let dateFormat = DateFormatter()
-    dateFormat.locale = Locale(identifier: "en_US_POSIX")
-    if Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) {
-      dateFormat.dateFormat = "MMM d"
-    } else {
-      dateFormat.dateFormat = "MMM d, yyyy"
-    }
-    return dateFormat.string(from: date)
   }
 }
 
@@ -387,14 +330,14 @@ struct PlaceView: View {
         }
         if let place = placeAndTime.place.name,
            let address = placeAndTime.place.address.anyAddressStreetBias?.rawValue {
-          PrimaryRow(place)
+          PrimaryRow(place.rawValue)
             .padding(.bottom, -3)
           SecondaryRow(address)
         } else {
           PrimaryRow(
-            placeAndTime.place.name ??
+            placeAndTime.place.name?.rawValue ??
               (placeAndTime.place.address.anyAddressStreetBias?.rawValue ??
-                placeAndTime.place.fallbackTitle)
+                placeAndTime.place.fallbackTitle.rawValue)
           )
         }
       }

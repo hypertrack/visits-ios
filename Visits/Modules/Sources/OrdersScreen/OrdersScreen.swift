@@ -162,34 +162,10 @@ extension OrdersScreen {
   func orderSection(for status: Status, order: [Order], didSelect cell: @escaping (Order) -> Void) -> some View {
     CustomSection(header: "\(status.rawValue)") {
       ForEach(order) { order in
-        DeliveryCell(title: "\(orderTitle(from: order))") {
+        DeliveryCell(title: "\(order.title)") {
           cell(order)
         }
       }
-    }
-  }
-}
-
-func orderTitle(from v: Order) -> String {
-  switch v.address.anyAddressStreetBias {
-  case     .none:    return "Order @ \(DateFormatter.stringDate(v.createdAt))"
-  case let .some(a): return a.rawValue
-  }
-}
-
-extension DateFormatter {
-  static func stringDate(_ date: Date) -> String {
-    let dateFormat = DateFormatter()
-    dateFormat.locale = Locale(identifier: "en_US_POSIX")
-    dateFormat.dateFormat = "h:mm a"
-    return dateFormat.string(from: date)
-  }
-}
-
-extension Sequence {
-  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-    return sorted { a, b in
-      return a[keyPath: keyPath] < b[keyPath: keyPath]
     }
   }
 }

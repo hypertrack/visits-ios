@@ -126,3 +126,37 @@ extension Place.Visit: Codable {}
 extension Place.Route: Codable {}
 extension Place.Entry: Codable {}
 extension Place: Codable {}
+
+public extension Place {
+  var visited: Bool { currentlyInside != nil || !visits.isEmpty }
+  
+  var title: NonEmptyString {
+    name ?? address.anyAddressStreetBias ?? fallbackTitle
+  }
+  
+  var name: NonEmptyString? {
+    if let name = metadata["name"] {
+      return name.rawValue
+    }
+    if let nameKey = metadata.keys.first(where: { $0.string.contains("name") }),
+       let name = metadata[nameKey]  {
+      return name.rawValue
+    }
+    return nil
+  }
+  
+  var fallbackTitle: NonEmptyString {
+    if Calendar.current.isDate(createdAt.rawValue, equalTo: Date(), toGranularity: .day) {
+      return "Place created @ \(DateFormatter.stringTime(createdAt.rawValue))"
+    } else {
+      return "Place created @ \(DateFormatter.stringDate(createdAt.rawValue)), \(DateFormatter.stringTime(createdAt.rawValue))"
+    }
+  }
+  
+  var numberOfVisits: UInt {
+    switch currentlyInside {
+    case .some: return UInt(1 + visits.count)
+    case .none: return UInt(visits.count)
+    }
+  }
+}

@@ -1,6 +1,24 @@
 import Foundation
 
 public extension DateFormatter {
+  static func stringTime(_ date: Date) -> String {
+    let dateFormat = DateFormatter()
+    dateFormat.locale = Locale(identifier: "en_US_POSIX")
+    dateFormat.dateFormat = "h:mm a"
+    return dateFormat.string(from: date)
+  }
+  
+  static func stringDate(_ date: Date) -> String {
+    let dateFormat = DateFormatter()
+    dateFormat.locale = Locale(identifier: "en_US_POSIX")
+    if Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) {
+      dateFormat.dateFormat = "MMM d"
+    } else {
+      dateFormat.dateFormat = "MMM d, yyyy"
+    }
+    return dateFormat.string(from: date)
+  }
+  
   static let iso8601DateFormatter: DateFormatter = {
     let enUSPOSIXLocale = Locale(identifier: "en_US_POSIX")
     let iso8601DateFormatter = DateFormatter()

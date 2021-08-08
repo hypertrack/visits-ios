@@ -151,6 +151,7 @@ struct MainBlock: View {
           state: .init(
             autoZoom: state.mapState.autoZoom,
             orders: state.orders,
+            places: state.places,
             polyline: state.history?.coordinates ?? []
           ),
           send: sendMap

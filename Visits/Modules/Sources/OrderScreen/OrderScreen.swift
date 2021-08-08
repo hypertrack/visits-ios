@@ -52,7 +52,7 @@ public struct OrderScreen: View {
   
   var title: String {
     switch state.address.anyAddressStreetBias {
-    case     .none:    return "Order @ \(DateFormatter.stringDate(state.createdAt))"
+    case     .none:    return "Order @ \(DateFormatter.stringTime(state.createdAt))"
     case let .some(a): return a.rawValue
     }
   }
@@ -154,16 +154,16 @@ struct StatusView: View {
     case .none:
       EmptyView()
     case let .entered(entry):
-      VisitStatus(text: "Visited: \(DateFormatter.stringDate(entry))", state: .visited)
+      VisitStatus(text: "Visited: \(DateFormatter.stringTime(entry))", state: .visited)
     case let .visited(entry, exit):
-      VisitStatus(text: "Visited: \(DateFormatter.stringDate(entry)) — \(DateFormatter.stringDate(exit))", state: .visited)
+      VisitStatus(text: "Visited: \(DateFormatter.stringTime(entry)) — \(DateFormatter.stringTime(exit))", state: .visited)
     }
     
     switch status {
     case .ongoing, .completing, .cancelling:
       EmptyView()
     case let .completed(time):
-      VisitStatus(text: "Marked Complete at: \(DateFormatter.stringDate(time))", state: .completed)
+      VisitStatus(text: "Marked Complete at: \(DateFormatter.stringTime(time))", state: .completed)
     case .cancelled:
       VisitStatus(text: "Marked Canceled", state: .custom(color: .red))
     case .disabled:
@@ -307,23 +307,6 @@ struct CancelButton: View {
       .font(.normalHighBold)
       .foregroundColor(colorScheme == .dark ? .white : .black)
       .frame(width: 110, height: 44, alignment: .leading)
-  }
-}
-
-extension DateFormatter {
-  static func stringDate(_ date: Date) -> String {
-    let dateFormat = DateFormatter()
-    dateFormat.locale = Locale(identifier: "en_US_POSIX")
-    dateFormat.dateFormat = "h:mm a"
-    return dateFormat.string(from: date)
-  }
-}
-
-extension Sequence {
-  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-    return sorted { a, b in
-      return a[keyPath: keyPath] < b[keyPath: keyPath]
-    }
   }
 }
 

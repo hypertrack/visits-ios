@@ -103,6 +103,15 @@ public func insertOrder(_ o: Order?, into orders: Set<Order>) -> Set<Order> {
   o.map { Set.insert($0)(orders) } ?? orders
 }
 
+public extension Order {
+  var title: NonEmptyString {
+    switch self.address.anyAddressStreetBias {
+    case     .none:    return "Order @ \(DateFormatter.stringTime(self.createdAt))"
+    case let .some(a): return a
+    }
+  }
+}
+
 // MARK: - Foundation
 
 extension Order: Equatable {}

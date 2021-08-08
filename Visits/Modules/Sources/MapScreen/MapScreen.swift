@@ -1,3 +1,4 @@
+import MapDrawing
 import MapKit
 import SwiftUI
 import Types
@@ -8,10 +9,11 @@ public struct MapView: View {
   public struct State: Equatable {
     public var autoZoom: AutoZoom
     public var orders: Set<Order>
+    public var places: Set<Place>
     public var polyline: [Coordinate]
     
-    public init(autoZoom: AutoZoom, orders: Set<Order>, polyline: [Coordinate]) {
-      self.autoZoom = autoZoom; self.orders = orders; self.polyline = polyline
+    public init(autoZoom: AutoZoom, orders: Set<Order>, places: Set<Place>, polyline: [Coordinate]) {
+      self.autoZoom = autoZoom; self.orders = orders; self.places = places; self.polyline = polyline
     }
   }
   
@@ -19,6 +21,7 @@ public struct MapView: View {
     case regionDidChange
     case regionWillChange
     case selectedOrder(Order)
+    case selectedPlace(Place)
     case enableAutoZoom
   }
   
@@ -38,8 +41,10 @@ public struct MapView: View {
       MapViewRepresentable(
         polyline: state.polyline,
         orders: state.orders,
+        places: state.places,
         autoZoom: state.autoZoom,
-        sendSelectedMapOrder: { send(.selectedOrder($0)) },
+        sendSelectedOrder: { send(.selectedOrder($0)) },
+        sendSelectedPlace: { send(.selectedPlace($0)) },
         sendRegionDidChange: { send(.regionDidChange) },
         sendRegionWillChange: { send(.regionWillChange) }
       )
@@ -65,23 +70,29 @@ public struct MapView: View {
 public struct MapViewRepresentable: UIViewRepresentable {
   public var polyline: [Coordinate]
   public var orders: Set<Order>
+  public var places: Set<Place>
   public var autoZoom: AutoZoom
-  var sendSelectedMapOrder: (Order) -> Void
+  var sendSelectedOrder: (Order) -> Void
+  var sendSelectedPlace: (Place) -> Void
   var sendRegionDidChange: () -> Void
   var sendRegionWillChange: () -> Void
   
   public init(
     polyline: [Coordinate],
     orders: Set<Order>,
+    places: Set<Place>,
     autoZoom: AutoZoom,
-    sendSelectedMapOrder: @escaping (Order) -> Void,
+    sendSelectedOrder: @escaping (Order) -> Void,
+    sendSelectedPlace: @escaping (Place) -> Void,
     sendRegionDidChange: @escaping () -> Void,
     sendRegionWillChange: @escaping () -> Void
   ) {
     self.polyline = polyline
     self.orders = orders
+    self.places = places
     self.autoZoom = autoZoom
-    self.sendSelectedMapOrder = sendSelectedMapOrder
+    self.sendSelectedOrder = sendSelectedOrder
+    self.sendSelectedPlace = sendSelectedPlace
     self.sendRegionDidChange = sendRegionDidChange
     self.sendRegionWillChange = sendRegionWillChange
   }
@@ -92,6 +103,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsUserLocation = true
     mapView.showsCompass = false
     mapView.isRotateEnabled = false
+    registerAnnotations(for: mapView)
     return mapView
   }
   
@@ -100,6 +112,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
     
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
     putOrders(orders: orders, onMapView: mapView)
+    putPlaces(places: places, onMapView: mapView)
     zoomIfNeeded(onMapView: mapView)
   }
   
@@ -132,12 +145,6 @@ public struct MapViewRepresentable: UIViewRepresentable {
       control.zoomIfNeeded(onMapView: mapView)
     }
     
-    public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-      if let orderAnnotation = view.annotation as? OrderAnnotation {
-        control.sendSelectedMapOrder(orderAnnotation.order)
-      }
-    }
-    
     public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
          mapViewRegionDidChangeFromUserInteraction(mapView){
@@ -149,6 +156,14 @@ public struct MapViewRepresentable: UIViewRepresentable {
       if control.autoZoom == .enabled,
          mapViewRegionDidChangeFromUserInteraction(mapView){
         control.sendRegionWillChange()
+      }
+    }
+    
+    public func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped c: UIControl) {
+      switch calloutAccessoryControlTapped(for: view) {
+      case let .order(o): control.sendSelectedOrder(o)
+      case let .place(p): control.sendSelectedPlace(p)
+      default: break
       }
     }
   }
@@ -192,6 +207,7 @@ struct MapView_Previews: PreviewProvider {
             visited: .entered(Date())
           )
         ],
+        places: [],
         polyline: [
           Coordinate(latitude: 37.76477793772538, longitude: -122.41957068443297)!,
           Coordinate(latitude: 37.76477793772538, longitude: -122.4196484684944)!,

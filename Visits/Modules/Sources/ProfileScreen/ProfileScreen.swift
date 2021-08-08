@@ -160,14 +160,6 @@ func metadata(from dictionary: [NonEmptyString: NonEmptyString]) -> [Metadata] {
   .sorted(by: \.id)
 }
 
-extension Sequence {
-  func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-    return sorted { a, b in
-      return a[keyPath: keyPath] < b[keyPath: keyPath]
-    }
-  }
-}
-
 struct ProfileScreen_Previews: PreviewProvider {
   static var previews: some View {
     ProfileScreen(

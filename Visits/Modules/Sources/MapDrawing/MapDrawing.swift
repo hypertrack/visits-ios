@@ -3,7 +3,7 @@ import Types
 
 // MARK: - Orders
 
-func putOrders(
+public func putOrders(
   orders: Set<Order>,
   onMapView mapView: MKMapView
 ) {
@@ -13,25 +13,25 @@ func putOrders(
   for order in orders {
     mapView.addAnnotation(OrderAnnotation(order: order))
     
-    let geofenceOverlay = OrderCircle(center: order.location.coordinate2D, radius: 50)
-    geofenceOverlay.order = order
+    let destinationOverlay = OrderCircle(center: order.location.coordinate2D, radius: 50)
+    destinationOverlay.order = order
     if let polylineOverlay = polyline(fromMapView: mapView) {
-      mapView.insertOverlay(geofenceOverlay, below: polylineOverlay)
+      mapView.insertOverlay(destinationOverlay, below: polylineOverlay)
     } else {
-      mapView.addOverlay(geofenceOverlay)
+      mapView.addOverlay(destinationOverlay)
     }
   }
 }
 
 class OrderCircle: MKCircle {
-  var order: Order?
+  var order: Order!
 }
 
 // MARK: Order
 
-class OrderAnnotation: NSObject, MKAnnotation {
-  var coordinate: CLLocationCoordinate2D
-  let order: Order
+public class OrderAnnotation: NSObject, MKAnnotation {
+  public var coordinate: CLLocationCoordinate2D
+  public let order: Order
 
   init(order: Order) {
     self.order = order
@@ -39,11 +39,15 @@ class OrderAnnotation: NSObject, MKAnnotation {
     
     super.init()
   }
+  
+  public var title: String? { order.title.rawValue }
 }
 
 class OrderPendingAnnotationView: MKAnnotationView {
-  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
     setup()
   }
 
@@ -65,8 +69,10 @@ class OrderPendingAnnotationView: MKAnnotationView {
 }
 
 class OrderVisitedAnnotationView: MKAnnotationView {
-  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
     setup()
   }
 
@@ -88,8 +94,10 @@ class OrderVisitedAnnotationView: MKAnnotationView {
 }
 
 class OrderCompletedAnnotationView: MKAnnotationView {
-  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
     setup()
   }
 
@@ -111,8 +119,10 @@ class OrderCompletedAnnotationView: MKAnnotationView {
 }
 
 class OrderCanceledAnnotationView: MKAnnotationView {
-  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
     setup()
   }
 
@@ -134,8 +144,10 @@ class OrderCanceledAnnotationView: MKAnnotationView {
 }
 
 class OrderDisabledAnnotationView: MKAnnotationView {
-  init(annotation: OrderAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
     setup()
   }
 
@@ -205,9 +217,115 @@ func drawOrder(status: Order.Status, visited: Order.Visited?) {
   context.restoreGState()
 }
 
+// MARK: - Places
+
+public func putPlaces(
+  places: Set<Place>,
+  onMapView mapView: MKMapView
+) {
+  mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? PlaceAnnotation })
+  remove(overlay: PlaceCircle.self, fromMapView: mapView)
+  remove(overlay: PlacePolygon.self, fromMapView: mapView)
+  
+  for place in places {
+    mapView.addAnnotation(PlaceAnnotation(place: place))
+    
+    let placeOverlay: PlaceOverlay
+    
+    switch place.shape {
+    case let .circle(c):
+      placeOverlay = PlaceCircle(center: c.center.coordinate2D, radius: CLLocationDistance(c.radius))
+    case let .polygon(p):
+      let pol = p.polygon.first
+      let coords = ([pol.origin] + [pol.first] + [pol.second] + pol.rest).map(\.coordinate2D)
+      placeOverlay = PlacePolygon(coordinates: coords, count: coords.count)
+    }
+    placeOverlay.place = place
+    if let polylineOverlay = polyline(fromMapView: mapView) {
+      mapView.insertOverlay(placeOverlay, below: polylineOverlay)
+    } else {
+      mapView.addOverlay(placeOverlay)
+    }
+  }
+}
+
+// MARK: Place
+
+public class PlaceAnnotation: NSObject, MKAnnotation {
+  public var coordinate: CLLocationCoordinate2D
+  public let place: Place
+
+  public var title: String? {
+    place.title.rawValue
+  }
+  
+  public var subtitle: String? {
+    if place.name != nil, let address = place.address.anyAddressStreetBias?.rawValue {
+      return address
+    } else {
+      return nil
+    }
+  }
+  
+  init(place: Place) {
+    self.place = place
+    self.coordinate = place.shape.centerCoordinate.coordinate2D
+    
+    super.init()
+  }
+}
+
+class PlaceAnnotationView: MKAnnotationView {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+    super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    self.canShowCallout = true
+    self.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+    setup()
+  }
+
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+
+  func setup() {
+    frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+    backgroundColor = UIColor.clear
+  }
+
+  override func draw(_: CGRect) {}
+}
+
+protocol PlaceOverlay: MKOverlay {
+  var place: Place! { get set }
+}
+
+class PlaceCircle: MKCircle, PlaceOverlay {
+  var place: Place!
+  
+//  init(center coord: CLLocationCoordinate2D, radius: CLLocationDistance, place: Place) {
+//    self.place = place
+//    super.init()
+//    super.init(center: coord, radius: radius)
+//  }
+}
+
+class PlacePolygon: MKPolygon, PlaceOverlay {
+  var place: Place!
+  
+//  init(polygon: GeofenceShapePolygon, place: Place) {
+//    self.place = place
+//    super.init()
+//    let pol = polygon.polygon.first
+//    let coords = ([pol.origin] + [pol.first] + [pol.second] + pol.rest).map(\.coordinate2D)
+//    super.init(coordinates: coords, count: coords.count)
+//  }
+}
+
+
 // MARK: - Polyline
 
-func putPolyline(
+public func putPolyline(
   polyline: [CLLocationCoordinate2D],
   onMapView mapView: MKMapView
 ) {
@@ -316,7 +434,7 @@ class DeviceAnnotation: NSObject, MKAnnotation {
 
 class DeviceAnnotationView: MKAnnotationView {
 
-  init(annotation: DeviceAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -375,7 +493,7 @@ class SourceAnnotation: NSObject, MKAnnotation {
 }
 
 class SourceAnnotationView: MKAnnotationView {
-  init(annotation: MKAnnotation, reuseIdentifier: String) {
+  override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     setup()
   }
@@ -593,60 +711,52 @@ public enum Edges {
 
 // MARK: - Views
 
+
+let deviceAnnoationID = "DeviceAnnotation"
+let sourceAnnotationID = "SourceAnnotation"
+let orderPendingAnnotationID = "OrderPendingAnnotation"
+let orderVisitedAnnotationID = "OrderVisitedAnnotation"
+let orderCompletedAnnotationID = "OrderCompletedAnnotation"
+let orderCanceledAnnotationID = "OrderCanceledAnnotation"
+let orderDisabledAnnotationID = "OrderDisabledAnnotation"
+let placeAnnotationID = "PlaceAnnotation"
+
+
+public func registerAnnotations(for mapView: MKMapView) {
+  mapView.register(DeviceAnnotationView.self, forAnnotationViewWithReuseIdentifier: deviceAnnoationID)
+  mapView.register(SourceAnnotationView.self, forAnnotationViewWithReuseIdentifier: sourceAnnotationID)
+  mapView.register(OrderPendingAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderPendingAnnotationID)
+  mapView.register(OrderVisitedAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderVisitedAnnotationID)
+  mapView.register(OrderCompletedAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderCompletedAnnotationID)
+  mapView.register(OrderCanceledAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderCanceledAnnotationID)
+  mapView.register(OrderDisabledAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderDisabledAnnotationID)
+  mapView.register(PlaceAnnotationView.self, forAnnotationViewWithReuseIdentifier: placeAnnotationID)
+}
+
 public func annotationViewForAnnotation(
   _ annotation: MKAnnotation,
   onMapView mapView: MKMapView
 ) -> MKAnnotationView? {
-  if let deviceAnnotation = annotation as? DeviceAnnotation {
-    let reuseIdentifier = "DeviceAnnotation"
-    if let deviceAnnotationView = mapView.dequeueReusableAnnotationView(
-      withIdentifier: reuseIdentifier
-    ) {
-      return deviceAnnotationView
-    } else {
-      return DeviceAnnotationView(
-        annotation: deviceAnnotation,
-        reuseIdentifier: reuseIdentifier
-      )
-    }
-  } else if let sourceAnnotation = annotation as? SourceAnnotation {
-    let reuseIdentifier = "SourceAnnotation"
-    if let sourceAnnotationView = mapView.dequeueReusableAnnotationView(
-      withIdentifier: reuseIdentifier
-    ) {
-      return sourceAnnotationView
-    } else {
-      return SourceAnnotationView(
-        annotation: sourceAnnotation,
-        reuseIdentifier: reuseIdentifier
-      )
-    }
-  } else if let orderAnnotation = annotation as? OrderAnnotation {
+  switch annotation {
+  case let deviceAnnotation as DeviceAnnotation:
+    return mapView.dequeueReusableAnnotationView(withIdentifier: deviceAnnoationID, for: deviceAnnotation)
+  case let sourceAnnotation as SourceAnnotation:
+    return mapView.dequeueReusableAnnotationView(withIdentifier: sourceAnnotationID, for: sourceAnnotation)
+  case let orderAnnotation as OrderAnnotation:
     let reuseIdentifier: String
     switch (orderAnnotation.order.status, orderAnnotation.order.visited) {
-    case (.ongoing, .none): reuseIdentifier = "OrderPendingAnnotation"
-    case (.ongoing, .some): reuseIdentifier = "OrderVisitedAnnotation"
+    case (.ongoing, .none): reuseIdentifier = orderPendingAnnotationID
+    case (.ongoing, .some): reuseIdentifier = orderVisitedAnnotationID
     case (.completing, _),
-         (.completed, _):   reuseIdentifier = "OrderCompletedAnnotation"
+         (.completed, _):   reuseIdentifier = orderCompletedAnnotationID
     case (.cancelling, _),
-         (.cancelled, _):   reuseIdentifier = "OrderCanceledAnnotation"
-    case (.disabled, _):    reuseIdentifier = "OrderDisabledAnnotation"
+         (.cancelled, _):   reuseIdentifier = orderCanceledAnnotationID
+    case (.disabled, _):    reuseIdentifier = orderDisabledAnnotationID
     }
-    
-    if let orderAnnotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) {
-      return orderAnnotationView
-    } else {
-      switch (orderAnnotation.order.status, orderAnnotation.order.visited) {
-      case (.ongoing, .none): return OrderPendingAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case (.ongoing, .some): return OrderVisitedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case (.completing, _),
-           (.completed, _):   return OrderCompletedAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case (.cancelling, _),
-           (.cancelled, _):   return OrderCanceledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      case (.disabled, _):    return OrderDisabledAnnotationView(annotation: orderAnnotation, reuseIdentifier: reuseIdentifier)
-      }
-    }
-  } else {
+    return mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier, for: orderAnnotation)
+  case let placeAnnotation as PlaceAnnotation:
+    return mapView.dequeueReusableAnnotationView(withIdentifier: placeAnnotationID, for: placeAnnotation)
+  default:
     return nil
   }
 }
@@ -655,18 +765,49 @@ public func annotationViewForAnnotation(
 public func rendererForOverlay(
   _ overlay: MKOverlay
 ) -> MKOverlayRenderer? {
-  if let orderCircle = overlay as? OrderCircle, let order = orderCircle.order {
-    let circleRenderer = MKCircleRenderer(circle: orderCircle)
+  typealias RGB = (red: CGFloat, green: CGFloat, blue: CGFloat)
+  let grey: RGB =  (0.58, 0.573, 0.616)
+  let green: RGB = (0.0,  0.81,  0.36)
+  let fillAlpha: CGFloat   = 0.36
+  let strokeAlpha: CGFloat = 1.0
+  let color = { (c: RGB, a: CGFloat) in UIColor(red: c.red, green: c.green, blue: c.blue, alpha: a) }
+  let fillColor = { c in color(c, fillAlpha) }
+  let strokeColor = { c in color(c, strokeAlpha) }
+  
+  let greyFill = fillColor(grey)
+  let greenFill = fillColor(green)
+  let greyStroke = strokeColor(grey)
+  let greenStroke = strokeColor(green)
+  
+  let rendererSelectedStyle = { (s: Bool, r: MKOverlayPathRenderer) -> MKOverlayPathRenderer in
+    let fillColor = s ? greenFill : greyFill
+    let strokeColor = s ? greenStroke : greyStroke
+    r.fillColor = fillColor
     
-    let fillColor = order.visited == nil ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 0.25) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 0.25)
-    let strokeColor = order.visited == nil ? UIColor(red: 0.58, green: 0.573, blue: 0.616, alpha: 1) : UIColor(red: 0, green: 0.81, blue: 0.36, alpha: 1)
-    circleRenderer.fillColor = fillColor
+    r.strokeColor = strokeColor
+    r.lineWidth = 1
     
-    circleRenderer.strokeColor = strokeColor
-    circleRenderer.lineWidth = 1
-    return circleRenderer
-  } else if overlay is MKPolyline {
-    let polylineRenderer = MKPolylineRenderer(polyline: overlay as! MKPolyline)
+    return r
+  }
+  
+  switch overlay {
+  case let orderCircle as OrderCircle:
+    return rendererSelectedStyle(
+      orderCircle.order.visited != nil,
+      MKCircleRenderer(circle: orderCircle) as MKOverlayPathRenderer
+    )
+  case let placeCircle as PlaceCircle:
+    return rendererSelectedStyle(
+      placeCircle.place.visited,
+      MKCircleRenderer(circle: placeCircle) as MKOverlayPathRenderer
+    )
+  case let placePolygon as PlacePolygon:
+    return rendererSelectedStyle(
+      placePolygon.place.visited,
+      MKPolygonRenderer(polygon: placePolygon) as MKOverlayPathRenderer
+    )
+  case let polyline as MKPolyline:
+    let polylineRenderer = MKPolylineRenderer(polyline: polyline)
     polylineRenderer.strokeColor = UIColor(
       red: 0.0 / 255.0,
       green: 206.0 / 255.0,
@@ -677,7 +818,27 @@ public func rendererForOverlay(
     polylineRenderer.lineJoin = .round
     polylineRenderer.lineCap = .round
     return polylineRenderer
-  } else {
+  default:
+    return nil
+  }
+}
+ 
+public enum CalloutSource {
+  case order(Order)
+  case place(Place)
+}
+
+public func calloutAccessoryControlTapped(for annotationView: MKAnnotationView) -> CalloutSource? {
+  switch annotationView {
+  case is OrderPendingAnnotationView,
+       is OrderVisitedAnnotationView,
+       is OrderCompletedAnnotationView,
+       is OrderCanceledAnnotationView,
+       is OrderDisabledAnnotationView:
+    return .order((annotationView.annotation as! OrderAnnotation).order)
+  case is PlaceAnnotationView:
+    return .place((annotationView.annotation as! PlaceAnnotation).place)
+  default:
     return nil
   }
 }

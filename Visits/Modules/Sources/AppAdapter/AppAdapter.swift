@@ -182,6 +182,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
   case let .map(.selectedOrder(o)): return .selectOrder(o)
+  case let .map(.selectedPlace(p)): return .selectPlace(p)
   case .map(.enableAutoZoom): return .mapEnableAutoZoom
   case .tab(.places): return .switchToPlaces
   case .places(.refresh): return .updatePlaces
