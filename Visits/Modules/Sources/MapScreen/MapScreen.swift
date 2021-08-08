@@ -67,37 +67,17 @@ public struct MapView: View {
   }
 }
 
-public struct MapViewRepresentable: UIViewRepresentable {
-  public var polyline: [Coordinate]
-  public var orders: Set<Order>
-  public var places: Set<Place>
-  public var autoZoom: AutoZoom
+struct MapViewRepresentable: UIViewRepresentable {
+  var polyline: [Coordinate]
+  var orders: Set<Order>
+  var places: Set<Place>
+  var autoZoom: AutoZoom
   var sendSelectedOrder: (Order) -> Void
   var sendSelectedPlace: (Place) -> Void
   var sendRegionDidChange: () -> Void
   var sendRegionWillChange: () -> Void
   
-  public init(
-    polyline: [Coordinate],
-    orders: Set<Order>,
-    places: Set<Place>,
-    autoZoom: AutoZoom,
-    sendSelectedOrder: @escaping (Order) -> Void,
-    sendSelectedPlace: @escaping (Place) -> Void,
-    sendRegionDidChange: @escaping () -> Void,
-    sendRegionWillChange: @escaping () -> Void
-  ) {
-    self.polyline = polyline
-    self.orders = orders
-    self.places = places
-    self.autoZoom = autoZoom
-    self.sendSelectedOrder = sendSelectedOrder
-    self.sendSelectedPlace = sendSelectedPlace
-    self.sendRegionDidChange = sendRegionDidChange
-    self.sendRegionWillChange = sendRegionWillChange
-  }
-  
-  public func makeUIView(context: Context) -> MKMapView {
+  func makeUIView(context: Context) -> MKMapView {
     let mapView = MKMapView()
     mapView.delegate = context.coordinator
     mapView.showsUserLocation = true
@@ -107,7 +87,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
     return mapView
   }
   
-  public func updateUIView(_ mapView: MKMapView, context _: Context) {
+  func updateUIView(_ mapView: MKMapView, context _: Context) {
     mapView.showsUserLocation = polyline.isEmpty
     
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
@@ -122,44 +102,44 @@ public struct MapViewRepresentable: UIViewRepresentable {
     }
   }
   
-  public func makeCoordinator() -> Coordinator {
+  func makeCoordinator() -> Coordinator {
     Coordinator(self)
   }
   
-  public class Coordinator: NSObject, MKMapViewDelegate {
+  class Coordinator: NSObject, MKMapViewDelegate {
     var control: MapViewRepresentable
     
     init(_ control: MapViewRepresentable) {
       self.control = control
     }
     
-    public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
       return annotationViewForAnnotation(annotation, onMapView: mapView)
     }
     
-    public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
       return rendererForOverlay(overlay)!
     }
     
-    public func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
+    func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
       control.zoomIfNeeded(onMapView: mapView)
     }
     
-    public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
          mapViewRegionDidChangeFromUserInteraction(mapView){
         control.sendRegionDidChange()
       }
     }
     
-    public func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+    func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
          mapViewRegionDidChangeFromUserInteraction(mapView){
         control.sendRegionWillChange()
       }
     }
     
-    public func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped c: UIControl) {
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped c: UIControl) {
       switch calloutAccessoryControlTapped(for: view) {
       case let .order(o): control.sendSelectedOrder(o)
       case let .place(p): control.sendSelectedPlace(p)
@@ -169,7 +149,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
   }
 }
 
-public func mapViewRegionDidChangeFromUserInteraction(
+func mapViewRegionDidChangeFromUserInteraction(
   _ mapView: MKMapView
 ) -> Bool {
   let view = mapView.subviews[0]

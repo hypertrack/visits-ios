@@ -1,12 +1,12 @@
 import SwiftUI
 
 
-struct PrimaryRow: View {
-  let text: String
+public struct PrimaryRow: View {
+  public let text: String
   
-  init(_ text: String) { self.text = text }
+  public init(_ text: String) { self.text = text }
   
-  var body: some View {
+  public var body: some View {
     HStack {
       Text(text)
         .font(.headline)
@@ -16,12 +16,12 @@ struct PrimaryRow: View {
   }
 }
 
-struct SecondaryRow: View {
-  let text: String
+public struct SecondaryRow: View {
+  public let text: String
   
-  init(_ text: String) { self.text = text }
+  public init(_ text: String) { self.text = text }
   
-  var body: some View {
+  public var body: some View {
     HStack {
       Text(text)
         .font(.footnote)

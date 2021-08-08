@@ -1,5 +1,7 @@
+import MapDrawing
 import MapKit
 import SwiftUI
+import Types
 import Views
 
 
@@ -7,6 +9,8 @@ private let pinShadowViewDiameter: CGFloat = 5
 
 struct PlaceMapView: UIViewRepresentable {
   @Binding var inputCoordinateForSearch: CLLocationCoordinate2D?
+  var places: Set<Place>
+  var sendSelectedPlace: (Place) -> Void
 
   private let pinView = UIImageView(image: UIImage(systemName: "mappin", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .medium, scale: .default)))
   
@@ -43,6 +47,8 @@ struct PlaceMapView: UIViewRepresentable {
       equalToConstant: pinShadowViewDiameter
     ).isActive = true
 
+    registerAnnotations(for: mapView)
+    
     return mapView
   }
 
@@ -50,7 +56,9 @@ struct PlaceMapView: UIViewRepresentable {
     Coordinator(self)
   }
 
-  func updateUIView(_ uiView: MKMapView, context _: Context) {}
+  func updateUIView(_ mapView: MKMapView, context _: Context) {
+    putPlaces(places: places, onMapView: mapView)
+  }
 
   class Coordinator: NSObject, MKMapViewDelegate {
     var control: PlaceMapView
@@ -80,6 +88,21 @@ struct PlaceMapView: UIViewRepresentable {
         UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseOut, animations: {
           self.control.pinView.frame.origin.y -= self.control.pinView.frame.height / 2
         }, completion: nil)
+      }
+    }
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+      return annotationViewForAnnotation(annotation, onMapView: mapView)
+    }
+    
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+      return rendererForOverlay(overlay)!
+    }
+    
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped c: UIControl) {
+      switch calloutAccessoryControlTapped(for: view) {
+      case let .place(p): control.sendSelectedPlace(p)
+      default: break
       }
     }
   }

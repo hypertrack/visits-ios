@@ -27,6 +27,7 @@ public enum AddPlaceAction: Equatable {
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case createPlace(Coordinate, IntegrationEntity)
   case placeCreated(Result<Place, APIError<Token.Expired>>)
+  case selectPlace(Place)
 }
 
 // MARK: - Environment
@@ -71,6 +72,13 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, AddPlaceEnvi
     else { return environment.capture("Trying to update the place coordinate when not adding place").fireAndForget() }
     
     state.flow = .choosingCoordinate(c, ies)
+    
+    return .none
+  case let .selectPlace(p):
+    guard case .choosingCoordinate = state.flow
+    else { return environment.capture("Trying to select a when not on the choosing place coordinate map view").fireAndForget() }
+    
+    state.flow = nil
     
     return .none
   case .cancelChoosingCompany:

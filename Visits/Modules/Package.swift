@@ -12,7 +12,7 @@ let targets: [Target] = [
   .target(name: "Utility"),
   // Screen
   .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
-  .target(name: "AddPlaceView",                    dependencies: [architecture, "Types", "Utility", "Views"]),
+  .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDrawing", "Types", "Utility", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapDrawing",                      dependencies: ["Types"]),

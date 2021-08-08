@@ -42,7 +42,7 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case blocker(Blocker.State)
     case main(MapState, OrderOrOrders, Set<Place>, Place?, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
-    case addPlace(AddPlaceFlow)
+    case addPlace(AddPlaceFlow, Set<Place>)
   }
   
   public enum Action {
@@ -87,23 +87,13 @@ public struct AppScreen: View {
             sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) }
           )
-        case let .addPlace(flow):
+        case let .addPlace(flow, places):
           AddPlaceView(
             store: store.scope(
               state: { state in
-                .init(flow: flow)
+                .init(flow: flow, places: places)
               },
-              action: { a in
-                switch a {
-                case     .cancelAddPlace:               return .addPlace(.cancelAddPlace)
-                case let .updatedAddPlaceCoordinate(c): return .addPlace(.updatedAddPlaceCoordinate(c))
-                case     .confirmAddPlaceCoordinate:    return .addPlace(.confirmAddPlaceCoordinate)
-                case     .cancelChoosingCompany:        return .addPlace(.cancelChoosingCompany)
-                case let .updateIntegrationsSearch(s):  return .addPlace(.updateIntegrationsSearch(s))
-                case     .searchForIntegrations:        return .addPlace(.searchForIntegrations)
-                case let .selectedIntegration(ie):      return .addPlace(.selectedIntegration(ie))
-                }
-              }
+              action: (/Action.addPlace).embed
             )
           )
         }

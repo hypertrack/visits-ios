@@ -38,6 +38,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
     case     .searchForIntegrations:         return .searchForIntegrations
     case let .selectedIntegration(ie):       return .selectedIntegration(ie)
+    case let .selectPlace(.some(p)):         return .selectPlace(p)
     case let .updateIntegrations(s):         return .updateIntegrations(s)
     case let .updateIntegrationsSearch(s):   return .updateIntegrationsSearch(s)
     case let .updatedAddPlaceCoordinate(c):  return .updatedAddPlaceCoordinate(c)
@@ -55,6 +56,7 @@ private let addPlaceActionPrism = Prism<AppAction, AddPlaceAction>(
     case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
     case     .searchForIntegrations:         return .searchForIntegrations
     case let .selectedIntegration(ie):       return .selectedIntegration(ie)
+    case let .selectPlace(p):                return .selectPlace(p)
     case let .updateIntegrations(s):         return .updateIntegrations(s)
     case let .updateIntegrationsSearch(s):   return .updateIntegrationsSearch(s)
     case let .updatedAddPlaceCoordinate(c):  return .updatedAddPlaceCoordinate(c)

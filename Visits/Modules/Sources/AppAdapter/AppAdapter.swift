@@ -96,7 +96,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
         case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
           if let flow = m.addPlace {
-            screen = .addPlace(flow)
+            screen = .addPlace(flow, m.places)
             break
           }
           
@@ -199,6 +199,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .addPlace(.cancelChoosingCompany): return .cancelChoosingCompany
   case let .addPlace(.updateIntegrationsSearch(s)): return .updateIntegrationsSearch(s)
   case .addPlace(.searchForIntegrations): return .searchForIntegrations
+  case let .addPlace(.selectedPlace(p)): return .selectPlace(p)
   case let .addPlace(.selectedIntegration(ie)): return .selectedIntegration(ie)
   case let .places(.copyToPasteboard(s)): return .copyToPasteboard(s)
   case let .places(.selectPlace(p)): return .selectPlace(p)
