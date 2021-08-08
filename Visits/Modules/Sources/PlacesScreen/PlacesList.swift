@@ -8,12 +8,17 @@ struct PlacesList: View {
   let selected: Place?
   let select: (Place?) -> Void
   let copy: (NonEmptyString) -> Void
+  let mapTapped: (Coordinate, Address) -> Void
   
   var navigationLink: NavigationLink<EmptyView, PlaceScreen>? {
     guard let place = selected  else { return nil }
     
     return NavigationLink(
-      destination: PlaceScreen(state: .init(place: place), copy: copy),
+      destination: PlaceScreen(
+        state: .init(place: place),
+        copy: copy,
+        mapTapped: mapTapped
+      ),
       tag:  place,
       selection: .init(
         get: { selected },

@@ -7,7 +7,7 @@ import BranchEnvironmentLive
 import ErrorReportingEnvironmentLive
 import HapticFeedbackEnvironmentLive
 import HyperTrackEnvironmentLive
-import MapEnvironmentLive
+import MapDependencyLive
 import PasteboardEnvironmentLive
 import PushEnvironmentLive
 import StateRestorationEnvironmentLive

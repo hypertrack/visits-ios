@@ -40,7 +40,6 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case     .completeSelectedOrder:       return .order(.completeSelectedOrder)
     case let .checkOutOrder(o):            return .order(.completeOrder(o))
     case let .orderNoteChanged(n):         return .order(.noteChanged(n <¡> Order.Note.init(rawValue:)))
-    case     .openAppleMaps:               return .order(.openAppleMaps)
     case let .selectOrder(o):              return .selectOrder(o)
     case     .deselectOrder:               return .deselectOrder
     case let .ordersUpdated(.success(os)): return .ordersUpdated(os)
@@ -56,7 +55,6 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case     .order(.completeSelectedOrder):  return .completeSelectedOrder
     case let .order(.completeOrder(o)):       return .checkOutOrder(o)
     case let .order(.noteChanged(n)):         return .orderNoteChanged(n?.rawValue)
-    case     .order(.openAppleMaps):          return .openAppleMaps
     case let .selectOrder(o):                 return .selectOrder(o)
     case     .deselectOrder:                  return .deselectOrder
     case let .ordersUpdated(os):              return .ordersUpdated(.success(os))
@@ -68,8 +66,7 @@ private func toOrdersEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Syst
   e.map { e in
     .init(
       capture: e.errorReporting.capture,
-      notifySuccess: e.hapticFeedback.notifySuccess,
-      openMap: e.maps.openMap
+      notifySuccess: e.hapticFeedback.notifySuccess
     )
   }
 }

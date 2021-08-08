@@ -13,7 +13,6 @@ public enum OrderAction: Equatable {
   case completeSelectedOrder
   case completeOrder(Order)
   case noteChanged(Order.Note?)
-  case openAppleMaps
 }
 
 // MARK: - Environment
@@ -21,10 +20,9 @@ public enum OrderAction: Equatable {
 public struct OrderEnvironment {
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var notifySuccess: () -> Effect<Never, Never>
-  public var openMap: (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   
-  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>, openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>) {
-    self.capture = capture; self.notifySuccess = notifySuccess; self.openMap = openMap
+  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>) {
+    self.capture = capture; self.notifySuccess = notifySuccess
   }
 }
 
@@ -61,14 +59,5 @@ public let orderReducer = Reducer<Order, OrderAction, SystemEnvironment<OrderEnv
     state.note = n
     
     return .none
-  case .openAppleMaps:
-    let add: Either<FullAddress, Street>?
-    switch (state.address.fullAddress, state.address.street) {
-    case     (.none, .none): add = .none
-    case let (.some(f), _):  add = .left(f)
-    case let (_, .some(s)):  add = .right(s)
-    }
-    return environment.openMap(state.location, add)
-      .fireAndForget()
   }
 }

@@ -30,10 +30,9 @@ public enum OrdersAction: Equatable {
 public struct OrdersEnvironment {
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var notifySuccess: () -> Effect<Never, Never>
-  public var openMap: (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>
   
-  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>, openMap: @escaping (Coordinate, Either<FullAddress, Street>?) -> Effect<Never, Never>) {
-    self.capture = capture; self.notifySuccess = notifySuccess; self.openMap = openMap
+  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>) {
+    self.capture = capture; self.notifySuccess = notifySuccess
   }
 }
 
@@ -47,8 +46,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       e.map { e in
         .init(
           capture: e.capture,
-          notifySuccess: e.notifySuccess,
-          openMap: e.openMap
+          notifySuccess: e.notifySuccess
         )
       }
     }
@@ -65,7 +63,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       
       return .none
     case .deselectOrder:
-      guard let o = state.selected else { return environment.capture("Can't deselect the order if none selected").fireAndForget() }
+      guard let o = state.selected else { return .none }
       
       state.orders = state.orders |> Set.insert(o)
       state.selected = nil

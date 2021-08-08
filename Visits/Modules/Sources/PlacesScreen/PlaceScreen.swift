@@ -12,13 +12,14 @@ struct PlaceScreen: View {
   
   let state: State
   let copy: (NonEmptyString) -> Void
+  let mapTapped: (Coordinate, Address) -> Void
   
   var body: some View {
     ScrollView {
       VStack(spacing: 0) {
         MapDetailView(object: .place(state.place))
           .frame(height: 250)
-          .onTapGesture(perform: {})
+          .onTapGesture(perform: { mapTapped(state.place.shape.centerCoordinate, state.place.address) })
         ContentCell(
           title: "ID",
           subTitle: state.place.id.string,
@@ -115,7 +116,8 @@ struct PlaceScreen_Previews: PreviewProvider {
       state: .init(
         place: placePreviewSample
       ),
-      copy: { _ in }
+      copy: { _ in },
+      mapTapped: { _, _ in }
     )
     .preferredColorScheme(.dark)
   }

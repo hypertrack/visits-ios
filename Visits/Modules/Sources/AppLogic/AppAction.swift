@@ -27,6 +27,7 @@ public enum AppAction: Equatable {
   case mapRegionWillChange
   case mapRegionDidChange
   case mapEnableAutoZoom
+  case openInMaps(Coordinate, Address)
   // Requests
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case cancelAllRequests
@@ -42,7 +43,6 @@ public enum AppAction: Equatable {
   case orderNoteChanged(NonEmptyString?)
   case deselectOrder
   case focusOrderNote
-  case openAppleMaps
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)

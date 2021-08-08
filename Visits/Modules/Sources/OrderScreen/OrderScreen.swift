@@ -31,7 +31,7 @@ public struct OrderScreen: View {
     case cancelButtonTapped
     case checkOutButtonTapped
     case copyTextPressed(NonEmptyString)
-    case mapTapped
+    case mapTapped(Coordinate, Address)
     case noteEnterKeyboardButtonTapped
     case noteFieldChanged(String)
     case noteTapped
@@ -112,7 +112,7 @@ public struct OrderScreen: View {
           noteFieldFocused: noteFieldFocused,
           orderNoteWantsToBecomeFocused: { send(.noteTapped) },
           orderNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
-          mapTapped: { send(.mapTapped) },
+          mapTapped: { send(.mapTapped($0, $1)) },
           copyTextPressed: {
             if let na = NonEmptyString(rawValue: $0) {
               send(.copyTextPressed(na))
@@ -187,7 +187,7 @@ struct InformationView: View {
   let noteFieldFocused: Bool
   let orderNoteWantsToBecomeFocused: () -> Void
   let orderNoteEnterButtonPressed: () -> Void
-  let mapTapped: () -> Void
+  let mapTapped: (Coordinate, Address) -> Void
   let copyTextPressed: (String) -> Void
   
   var body: some View {
@@ -196,7 +196,9 @@ struct InformationView: View {
         MapDetailView(object: .order(order))
           .frame(height: 160)
           .padding(.top, 44)
-          .onTapGesture(perform: mapTapped)
+          .onTapGesture {
+            mapTapped(coordinate, order.address)
+          }
         StatusView(status: status, visited: visited)
         switch status {
         case .ongoing:

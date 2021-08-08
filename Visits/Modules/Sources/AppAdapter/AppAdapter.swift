@@ -170,7 +170,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .order(.cancelButtonTapped): return .cancelSelectedOrder
   case .order(.checkOutButtonTapped): return .completeSelectedOrder
   case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)
-  case .order(.mapTapped): return .openAppleMaps
+  case let .order(.mapTapped(c, a)), let .places(.mapTapped(c, a)): return .openInMaps(c, a)
   case .order(.noteEnterKeyboardButtonTapped): return .dismissFocus
   case let .order(.noteFieldChanged(d)) where d.isEmpty: return .orderNoteChanged(nil)
   case let .order(.noteFieldChanged(d)): return .orderNoteChanged(.init(stringLiteral: d))

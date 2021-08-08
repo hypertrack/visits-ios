@@ -1,12 +1,12 @@
 import ComposableArchitecture
 import LogEnvironment
-import MapEnvironment
+import MapDependency
 import MapKit
 import Utility
 import Types
 
 
-public extension MapEnvironment {
+public extension MapDependency {
   static let live = Self(
     openMap: { coordinate, address in
       .fireAndForget {
@@ -21,19 +21,11 @@ public extension MapEnvironment {
             MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: region.center),
             MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: region.span)
         ]
-        if let address = addressString(from: address) {
+        if let address = address.street?.string ?? address.fullAddress?.string {
           mapItem.name = address
         }
         mapItem.openInMaps(launchOptions: options)
       }
     }
   )
-}
-
-func addressString(from a: Either<FullAddress, Street>?) -> String? {
-  switch a {
-  case .none: return nil
-  case let .some(.left(full)): return full.string
-  case let .some(.right(street)): return street.string
-  }
 }

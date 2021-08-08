@@ -27,6 +27,7 @@ public struct PlacesScreen: View {
     case addPlace
     case copyToPasteboard(NonEmptyString)
     case selectPlace(Place?)
+    case mapTapped(Coordinate, Address)
   }
   
   let state: State
@@ -53,7 +54,8 @@ public struct PlacesScreen: View {
         placesToDisplay: state.placesToDisplay,
         selected: state.selected,
         select: { send(.selectPlace($0)) },
-        copy: { send(.copyToPasteboard($0)) }
+        copy: { send(.copyToPasteboard($0)) },
+        mapTapped: { send(.mapTapped($0, $1)) }
       )
         .toolbar {
           ToolbarItem(placement: .navigationBarLeading) {
