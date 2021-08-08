@@ -110,6 +110,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             m.map,
             ord,
             m.places,
+            m.selectedPlace,
             m.requests,
             m.history,
             m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
@@ -200,6 +201,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .addPlace(.searchForIntegrations): return .searchForIntegrations
   case let .addPlace(.selectedIntegration(ie)): return .selectedIntegration(ie)
   case let .places(.copyToPasteboard(s)): return .copyToPasteboard(s)
+  case let .places(.selectPlace(p)): return .selectPlace(p)
   }
 }
 

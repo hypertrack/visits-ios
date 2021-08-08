@@ -41,7 +41,7 @@ public struct AppScreen: View {
     case loading
     case signIn(SignInState)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, Set<Place>, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, Set<Place>, Place?, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
     case addPlace(AddPlaceFlow)
   }
   
@@ -77,9 +77,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(m, s, p, r, h, mv, pr, i, deID, sel, ver):
+        case let .main(m, s, p, sp, r, h, mv, pr, i, deID, sel, ver):
           MainBlock(
-            state: (m, s, p, r, h, mv, pr, i, deID, sel, ver),
+            state: (m, s, p, sp, r, h, mv, pr, i, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -123,6 +123,7 @@ struct MainBlock: View {
     mapState: MapState,
     orderScreenState: OrderOrOrders,
     places: Set<Place>,
+    selectedPlace: Place?,
     requests: Set<Request>,
     history: History?,
     orders: Set<Order>,
@@ -199,6 +200,7 @@ struct MainBlock: View {
       PlacesScreen(
         state: .init(
           places: state.places,
+          selected: state.selectedPlace,
           refreshing: state.requests.contains(Request.places),
           integrationStatus: state.integrationStatus),
         send: sendPlaces

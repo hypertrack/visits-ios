@@ -10,11 +10,13 @@ public struct PlacesScreen: View {
    
   public struct State {
     let places: Set<Place>
+    let selected: Place?
     let refreshing: Bool
     let integrationStatus: IntegrationStatus
     
-    public init(places: Set<Place>, refreshing: Bool, integrationStatus: IntegrationStatus) {
+    public init(places: Set<Place>, selected: Place? = nil, refreshing: Bool, integrationStatus: IntegrationStatus) {
       self.places = places
+      self.selected = selected
       self.refreshing = refreshing
       self.integrationStatus = integrationStatus
     }
@@ -23,6 +25,7 @@ public struct PlacesScreen: View {
     case refresh
     case addPlace
     case copyToPasteboard(NonEmptyString)
+    case selectPlace(Place?)
   }
   
   let state: State
@@ -47,6 +50,8 @@ public struct PlacesScreen: View {
     NavigationView {
       PlacesList(
         placesToDisplay: state.placesToDisplay,
+        selected: state.selected,
+        select: { send(.selectPlace($0)) },
         copy: { send(.copyToPasteboard($0)) }
       )
         .toolbar {
@@ -66,6 +71,7 @@ public struct PlacesScreen: View {
           }
         }
     }
+    .navigationViewStyle(StackNavigationViewStyle())
   }
 }
 
@@ -73,17 +79,35 @@ public struct PlacesScreen: View {
 
 struct PlacesList: View {
   let placesToDisplay: [PlacesSection]
+  let selected: Place?
+  let select: (Place?) -> Void
   let copy: (NonEmptyString) -> Void
+  
+  var navigationLink: NavigationLink<EmptyView, PlaceScreen>? {
+    guard let place = selected  else { return nil }
+    
+    return NavigationLink(
+      destination: PlaceScreen(state: .init(place: place), copy: copy),
+      tag:  place,
+      selection: .init(
+        get: { selected },
+        set: { select($0) }
+      )
+    ) {
+      EmptyView()
+    }
+  }
   
   var body: some View {
     ZStack {
+      navigationLink
       List {
         ForEach(placesToDisplay, id: \.header) { section in
           Section(header: Text(section.header).font(.subheadline)) {
             ForEach(section.places, id: \.place.id) { placeAndTime in
-              NavigationLink(
-                destination: PlaceScreen(state: .init(place: placeAndTime.place), copy: copy)
-              ) {
+              Button {
+                select(placeAndTime.place)
+              } label: {
                 PlaceView(placeAndTime: placeAndTime)
               }
             }
