@@ -222,7 +222,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.history)
     
     return effects
-  case .updateOrders, .switchToOrders:
+  case .updateOrders:
     guard !state.requests.contains(.orders) else { return .none }
     
     let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
@@ -231,7 +231,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.orders)
     
     return effects
-  case .updatePlaces, .switchToPlaces, .placeCreated(.success):
+  case .updatePlaces, .placeCreated(.success):
     guard !state.requests.contains(.places) else { return .none }
     
     let (token, effects) = requestOrRefreshToken(state.token, request: .places |> flip(requestEffect))
@@ -465,6 +465,8 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingProfileID()),
       .cancel(id: RequestingTokenID())
     )
+  case .switchToPlaces, .switchToOrders:
+    return .none
   }
 }
 
