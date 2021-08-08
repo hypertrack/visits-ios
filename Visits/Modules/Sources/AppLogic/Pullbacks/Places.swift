@@ -29,6 +29,7 @@ private let placesStateLens = Lens<MainState, PlacesState>(
 private let placesActionPrism = Prism<AppAction, PlacesAction>(
   extract: { a in
     switch a {
+    case let .placeCreated(.success(p)):   return .placeCreated(p)
     case let .placesUpdated(.success(ps)): return .placesUpdated(ps)
     case let .selectPlace(p):              return .selectPlace(p)
     default: return nil
@@ -36,6 +37,7 @@ private let placesActionPrism = Prism<AppAction, PlacesAction>(
   },
   embed: { a in
     switch a {
+    case let .placeCreated(p):   return .placeCreated(.success(p))
     case let .placesUpdated(ps): return .placesUpdated(.success(ps))
     case let .selectPlace(p):    return .selectPlace(p)
     }

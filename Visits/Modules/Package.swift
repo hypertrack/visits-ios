@@ -65,7 +65,7 @@ let targets: [Target] = [
   .target(name: "ManualReportLogic",               dependencies: [architecture, "Types"]),
   .target(name: "OrderLogic",                      dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "OrdersLogic",                     dependencies: ["AppArchitecture", architecture, nonEmpty, "OrderLogic", "Utility", tagged, "Types"]),
-  .target(name: "PlacesLogic",                     dependencies: [architecture, "Types"]),
+  .target(name: "PlacesLogic",                     dependencies: [architecture, "Types", "Utility"]),
   .target(name: "ProfileLogic",                    dependencies: ["AppArchitecture", "Types"]),
   .target(name: "RequestLogic",                    dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "SignInLogic",                     dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),

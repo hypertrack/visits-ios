@@ -13,7 +13,7 @@ func getPlaces(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Plac
   logEffect("getPlaces")
   
   return getGeofences(auth: token, deviceID: deID)
-    .map { Set($0.compactMap(Place.init(geofence:))) }
+    .map { Set($0.map(Place.init(geofence:))) }
     .catchToEffect()
 }
 
@@ -61,7 +61,7 @@ func geofencesRequest(auth token: Token.Value, deviceID: DeviceID, paginationTok
 }
 
 extension Place {
-  init?(geofence: Geofence) {
+  init(geofence: Geofence) {
     let id: Place.ID = wrap(geofence.id)
     let address: Address = .init(string: geofence.address)
     let createdAt: Place.CreatedTimestamp = wrap(geofence.createdAt)

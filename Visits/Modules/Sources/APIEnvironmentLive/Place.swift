@@ -12,15 +12,17 @@ func createPlace(
   _ dID: DeviceID,
   _ c: Coordinate,
   _ ie: IntegrationEntity
-) -> Effect<Result<Terminal, APIError<Token.Expired>>, Never> {
+) -> Effect<Result<Place, APIError<Token.Expired>>, Never> {
   logEffect("addPlace")
   
   return callAPI(
     request: createPlaceRequest(auth: token, deviceID: dID, coordinate: c, integrationEntity: ie),
-    success: Terminal.self,
+    success: NonEmptyArray<Geofence>.self,
     failure: Token.Expired.self
   )
-    .catchToEffect()
+  .map(\.first)
+  .map(Place.init(geofence:))
+  .catchToEffect()
 }
 
 func createPlaceRequest(auth token: Token.Value, deviceID: DeviceID, coordinate: Coordinate, integrationEntity: IntegrationEntity) -> URLRequest {

@@ -26,7 +26,7 @@ public enum AddPlaceAction: Equatable {
   case updateIntegrations(Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case createPlace(Coordinate, IntegrationEntity)
-  case placeCreated(Result<Terminal, APIError<Token.Expired>>)
+  case placeCreated(Result<Place, APIError<Token.Expired>>)
 }
 
 // MARK: - Environment

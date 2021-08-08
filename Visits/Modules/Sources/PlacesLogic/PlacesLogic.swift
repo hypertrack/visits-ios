@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Types
+import Utility
 
 
 // MARK: - State
@@ -15,6 +16,7 @@ public struct PlacesState: Equatable {
 // MARK: - Action
 
 public enum PlacesAction: Equatable {
+  case placeCreated(Place)
   case placesUpdated(Set<Place>)
   case selectPlace(Place?)
 }
@@ -28,6 +30,11 @@ public let placesReducer = Reducer<PlacesState, PlacesAction, Void> { state, act
     
     return .none
   case let .selectPlace(p):
+    state.selected = p
+    
+    return .none
+  case let .placeCreated(p):
+    state.places = state.places |> Set<Place>.insert(p)
     state.selected = p
     
     return .none

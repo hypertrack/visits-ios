@@ -63,7 +63,7 @@ public struct AddPlaceView: View {
           AppleMapView(coordinate: c.coordinate2D, span: 150)
             .frame(height: 250)
           ContentCell(
-            title: "Company",
+            title: "Name",
             subTitle: ie.name.string,
             leadingPadding: 24,
             isCopyButtonEnabled: true,
@@ -148,10 +148,6 @@ private struct IntegrationListView: View {
   
   let store: Store<State, Action>
   public init(store: Store<State, Action>) { self.store = store }
-  
-//  @State private var username: String = ""
-//  @State private var isEditing = false
-//  @State private var commited = false
   
   var body: some View {
     WithViewStore(store) { viewStore in
