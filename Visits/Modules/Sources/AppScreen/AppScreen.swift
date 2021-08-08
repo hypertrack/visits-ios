@@ -202,7 +202,9 @@ struct MainBlock: View {
           places: state.places,
           selected: state.selectedPlace,
           refreshing: state.requests.contains(Request.places),
-          integrationStatus: state.integrationStatus),
+          integrationStatus: state.integrationStatus,
+          coordinates: state.history?.coordinates ?? []
+        ),
         send: sendPlaces
       )
         .tabItem {

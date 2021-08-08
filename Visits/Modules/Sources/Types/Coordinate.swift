@@ -24,6 +24,13 @@ public struct Coordinate: Hashable {
       return nil
     }
   }
+  
+  public func distance(from coordinate: Coordinate) -> Double {
+    CLLocation(latitude: self.latitude, longitude: self.longitude)
+      .distance(
+        from: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+      )
+  }
 }
 
 extension Coordinate: Equatable {}

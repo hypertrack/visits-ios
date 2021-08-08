@@ -10,12 +10,16 @@ public struct PlacesScreen: View {
     let selected: Place?
     let refreshing: Bool
     let integrationStatus: IntegrationStatus
+    let coordinates: [Coordinate]
     
-    public init(places: Set<Place>, selected: Place? = nil, refreshing: Bool, integrationStatus: IntegrationStatus) {
+    var currentLocation: Coordinate? { coordinates.last }
+    
+    public init(places: Set<Place>, selected: Place? = nil, refreshing: Bool, integrationStatus: IntegrationStatus, coordinates: [Coordinate] = []) {
       self.places = places
       self.selected = selected
       self.refreshing = refreshing
       self.integrationStatus = integrationStatus
+      self.coordinates = coordinates
     }
   }
   public enum Action {

@@ -44,14 +44,20 @@ extension PlacesScreen.State {
       )
     }
     
-    let notVisitedSorted = notVisited.sorted(by: \.createdAt.rawValue)
-    let notVisitedReversed = notVisitedSorted.reversed()
+    if let currentLocation = currentLocation {
+      notVisited = notVisited.sorted { p1, p2 in
+        currentLocation.distance(from: p1.shape.centerCoordinate)
+          < currentLocation.distance(from: p2.shape.centerCoordinate)
+      }
+    } else {
+      notVisited = notVisited.sorted(by: \.createdAt.rawValue).reversed()
+    }
     
-    if !notVisitedReversed.isEmpty {
+    if !notVisited.isEmpty {
       sections.append(
         .init(
           header: "Not visited",
-          places: notVisitedReversed.map{ .init(place: $0, time: nil) }
+          places: notVisited.map{ .init(place: $0, time: nil) }
         )
       )
     }
