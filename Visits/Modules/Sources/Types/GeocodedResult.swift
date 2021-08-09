@@ -6,4 +6,8 @@ public struct GeocodedResult: Equatable {
     self.coordinate = coordinate
     self.address = address
   }
+  
+  public init(coordinate: Coordinate) {
+    self.init(coordinate: coordinate, address: .none)
+  }
 }

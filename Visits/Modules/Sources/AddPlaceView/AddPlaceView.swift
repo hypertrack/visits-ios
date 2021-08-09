@@ -18,6 +18,7 @@ public struct AddPlaceView: View {
   public enum Action: Equatable {
     case cancelAddPlace
     case cancelChoosingCompany
+    case liftedAddPlaceCoordinatePin
     case updatedAddPlaceCoordinate(Coordinate)
     case confirmAddPlaceCoordinate
     case updateIntegrationsSearch(Search)
@@ -32,13 +33,14 @@ public struct AddPlaceView: View {
   public var body: some View {
     WithViewStore(store) { viewStore in
       switch viewStore.flow {
-      case let .choosingCoordinate(c, _):
+      case let .choosingCoordinate(gr, _):
         ChoosingCoordinateView(
           store: store.scope(
-            state: constant(.init(coordinate: c, places: viewStore.places)),
+            state: constant(.init(geocoded: gr, places: viewStore.places)),
             action: { a in
               switch a {
               case     .cancelAddPlace:               return .cancelAddPlace
+              case     .liftedAddPlaceCoordinatePin:  return .liftedAddPlaceCoordinatePin
               case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
               case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
               case let .selectedPlace(p):             return .selectedPlace(p)
@@ -46,7 +48,7 @@ public struct AddPlaceView: View {
             }
           )
         )
-      case let .choosingIntegration(_, s, r, ies):
+      case let .choosingIntegration(_, _, s, r, ies):
         ChoosingCompanyView(
           store: store.scope(
             state: { _ in
@@ -62,7 +64,7 @@ public struct AddPlaceView: View {
             }
           )
         )
-      case let .addingPlace(c, ie, _, _):
+      case let .addingPlace(c, _, ie, _, _):
         VStack(spacing: 0) {
           MapDetailView(
             object: .place(

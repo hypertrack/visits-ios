@@ -28,6 +28,7 @@ public enum AppAction: Equatable {
   case mapRegionDidChange
   case mapEnableAutoZoom
   case openInMaps(Coordinate, Address)
+  case reverseGeocoded(GeocodedResult)
   // Requests
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case cancelAllRequests
@@ -56,6 +57,7 @@ public enum AppAction: Equatable {
   case addPlace
   case cancelAddPlace
   case confirmAddPlaceCoordinate
+  case liftedAddPlaceCoordinatePin
   case updatedAddPlaceCoordinate(Coordinate)
   case cancelChoosingCompany
   case updateIntegrationsSearch(Search)

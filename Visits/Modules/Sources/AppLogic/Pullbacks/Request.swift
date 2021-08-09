@@ -152,7 +152,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getPlaces:              e.api.getPlaces,
       getProfile:             e.api.getProfile,
       getToken:               e.api.getToken,
-      reverseGeocode:         e.api.reverseGeocode,
+      reverseGeocode:         e.maps.reverseGeocode,
       updateOrderNote:        e.api.updateOrderNote
     )
   }

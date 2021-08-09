@@ -203,6 +203,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .addPlace(.selectedIntegration(ie)): return .selectedIntegration(ie)
   case let .places(.copyToPasteboard(s)): return .copyToPasteboard(s)
   case let .places(.selectPlace(p)): return .selectPlace(p)
+  case .addPlace(.liftedAddPlaceCoordinatePin): return .liftedAddPlaceCoordinatePin
   }
 }
 

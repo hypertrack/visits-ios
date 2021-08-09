@@ -11,6 +11,7 @@ struct PlaceMapView: UIViewRepresentable {
   @Binding var inputCoordinateForSearch: CLLocationCoordinate2D?
   var places: Set<Place>
   var sendSelectedPlace: (Place) -> Void
+  var sendLiftedPin: () -> Void
 
   private let pinView = UIImageView(image: UIImage(systemName: "mappin", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .medium, scale: .default)))
   
@@ -89,6 +90,7 @@ struct PlaceMapView: UIViewRepresentable {
           self.control.pinView.frame.origin.y -= self.control.pinView.frame.height / 2
         }, completion: nil)
       }
+      control.sendLiftedPin()
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

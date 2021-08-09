@@ -26,6 +26,7 @@ public extension MapDependency {
         }
         mapItem.openInMaps(launchOptions: options)
       }
-    }
+    },
+    reverseGeocode: reverseGeocode(_:)
   )
 }
