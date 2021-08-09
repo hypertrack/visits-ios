@@ -27,61 +27,15 @@ struct ChoosingCoordinateView: View {
         ZStack {
           VStack(spacing: 0) {
             VStack(spacing: 0) {
-              Rectangle()
-                .fill(Color.clear)
-                .frame(
-                  height: geometry.safeAreaInsets.top > 0 ? geometry
-                    .safeAreaInsets.top : 20
-                )
-              HStack {
-                Button(action: { viewStore.send(.cancelAddPlace) }) {
-                  Image(systemName: "arrow.backward")
-                    .padding(.leading, 16)
-                }
-                Spacer()
-                Text("Add place")
-                  .padding(.top, 0)
-                  .offset(x: -16)
-                  .font(.headline)
-                  .foregroundColor(Color(.label))
-                Spacer()
-              }
-              .frame(height: 24)
-              .padding(.top, 8)
-              HStack {
-                ZStack {
-                  HStack {
-                    Text(viewStore.geocoded?.address.street?.string ?? "Search address")
-                      .frame(
-                        width: geometry.size.width - 126,
-                        height: 20,
-                        alignment: .leading
-                      )
-                      .font(
-                        Font.system(size: 14)
-                          .weight(.medium))
-                      .clipped()
-                      .offset(x: 16)
-                      .padding(.trailing, 16)
-                      .animation(nil)
-                    Image(systemName: "magnifyingglass")
-                      .foregroundColor(Color(.secondaryLabel))
-                      .padding(.trailing, 12)
-                  }
-                  Button(action: {
-                    
-                  }) {
-                    Rectangle()
-                      .fill(Color(.secondarySystemFill))
-                      .opacity(0.1)
-                  }
-                  .background(Color.clear)
-                }
-                .frame(width: geometry.size.width - 60, height: 44)
-                .background(Color(.systemFill))
-                .cornerRadius(22)
-              }
-              .padding([.leading, .trailing, .top, .bottom], 16)
+              TopPadding(geometry: geometry)
+              Header(
+                title: "Add place",
+                backAction: { viewStore.send(.cancelAddPlace) }
+              )
+              SearchBar(
+                text: viewStore.geocoded?.address.street?.string ?? "Search address address address address address",
+                geometry: geometry
+              )
             }
             .background(Color(.systemBackground))
             .clipped()
@@ -125,5 +79,109 @@ struct ChoosingCoordinateView: View {
         .edgesIgnoringSafeArea(.all)
       }
     }
+  }
+}
+
+struct ChoosingCoordinateView_Previews: PreviewProvider {
+  static var previews: some View {
+    ChoosingCoordinateView(
+      store: .init(
+        initialState: .init(
+          geocoded: nil,
+          places: []
+        ),
+        reducer: .empty,
+        environment: ())
+    )
+  }
+}
+
+
+struct BackButton: View {
+  let action: () -> Void
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: "arrow.backward")
+        .padding(.leading, 16)
+    }
+  }
+}
+
+struct Title: View {
+  private let text: String
+  init(_ text: String) {
+    self.text = text
+  }
+  
+  var body: some View {
+    Text(text)
+      .font(.title2)
+      .foregroundColor(Color(.label))
+  }
+}
+
+struct TopPadding: View {
+  let geometry: GeometryProxy
+  
+  var body: some View {
+    Rectangle()
+      .fill(Color.clear)
+      .frame(
+        height: geometry.safeAreaInsets.top > 0 ? geometry
+          .safeAreaInsets.top : 20
+      )
+  }
+}
+
+struct SearchBar: View {
+  let text: String
+  let geometry: GeometryProxy
+  
+  var body: some View {
+    HStack {
+      ZStack {
+        HStack {
+          Text(text)
+            .frame(
+              width: geometry.size.width - 126,
+              height: 20,
+              alignment: .leading
+            )
+            .font(Font.system(size: 14).weight(.medium))
+            .padding(.trailing, 16)
+          Image(systemName: "magnifyingglass")
+            .foregroundColor(Color(.secondaryLabel))
+        }
+        Button(action: {
+          
+        }) {
+          Rectangle()
+            .fill(Color(.secondarySystemFill))
+            .opacity(0.1)
+        }
+        .background(Color.clear)
+      }
+      .frame(width: geometry.size.width - 32, height: 44)
+      .background(Color(.systemFill))
+      .cornerRadius(22)
+    }
+    .padding([.top, .bottom], 16)
+  }
+}
+
+struct Header: View {
+  let title: String
+  let backAction: () -> Void
+  
+  var body: some View {
+    ZStack {
+      HStack {
+        BackButton(action: backAction)
+        Spacer()
+      }
+      Title(title)
+    }
+    .frame(height: 24)
+    .padding(.top, 8)
   }
 }
