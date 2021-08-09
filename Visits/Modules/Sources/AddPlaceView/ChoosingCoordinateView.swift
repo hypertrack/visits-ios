@@ -108,7 +108,10 @@ struct ChoosingCoordinateView: View {
           }
           VStack {
             Spacer()
-            PrimaryButton(variant: viewStore.geocoded?.coordinate != nil ? .normal(title: "Confirm") : .disabled(title: "Confirm")) {
+            PrimaryButton(
+              variant: viewStore.geocoded?.coordinate != nil ? .normal(title: "Confirm") : .disabled(title: "Confirm"),
+              isHovering: true
+            ) {
               viewStore.send(.confirmAddPlaceCoordinate)
             }
             .padding([.trailing, .leading], 64)

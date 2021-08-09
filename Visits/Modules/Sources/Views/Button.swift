@@ -4,6 +4,7 @@ import SwiftUI
 
 private struct PrimaryButtonStyle: ButtonStyle {
   private let variant: PrimaryButton.Variant
+  private let isHovering: Bool
   
   private let gradientGreen = LinearGradient(
     gradient: Gradient(colors: [.malachite, .mountainMeadow]),
@@ -16,8 +17,9 @@ private struct PrimaryButtonStyle: ButtonStyle {
     endPoint: .trailing
   )
   
-  init(variant: PrimaryButton.Variant) {
+  init(variant: PrimaryButton.Variant, isHovering: Bool = false) {
     self.variant = variant
+    self.isHovering = isHovering
   }
   
   func makeBody(configuration: Self.Configuration) -> some View {
@@ -27,6 +29,15 @@ private struct PrimaryButtonStyle: ButtonStyle {
       .foregroundColor(Color.white)
       .background(backgroundForVariant(variant, isPressed: configuration.isPressed))
       .cornerRadius(24)
+      .if(isHovering) { view in
+        view
+          .shadow(
+            color: Color(UIColor(red: 0.0, green: 206.0 / 255.0, blue: 91.0 / 255.0, alpha: 1.0)).opacity(0.3),
+            radius: 10,
+            x: 0,
+            y: 10.5
+          )
+      }
   }
   
   func backgroundForVariant(_ variant: PrimaryButton.Variant, isPressed: Bool) -> some View {
@@ -97,6 +108,7 @@ private struct ButtonActivityIndicator: UIViewRepresentable {
 public struct PrimaryButton: View {
   private let variant: Variant
   private let showActivityIndicator: Bool
+  private let isHovering: Bool
   private let truncationMode: Text.TruncationMode?
   private let onTapAction: () -> Void
   
@@ -125,11 +137,13 @@ public struct PrimaryButton: View {
   public init(
     variant: Variant,
     showActivityIndicator: Bool = false,
+    isHovering: Bool = false,
     truncationMode: Text.TruncationMode? = .middle,
     _ onTapAction: @escaping () -> Void
   ) {
     self.variant = variant
     self.showActivityIndicator = showActivityIndicator
+    self.isHovering = isHovering
     self.truncationMode = truncationMode
     self.onTapAction = onTapAction
   }
@@ -158,7 +172,7 @@ public struct PrimaryButton: View {
         Spacer()
       }
     }
-    .buttonStyle(PrimaryButtonStyle(variant: variant))
+    .buttonStyle(PrimaryButtonStyle(variant: variant, isHovering: isHovering))
     .disabled(variant.isDisabled)
   }
 }
