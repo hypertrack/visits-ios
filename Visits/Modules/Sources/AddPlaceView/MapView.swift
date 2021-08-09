@@ -13,7 +13,16 @@ struct PlaceMapView: UIViewRepresentable {
   var sendSelectedPlace: (Place) -> Void
   var sendLiftedPin: () -> Void
 
-  private let pinView = UIImageView(image: UIImage(systemName: "mappin", withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .medium, scale: .default)))
+  private let pinView = UIImageView(
+    image: UIImage(
+      systemName: "mappin",
+      withConfiguration: UIImage.SymbolConfiguration(
+        pointSize: 30,
+        weight: .medium,
+        scale: .default
+      )
+    )
+  )
   
   private let pinShadowView = UIView()
 
@@ -24,7 +33,7 @@ struct PlaceMapView: UIViewRepresentable {
     mapView.showsCompass = false
     mapView.isRotateEnabled = false
 
-    pinView.tintColor = UIColor.black
+    pinView.tintColor = UIColor.label
     pinView.translatesAutoresizingMaskIntoConstraints = false
     pinShadowView.translatesAutoresizingMaskIntoConstraints = false
 
