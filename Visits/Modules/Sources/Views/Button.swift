@@ -29,7 +29,7 @@ private struct PrimaryButtonStyle: ButtonStyle {
       .foregroundColor(Color.white)
       .background(backgroundForVariant(variant, isPressed: configuration.isPressed))
       .cornerRadius(24)
-      .if(isHovering) { view in
+      .if(isHovering && !variant.isDisabled ) { view in
         view
           .shadow(
             color: Color(UIColor(red: 0.0, green: 206.0 / 255.0, blue: 91.0 / 255.0, alpha: 1.0)).opacity(0.3),
