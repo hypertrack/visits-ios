@@ -29,7 +29,7 @@ public enum RequestAction: Equatable {
   case historyUpdated(Result<History, APIError<Token.Expired>>)
   case createPlace(Coordinate, IntegrationEntity)
   case placeCreated(Result<Place, APIError<Token.Expired>>)
-  case updateIntegrations(Search)
+  case updateIntegrations(IntegrationEntity.Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
@@ -58,7 +58,7 @@ public struct RequestEnvironment {
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var createPlace: (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
-  public var getIntegrationEntities: (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
+  public var getIntegrationEntities: (Token.Value, IntegrationEntity.Limit, IntegrationEntity.Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
   public var getPlaces: (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
@@ -72,7 +72,7 @@ public struct RequestEnvironment {
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     createPlace: @escaping (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
-    getIntegrationEntities: @escaping (Token.Value, Limit, Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
+    getIntegrationEntities: @escaping (Token.Value, IntegrationEntity.Limit, IntegrationEntity.Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
@@ -124,7 +124,7 @@ public let requestReducer = Reducer<
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getHistoryEffect(environment.getHistory(t, deID, environment.date()), environment.mainQueue)
   }
-  func getIntegrationEntities(_ t: Token.Value, _ s: Search) -> Effect<RequestAction, Never> {
+  func getIntegrationEntities(_ t: Token.Value, _ s: IntegrationEntity.Search) -> Effect<RequestAction, Never> {
     getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 50, s), environment.mainQueue)
   }
   

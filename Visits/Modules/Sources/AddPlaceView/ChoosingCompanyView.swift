@@ -6,14 +6,14 @@ import Views
 
 struct ChoosingCompanyView: View {
   struct State: Equatable {
-    var search: Search
+    var search: IntegrationEntity.Search
     var integrationEntities: [IntegrationEntity]
     var refreshing: Bool
   }
   
   public enum Action: Equatable {
     case cancelChoosingCompany
-    case updateIntegrationsSearch(Search)
+    case updateIntegrationsSearch(IntegrationEntity.Search)
     case searchForIntegrations
     case selectedIntegration(IntegrationEntity)
   }

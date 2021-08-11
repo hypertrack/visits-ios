@@ -11,6 +11,7 @@ public struct PrimaryRow: View {
       Text(text)
         .font(.headline)
         .foregroundColor(Color(.label))
+        .fixedSize(horizontal: false, vertical: true)
       Spacer()
     }
   }
@@ -27,6 +28,7 @@ public struct SecondaryRow: View {
         .font(.footnote)
         .foregroundColor(Color(.secondaryLabel))
         .fontWeight(.bold)
+        .fixedSize(horizontal: false, vertical: true)
       Spacer()
     }
   }

@@ -10,7 +10,8 @@ public struct IntegrationEntity: Equatable {
   public typealias ID    = Tagged<(IntegrationEntity, id: ()),    NonEmptyString>
   public typealias Name  = Tagged<(IntegrationEntity, name: ()),  NonEmptyString>
   
+  public typealias Limit =  Tagged<(IntegrationEntity, limit: ()),  UInt>
+  public typealias Search = Tagged<(IntegrationEntity, search: ()), String>
 }
 
-public typealias Limit =  Tagged<(IntegrationEntity, limit: ()),  UInt>
-public typealias Search = Tagged<(IntegrationEntity, search: ()), String>
+

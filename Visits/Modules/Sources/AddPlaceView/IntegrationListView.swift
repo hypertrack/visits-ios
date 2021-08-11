@@ -5,12 +5,12 @@ import Types
 
 struct IntegrationListView: View {
   struct State: Equatable {
-    var search: Search
+    var search: IntegrationEntity.Search
     var integrationEntities: [IntegrationEntity]
   }
   
   public enum Action: Equatable {
-    case updateIntegrationsSearch(Search)
+    case updateIntegrationsSearch(IntegrationEntity.Search)
     case searchForIntegrations
     case selectedIntegration(IntegrationEntity)
   }

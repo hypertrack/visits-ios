@@ -204,6 +204,13 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.copyToPasteboard(s)): return .copyToPasteboard(s)
   case let .places(.selectPlace(p)): return .selectPlace(p)
   case .addPlace(.liftedAddPlaceCoordinatePin): return .liftedAddPlaceCoordinatePin
+  case .addPlace(.searchPlaceByAddress): return .searchPlaceByAddress
+  case .addPlace(.cancelChoosingAddress): return .cancelChoosingAddress
+  case .addPlace(.searchPlaceOnMap): return .searchPlaceOnMap
+  case let .addPlace(.selectAddress(ls)): return .selectAddress(ls)
+  case let .addPlace(.updateAddressSearch(st)): return .updateAddressSearch(st)
+  case .addPlace(.cancelConfirmingLocation): return .cancelConfirmingLocation
+  case let .addPlace(.confirmAddPlaceLocation(mp)): return .confirmAddPlaceLocation(mp)
   }
 }
 

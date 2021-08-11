@@ -16,15 +16,29 @@ public struct AddPlaceView: View {
   }
   
   public enum Action: Equatable {
+    // Choosing Coordinate
     case cancelAddPlace
-    case cancelChoosingCompany
-    case liftedAddPlaceCoordinatePin
-    case updatedAddPlaceCoordinate(Coordinate)
     case confirmAddPlaceCoordinate
-    case updateIntegrationsSearch(Search)
+    case liftedAddPlaceCoordinatePin
+    case searchPlaceByAddress
+    case updatedAddPlaceCoordinate(Coordinate)
+    // Choosing Address
+    case cancelChoosingAddress
+    case searchPlaceOnMap
+    case selectAddress(LocalSearchCompletion)
+    case updateAddressSearch(Street?)
+    // Confirming Location
+    case cancelConfirmingLocation
+    case confirmAddPlaceLocation(MapPlace)
+    // Choosing Integration
+    case cancelChoosingCompany
     case searchForIntegrations
     case selectedIntegration(IntegrationEntity)
+    case updateIntegrationsSearch(IntegrationEntity.Search)
+    
+    
     case selectedPlace(Place)
+    
   }
   
   let store: Store<State, Action>
@@ -44,6 +58,7 @@ public struct AddPlaceView: View {
               case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
               case     .confirmAddPlaceCoordinate:    return .confirmAddPlaceCoordinate
               case let .selectedPlace(p):             return .selectedPlace(p)
+              case     .searchPlaceByAddress:         return .searchPlaceByAddress
               }
             }
           )
@@ -64,7 +79,7 @@ public struct AddPlaceView: View {
             }
           )
         )
-      case let .addingPlace(c, _, ie, _, _):
+      case let .addingPlace(c, _, ie, _):
         VStack(spacing: 0) {
           MapDetailView(
             object: .place(
@@ -92,6 +107,32 @@ public struct AddPlaceView: View {
           Spacer()
         }
         .edgesIgnoringSafeArea(.top)
+      case let .choosingAddress(_, st, ls, lss, _):
+        ChoosingAddressView(
+          store: store.scope(
+            state: constant(.init(search: st, searchResults: lss, selectedResult: ls)),
+            action: { a in
+              switch a {
+              case     .cancelChoosingAddress:   return .cancelChoosingAddress
+              case     .searchPlaceOnMap:        return .searchPlaceOnMap
+              case let .selectAddress(ls):       return .selectAddress(ls)
+              case let .updateAddressSearch(st): return .updateAddressSearch(st)
+              }
+            }
+          )
+        )
+      case let .confirmingLocation(_, _, ls, mps, _, _):
+        ConfirmingLocationView(
+          store: store.scope(
+            state: constant(.init(selectedResult: ls, locations: mps)),
+            action: { a in
+              switch a {
+              case     .cancelConfirmingLocation:    return .cancelConfirmingLocation
+              case let .confirmAddPlaceLocation(mp): return .confirmAddPlaceLocation(mp)
+              }
+            }
+          )
+        )
       }
     }
   }

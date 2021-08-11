@@ -57,22 +57,22 @@ public struct PlacesScreen: View {
         copy: { send(.copyToPasteboard($0)) },
         mapTapped: { send(.mapTapped($0, $1)) }
       )
-        .toolbar {
-          ToolbarItem(placement: .navigationBarLeading) {
-            RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
-              send(.refresh)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
+            send(.refresh)
+          }
+        }
+      }
+      .if(integrated && !state.coordinates.isEmpty) { view in
+        view.toolbar {
+          ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: { send(.addPlace) }) {
+              Image(systemName: "plus")
             }
           }
         }
-        .if(integrated) { view in
-          view.toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-              Button(action: { send(.addPlace) }) {
-                Image(systemName: "plus")
-              }
-            }
-          }
-        }
+      }
     }
     .navigationViewStyle(StackNavigationViewStyle())
   }

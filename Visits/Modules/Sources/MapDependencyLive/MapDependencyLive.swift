@@ -8,6 +8,8 @@ import Types
 
 public extension MapDependency {
   static let live = Self(
+    autocompleteLocalSearch: autocompleteLocalSearch(_:_:),
+    localSearch: localSearch(_:_:),
     openMap: { coordinate, address in
       .fireAndForget {
         logEffect("openMap")
@@ -27,6 +29,7 @@ public extension MapDependency {
         mapItem.openInMaps(launchOptions: options)
       }
     },
-    reverseGeocode: reverseGeocode(_:)
+    reverseGeocode: reverseGeocode(_:),
+    subscribeToLocalSearchCompletionResults: subscribeToCompletionResults
   )
 }

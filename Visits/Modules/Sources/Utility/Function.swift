@@ -41,6 +41,10 @@ public func absurd<A>(_ never: Never) -> A {}
 
 public func constant<A, B>(_ a: A) -> (B) -> A { { _ in a } }
 
+public func constant<A, B, C>(_ a: A) -> (B, C) -> A { { _, _ in a } }
+
+public func constant<A, B, C, D>(_ a: A) -> (B, C, D) -> A { { _, _, _ in a } }
+
 public func flip<A, B, C>(_ f: @escaping (A) -> (B) -> C) -> (B) -> (A) -> C {
   { b in
     { a in

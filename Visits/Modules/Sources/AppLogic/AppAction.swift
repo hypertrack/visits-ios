@@ -55,16 +55,29 @@ public enum AppAction: Equatable {
   case placeCreated(Result<Place, APIError<Token.Expired>>)
   // Adding Place
   case addPlace
+  // Choosing Coordinate
   case cancelAddPlace
   case confirmAddPlaceCoordinate
   case liftedAddPlaceCoordinatePin
+  case searchPlaceByAddress
   case updatedAddPlaceCoordinate(Coordinate)
+  // Choosing Address
+  case cancelChoosingAddress
+  case localSearchCompletionResultsUpdated([LocalSearchCompletion])
+  case localSearchUpdated(LocalSearchResult)
+  case searchPlaceOnMap
+  case selectAddress(LocalSearchCompletion)
+  case updateAddressSearch(Street?)
+  // Confirming Location
+  case cancelConfirmingLocation
+  case confirmAddPlaceLocation(MapPlace)
+  // Choosing Integration
   case cancelChoosingCompany
-  case updateIntegrationsSearch(Search)
   case searchForIntegrations
   case selectedIntegration(IntegrationEntity)
+  case updateIntegrationsSearch(IntegrationEntity.Search)
   // Integration Entities
-  case updateIntegrations(Search)
+  case updateIntegrations(IntegrationEntity.Search)
   case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
   // Profile
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)

@@ -11,10 +11,11 @@ struct ChoosingCoordinateView: View {
   }
   enum Action {
     case cancelAddPlace
-    case liftedAddPlaceCoordinatePin
-    case updatedAddPlaceCoordinate(Coordinate)
     case confirmAddPlaceCoordinate
+    case liftedAddPlaceCoordinatePin
+    case searchPlaceByAddress
     case selectedPlace(Place)
+    case updatedAddPlaceCoordinate(Coordinate)
   }
   
   
@@ -33,8 +34,11 @@ struct ChoosingCoordinateView: View {
                 backAction: { viewStore.send(.cancelAddPlace) }
               )
               SearchBar(
-                text: viewStore.geocoded?.address.street?.string ?? "Search address address address address address",
-                geometry: geometry
+                placeholder: viewStore.geocoded?.address.street?.string ?? "Search address",
+                text: .constant(""),
+                geometry: geometry,
+                tapSearchBar: { viewStore.send(.searchPlaceByAddress) },
+                active: false
               )
             }
             .background(Color(.systemBackground))
@@ -134,14 +138,21 @@ struct TopPadding: View {
 }
 
 struct SearchBar: View {
-  let text: String
+  let placeholder: String
+  let text: Binding<String>
   let geometry: GeometryProxy
+  let tapSearchBar: () -> Void
+  let active: Bool
   
   var body: some View {
     HStack {
       ZStack {
         HStack {
-          Text(text)
+          TextOrTextField(
+            placeholder: placeholder,
+            text: text,
+            isTextField: active
+          )
             .frame(
               width: geometry.size.width - 126,
               height: 20,
@@ -152,20 +163,44 @@ struct SearchBar: View {
           Image(systemName: "magnifyingglass")
             .foregroundColor(Color(.secondaryLabel))
         }
-        Button(action: {
-          
-        }) {
-          Rectangle()
-            .fill(Color(.secondarySystemFill))
-            .opacity(0.1)
+        if !active {
+          Button(action: tapSearchBar) {
+            Rectangle()
+              .fill(Color(.secondarySystemFill))
+              .opacity(0.1)
+          }
+          .background(Color.clear)
         }
-        .background(Color.clear)
       }
       .frame(width: geometry.size.width - 32, height: 44)
       .background(Color(.systemFill))
       .cornerRadius(22)
     }
     .padding([.top, .bottom], 16)
+  }
+}
+
+struct TextOrTextField: View {
+  let placeholder: String
+  let text: Binding<String>
+  let isTextField: Bool
+  
+  var body: some View {
+    if isTextField {
+      CustomTextField(
+        text: text,
+        focused: true,
+        textContentType: .fullStreetAddress,
+        keyboardType: .default,
+        returnKeyType: .search,
+        enablesReturnKeyAutomatically: true,
+        isSecureTextEntry: false,
+        wantsToBecomeFocused: {},
+        enterButtonPressed: {}
+      )
+    } else {
+      Text(placeholder)
+    }
   }
 }
 

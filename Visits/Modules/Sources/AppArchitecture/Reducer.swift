@@ -27,7 +27,7 @@ public extension Reducer {
   
   func onEntry<LocalState>(
     _ toLocalState: @escaping (State) -> LocalState?,
-    send toEffect: @escaping (LocalState) -> Effect<Action, Never>
+    send toEffect: @escaping (LocalState, Environment) -> Effect<Action, Never>
   ) -> Self where LocalState: Equatable {
     .init { state, action, environment in
       let previousLocalState = toLocalState(state)
@@ -35,7 +35,7 @@ public extension Reducer {
       let nextLocalState = toLocalState(state)
       
       if let localState = nextLocalState, previousLocalState == nil {
-        return .merge(effects, toEffect(localState))
+        return .merge(effects, toEffect(localState, environment))
       } else {
         return effects
       }

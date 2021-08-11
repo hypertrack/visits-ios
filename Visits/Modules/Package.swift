@@ -5,6 +5,7 @@ import PackageDescription
 let architecture = Target.Dependency.product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 let nonEmpty = Target.Dependency.product(name: "NonEmpty", package: "swift-nonempty")
 let tagged = Target.Dependency.product(name: "Tagged", package: "swift-tagged")
+let orderedCollections = Target.Dependency.product(name: "OrderedCollections", package: "swift-collections")
 
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Utility"]),
@@ -43,7 +44,7 @@ let targets: [Target] = [
   .target(name: "HyperTrackEnvironmentLive",       dependencies: ["HyperTrack", "HyperTrackEnvironment", "LogEnvironment", nonEmpty, tagged]),
   .target(name: "LogEnvironment",                  dependencies: [architecture]),
   .target(name: "MapDependency",                   dependencies: [architecture, "Utility", "Types"]),
-  .target(name: "MapDependencyLive",               dependencies: ["LogEnvironment", "MapDependency"]),
+  .target(name: "MapDependencyLive",               dependencies: ["LogEnvironment", "MapDependency", orderedCollections]),
   .target(name: "PasteboardEnvironment",           dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "PasteboardEnvironmentLive",       dependencies: ["LogEnvironment", "PasteboardEnvironment"]),
   .target(name: "PushEnvironment",                 dependencies: [architecture]),
@@ -96,6 +97,7 @@ let package = Package(
   },
   dependencies: [
     .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.39.4")),
+    .package(                    url: "https://github.com/apple/swift-collections",                           .exact("0.0.5")),
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.23.0")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.3.1")),
