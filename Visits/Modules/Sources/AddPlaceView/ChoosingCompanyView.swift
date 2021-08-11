@@ -1,7 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
 import Types
-import Views
 
 
 struct ChoosingCompanyView: View {
@@ -22,36 +21,43 @@ struct ChoosingCompanyView: View {
   public init(store: Store<State, Action>) { self.store = store }
   
   var body: some View {
-    WithViewStore(store) { viewStore in
-      NavigationView {
-        IntegrationListView(
-          store: store.scope(
-            state: { s in
-              .init(search: viewStore.search, integrationEntities: viewStore.integrationEntities)
-            },
-            action: { a in
-              switch a {
-              case let .updateIntegrationsSearch(s): return .updateIntegrationsSearch(s)
-              case     .searchForIntegrations:       return .searchForIntegrations
-              case let .selectedIntegration(ie):     return .selectedIntegration(ie)
+    GeometryReader { geometry in
+      WithViewStore(store) { viewStore in
+        VStack(spacing: 0) {
+          VStack(spacing: 0) {
+            TopPadding(geometry: geometry)
+            Header(
+              title: "Choose company",
+              backAction: { viewStore.send(.cancelChoosingCompany) },
+              refreshing: viewStore.refreshing
+            )
+            SearchBar(
+              placeholder: "Enter company name",
+              text: .init(
+                get: {
+                  viewStore.search.rawValue
+                },
+                set: { str in
+                  viewStore.send(.updateIntegrationsSearch(.init(rawValue: str)))
+                }
+              ),
+              geometry: geometry,
+              tapSearchBar: {},
+              enterButtonPressed: { viewStore.send(.searchForIntegrations) },
+              active: true
+            )
+          }
+          List {
+            ForEach(viewStore.integrationEntities, id: \.id) { ie in
+              Button {
+                viewStore.send(.selectedIntegration(ie))
+              } label: {
+                IntegrationEntityView(integrationEntity: ie)
               }
             }
-          )
-        )
-        .toolbar {
-          ToolbarItem(placement: .navigationBarLeading) {
-            Button(action: { viewStore.send(.cancelChoosingCompany) }) {
-              Image(systemName: "arrow.backward")
-            }
           }
         }
-        .if(viewStore.refreshing) { view in
-          view.toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-              RefreshButton(state: .refreshing) {}
-            }
-          }
-        }
+        .edgesIgnoringSafeArea(.top)
       }
     }
   }

@@ -27,7 +27,8 @@ struct ConfirmingLocationView: View {
             TopPadding(geometry: geometry)
             Header(
               title: "Confirm Location",
-              backAction: { viewStore.send(.cancelConfirmingLocation) }
+              backAction: { viewStore.send(.cancelConfirmingLocation) },
+              refreshing: false
             )
           }
           List {

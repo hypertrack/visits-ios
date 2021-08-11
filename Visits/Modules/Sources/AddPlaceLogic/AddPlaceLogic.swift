@@ -147,7 +147,7 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, SystemEnviro
     
     state.flow = flow |> AddPlaceFlow.integrationEntitiesLens *< ies
     
-    if case let .choosingIntegration(c, a, s, _, ies) = flow {
+    if case let .choosingIntegration(c, a, s, _, ies) = state.flow {
       state.flow = .choosingIntegration(c, a, s, .notRefreshing, ies)
     }
     
@@ -286,11 +286,19 @@ public let addPlaceReducer = Reducer<AddPlaceState, AddPlaceAction, SystemEnviro
     )
   }
 )
+.onEntry(
+  chooseIntegrationState,
+  send: constant(Effect(value: .updateIntegrations("")))
+)
 .onExit(
   chooseAddressState,
   send: constant(.cancel(id: LocalSearchCompletionResultsSubscriptionID()))
 )
 
+func chooseIntegrationState(_ state: AddPlaceState) -> Terminal? {
+  state *^? \.flow ** Optional.prism ** /AddPlaceFlow.choosingIntegration
+  <¡> constant(unit)
+}
 
 func chooseAddressState(_ state: AddPlaceState) -> Terminal? {
   state *^? \.flow ** Optional.prism ** /AddPlaceFlow.choosingAddress

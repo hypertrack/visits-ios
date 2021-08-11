@@ -29,7 +29,8 @@ struct ChoosingAddressView: View {
             TopPadding(geometry: geometry)
             Header(
               title: "Add place",
-              backAction: { viewStore.send(.cancelChoosingAddress) }
+              backAction: { viewStore.send(.cancelChoosingAddress) },
+              refreshing: false
             )
             SearchBar(
               placeholder: "Search address",
@@ -43,6 +44,7 @@ struct ChoosingAddressView: View {
               ),
               geometry: geometry,
               tapSearchBar: {},
+              enterButtonPressed: {},
               active: true
             )
           }

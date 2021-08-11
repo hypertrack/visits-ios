@@ -31,13 +31,15 @@ struct ChoosingCoordinateView: View {
               TopPadding(geometry: geometry)
               Header(
                 title: "Add place",
-                backAction: { viewStore.send(.cancelAddPlace) }
+                backAction: { viewStore.send(.cancelAddPlace) },
+                refreshing: false
               )
               SearchBar(
                 placeholder: viewStore.geocoded?.address.street?.string ?? "Search address",
                 text: .constant(""),
                 geometry: geometry,
                 tapSearchBar: { viewStore.send(.searchPlaceByAddress) },
+                enterButtonPressed: {},
                 active: false
               )
             }
@@ -142,6 +144,7 @@ struct SearchBar: View {
   let text: Binding<String>
   let geometry: GeometryProxy
   let tapSearchBar: () -> Void
+  let enterButtonPressed: () -> Void
   let active: Bool
   
   var body: some View {
@@ -151,7 +154,8 @@ struct SearchBar: View {
           TextOrTextField(
             placeholder: placeholder,
             text: text,
-            isTextField: active
+            isTextField: active,
+            enterButtonPressed: enterButtonPressed
           )
             .frame(
               width: geometry.size.width - 126,
@@ -184,6 +188,7 @@ struct TextOrTextField: View {
   let placeholder: String
   let text: Binding<String>
   let isTextField: Bool
+  let enterButtonPressed: () -> Void
   
   var body: some View {
     if isTextField {
@@ -196,7 +201,7 @@ struct TextOrTextField: View {
         enablesReturnKeyAutomatically: true,
         isSecureTextEntry: false,
         wantsToBecomeFocused: {},
-        enterButtonPressed: {}
+        enterButtonPressed: enterButtonPressed
       )
     } else {
       Text(placeholder)
@@ -207,12 +212,18 @@ struct TextOrTextField: View {
 struct Header: View {
   let title: String
   let backAction: () -> Void
+  let refreshing: Bool
   
   var body: some View {
     ZStack {
       HStack {
         BackButton(action: backAction)
         Spacer()
+        if refreshing {
+          ProgressView()
+            .progressViewStyle(CircularProgressViewStyle())
+            .padding()
+        }
       }
       Title(title)
     }

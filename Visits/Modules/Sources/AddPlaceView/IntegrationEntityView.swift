@@ -12,10 +12,12 @@ struct IntegrationEntityView: View {
       Image(systemName: "building.2.crop.circle")
         .font(.title)
         .foregroundColor(.accentColor)
+        .frame(width: 20, height: 20, alignment: .center)
         .padding(.trailing, 10)
       PrimaryRow(
         integrationEntity.name.string
       )
     }
-    .padding(.vertical, 10)  }
+    .padding(.vertical, 10)
+  }
 }
