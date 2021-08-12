@@ -51,34 +51,48 @@ public enum AppAction: Equatable {
   case selectPlace(Place?)
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
   case updatePlaces
-  case createPlace(Coordinate, IntegrationEntity)
-  case placeCreated(Result<Place, APIError<Token.Expired>>)
+  case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
+  case placeCreatedWithSuccess(Place)
+  case placeCreatedWithFailure(APIError<Token.Expired>)
   // Adding Place
   case addPlace
-  // Choosing Coordinate
+  //   Choosing Coordinate
   case cancelAddPlace
   case confirmAddPlaceCoordinate
   case liftedAddPlaceCoordinatePin
   case searchPlaceByAddress
   case updatedAddPlaceCoordinate(Coordinate)
-  // Choosing Address
+  //   Choosing Address
   case cancelChoosingAddress
   case localSearchCompletionResultsUpdated([LocalSearchCompletion])
-  case localSearchUpdated(LocalSearchResult)
+  case localSearchUpdatedWithResult(MapPlace)
+  case localSearchUpdatedWithResults(MapPlace, NonEmptyArray<MapPlace>)
+  case localSearchUpdatedWithEmptyResult
+  case localSearchUpdatedWithError(LocalSearchResult.Error)
+  case localSearchUpdatedWithFatalError
   case searchPlaceOnMap
   case selectAddress(LocalSearchCompletion)
-  case updateAddressSearch(Street?)
-  // Confirming Location
+  case updateAddressSearch(AddressSearch?)
+  //   Confirming Location
   case cancelConfirmingLocation
   case confirmAddPlaceLocation(MapPlace)
-  // Choosing Integration
+  //   Editing Metadata
+  case addPlaceDescriptionUpdated(PlaceDescription?)
+  case cancelEditingAddPlaceMetadata
+  case chooseCompany
+  case createPlaceTapped
+  case customAddressUpdated(CustomAddress?)
+  case decreaseAddPlaceRadius
+  case increaseAddPlaceRadius
+  //   Choosing Integration
   case cancelChoosingCompany
   case searchForIntegrations
   case selectedIntegration(IntegrationEntity)
-  case updateIntegrationsSearch(IntegrationEntity.Search)
+  case updateIntegrationsSearch(IntegrationSearch)
   // Integration Entities
-  case updateIntegrations(IntegrationEntity.Search)
-  case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
+  case updateIntegrations(IntegrationSearch)
+  case integrationEntitiesUpdatedWithSuccess([IntegrationEntity])
+  case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
   // Profile
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   // TabView

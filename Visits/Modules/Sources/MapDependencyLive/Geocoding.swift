@@ -51,7 +51,7 @@ func subscribeToCompletionResults() -> Effect<[LocalSearchCompletion], Never> {
   }
 }
 
-func autocompleteLocalSearch(_ search: Street?, _ around: Coordinate) -> Effect<Never, Never> {
+func autocompleteLocalSearch(_ search: AddressSearch?, _ around: Coordinate) -> Effect<Never, Never> {
   .fireAndForget {
     guard let search = search else {
       if searchCompleter.isSearching {
@@ -122,9 +122,14 @@ func localSearch(_ completion: LocalSearchCompletion, _ around: Coordinate) -> E
           if let fullMatch = naItems.first(where: { mp in
             mp.address.fullAddress?.string == completion.subtitle?.string
           }) {
-            callback(.success(.results(NonEmptyArray(fullMatch))))
+            callback(.success(.result(fullMatch)))
           } else {
-            callback(.success(.results(naItems)))
+            let first = naItems.first
+            if let more = NonEmptyArray(naItems.dropFirst()) {
+              callback(.success(.results(first, more)))
+            } else {
+              callback(.success(.result(first)))
+            }
           }
         } else {
           callback(.success(.empty))

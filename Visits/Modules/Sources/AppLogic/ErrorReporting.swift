@@ -79,12 +79,13 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       switch action {
       case let .tokenUpdated(.failure(e)):             error = e
       case let .signedIn(.failure(e)):                 error = toNever(e)
-      case let .ordersUpdated(.failure(e)),
+      case let .integrationEntitiesUpdatedWithFailure(e),
+           let .ordersUpdated(.failure(e)),
            let .placesUpdated(.failure(e)),
-           let .placeCreated(.failure(e)),
+           let .placeCreatedWithFailure(e),
            let .profileUpdated(.failure(e)),
-           let .historyUpdated(.failure(e)):           error = toNever(e)
-      case let .orderCancelFinished(_, .failure(e)),
+           let .historyUpdated(.failure(e)),
+           let .orderCancelFinished(_, .failure(e)),
            let .orderCompleteFinished(_, .failure(e)): error = toNever(e)
       default:                                         error = nil
       }

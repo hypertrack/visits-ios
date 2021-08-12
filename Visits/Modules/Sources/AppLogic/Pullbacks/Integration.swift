@@ -20,13 +20,15 @@ private let integrationStateAffine = /AppState.operational ** \.flow ** /AppFlow
 private let integrationActionPrism = Prism<AppAction, IntegrationAction>(
   extract: { a in
     switch a {
-    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
-    default:                                 return nil
+    case let .integrationEntitiesUpdatedWithSuccess(ies): return .integrationEntitiesUpdatedWithSuccess(ies)
+    case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
+    default:                                              return nil
     }
   },
   embed: { a in
     switch a {
-    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
+    case let .integrationEntitiesUpdatedWithSuccess(ies): return .integrationEntitiesUpdatedWithSuccess(ies)
+    case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
     }
   }
 )

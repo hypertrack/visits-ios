@@ -5,20 +5,20 @@ import Types
 
 struct ChoosingCompanyView: View {
   struct State: Equatable {
-    var search: IntegrationEntity.Search
+    var search: IntegrationSearch
     var integrationEntities: [IntegrationEntity]
     var refreshing: Bool
   }
   
-  public enum Action: Equatable {
+  enum Action: Equatable {
     case cancelChoosingCompany
-    case updateIntegrationsSearch(IntegrationEntity.Search)
+    case updateIntegrationsSearch(IntegrationSearch)
     case searchForIntegrations
     case selectedIntegration(IntegrationEntity)
   }
   
   let store: Store<State, Action>
-  public init(store: Store<State, Action>) { self.store = store }
+  init(store: Store<State, Action>) { self.store = store }
   
   var body: some View {
     GeometryReader { geometry in
@@ -27,7 +27,7 @@ struct ChoosingCompanyView: View {
           VStack(spacing: 0) {
             TopPadding(geometry: geometry)
             Header(
-              title: "Choose company",
+              title: "Choose Company",
               backAction: { viewStore.send(.cancelChoosingCompany) },
               refreshing: viewStore.refreshing
             )

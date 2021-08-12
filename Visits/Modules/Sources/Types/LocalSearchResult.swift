@@ -3,7 +3,8 @@ import Tagged
 
 
 public enum LocalSearchResult: Equatable {
-  case results(NonEmptyArray<MapPlace>)
+  case result(MapPlace)
+  case results(MapPlace, NonEmptyArray<MapPlace>)
   case empty
   case error(Error)
   case fatalError

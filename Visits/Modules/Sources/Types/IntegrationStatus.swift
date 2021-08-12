@@ -6,6 +6,6 @@ public enum IntegrationStatus: Equatable {
 }
 
 public enum RefreshingIntegrationEntities: Equatable {
-  case refreshing(IntegrationEntity.Search)
+  case refreshing(IntegrationSearch)
   case notRefreshing
 }

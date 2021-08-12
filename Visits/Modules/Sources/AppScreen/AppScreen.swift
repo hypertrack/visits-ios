@@ -42,7 +42,7 @@ public struct AppScreen: View {
     case signIn(SignInState)
     case blocker(Blocker.State)
     case main(MapState, OrderOrOrders, Set<Place>, Place?, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
-    case addPlace(AddPlaceFlow, Set<Place>)
+    case addPlace(AddPlace, Set<Place>)
   }
   
   public enum Action {
@@ -87,11 +87,11 @@ public struct AppScreen: View {
             sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) }
           )
-        case let .addPlace(flow, places):
+        case let .addPlace(adding, places):
           AddPlaceView(
             store: store.scope(
               state: { state in
-                .init(flow: flow, places: places)
+                .init(adding: adding, places: places)
               },
               action: (/Action.addPlace).embed
             )

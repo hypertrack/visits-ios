@@ -27,10 +27,12 @@ public enum RequestAction: Equatable {
   case cancelOrder(Order)
   case completeOrder(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
-  case createPlace(Coordinate, IntegrationEntity)
-  case placeCreated(Result<Place, APIError<Token.Expired>>)
-  case updateIntegrations(IntegrationEntity.Search)
-  case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
+  case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
+  case placeCreatedWithSuccess(Place)
+  case placeCreatedWithFailure(APIError<Token.Expired>)
+  case updateIntegrations(IntegrationSearch)
+  case integrationEntitiesUpdatedWithSuccess([IntegrationEntity])
+  case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
@@ -56,9 +58,9 @@ public struct RequestEnvironment {
   public var cancelOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
-  public var createPlace: (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
+  public var createPlace: (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
-  public var getIntegrationEntities: (Token.Value, IntegrationEntity.Limit, IntegrationEntity.Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
+  public var getIntegrationEntities: (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
   public var getPlaces: (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
@@ -70,9 +72,9 @@ public struct RequestEnvironment {
     cancelOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
-    createPlace: @escaping (Token.Value, DeviceID, Coordinate, IntegrationEntity) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
+    createPlace: @escaping (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
-    getIntegrationEntities: @escaping (Token.Value, IntegrationEntity.Limit, IntegrationEntity.Search) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
+    getIntegrationEntities: @escaping (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
@@ -124,7 +126,7 @@ public let requestReducer = Reducer<
   func getHistory(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getHistoryEffect(environment.getHistory(t, deID, environment.date()), environment.mainQueue)
   }
-  func getIntegrationEntities(_ t: Token.Value, _ s: IntegrationEntity.Search) -> Effect<RequestAction, Never> {
+  func getIntegrationEntities(_ t: Token.Value, _ s: IntegrationSearch) -> Effect<RequestAction, Never> {
     getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 50, s), environment.mainQueue)
   }
   
@@ -231,7 +233,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.orders)
     
     return effects
-  case .updatePlaces, .placeCreated(.success):
+  case .updatePlaces, .placeCreatedWithSuccess:
     guard !state.requests.contains(.places) else { return .none }
     
     let (token, effects) = requestOrRefreshToken(state.token, request: .places |> flip(requestEffect))
@@ -252,8 +254,8 @@ public let requestReducer = Reducer<
   case .ordersUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
-       .placeCreated(.failure(.error)),
-       .integrationEntitiesUpdated(.failure(.error)),
+       .placeCreatedWithFailure(.error),
+       .integrationEntitiesUpdatedWithFailure(.error),
        .profileUpdated(.failure(.error)),
        .orderCompleted(_, .failure(.error)),
        .orderCanceled(_, .failure(.error)):
@@ -329,7 +331,8 @@ public let requestReducer = Reducer<
     state.integrationStatus = .integrated(.refreshing(s))
     
     return effects
-  case .integrationEntitiesUpdated:
+  case .integrationEntitiesUpdatedWithFailure,
+       .integrationEntitiesUpdatedWithSuccess:
     
     if case .integrated(.refreshing) = state.integrationStatus {
       state.integrationStatus = .integrated(.notRefreshing)
@@ -426,19 +429,19 @@ public let requestReducer = Reducer<
     }
     
     return effects
-  case let .createPlace(c, ie):
+  case let .createPlace(c, r, ie, a, d):
     guard case let .some(token) = state.token
     else { return environment.capture("Trying to create a place without a token").fireAndForget() }
     
     if case let .valid(token) = token {
       return createPlaceEffect(
-        environment.createPlace(token, state.deviceID, c, ie),
+        environment.createPlace(token, state.deviceID, c, r, ie, a, d),
         environment.mainQueue
       )
     }
     
     return .none
-  case .placeCreated:
+  case .placeCreatedWithFailure:
     return .none
   case .cancelAllRequests:
     
@@ -561,7 +564,12 @@ func createPlaceEffect(
   createPlace
     .cancellable(id: RequestingCreatePlaceID(), cancelInFlight: true)
     .receive(on: mainQueue)
-    .map(RequestAction.placeCreated)
+    .map { r in
+      switch r {
+      case let .success(p): return .placeCreatedWithSuccess(p)
+      case let .failure(e): return .placeCreatedWithFailure(e)
+      }
+    }
     .eraseToEffect()
 }
 
@@ -583,7 +591,12 @@ let getIntegrationEntitiesEffect = { (
   getIntegrationEntities
     .cancellable(id: RequestingIntegrationEntitiesID(), cancelInFlight: true)
     .receive(on: mainQueue)
-    .map(RequestAction.integrationEntitiesUpdated)
+    .map { r -> RequestAction in
+      switch r {
+      case let .success(ies): return .integrationEntitiesUpdatedWithSuccess(ies)
+      case let .failure(e):   return .integrationEntitiesUpdatedWithFailure(e)
+      }
+    }
     .eraseToEffect()
 }
 

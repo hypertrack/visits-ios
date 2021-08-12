@@ -211,6 +211,13 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .addPlace(.updateAddressSearch(st)): return .updateAddressSearch(st)
   case .addPlace(.cancelConfirmingLocation): return .cancelConfirmingLocation
   case let .addPlace(.confirmAddPlaceLocation(mp)): return .confirmAddPlaceLocation(mp)
+  case let .addPlace(.addPlaceDescriptionUpdated(d)): return .addPlaceDescriptionUpdated(d)
+  case .addPlace(.cancelEditingAddPlaceMetadata): return .cancelEditingAddPlaceMetadata
+  case .addPlace(.chooseCompany): return .chooseCompany
+  case .addPlace(.createPlaceTapped): return .createPlaceTapped
+  case let .addPlace(.customAddressUpdated(a)): return .customAddressUpdated(a)
+  case .addPlace(.decreaseAddPlaceRadius): return .decreaseAddPlaceRadius
+  case .addPlace(.increaseAddPlaceRadius): return .increaseAddPlaceRadius
   }
 }
 

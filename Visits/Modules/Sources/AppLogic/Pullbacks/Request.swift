@@ -78,63 +78,67 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
 private let requestActionPrism = Prism<AppAction, RequestAction>(
   extract: { a in
     switch a {
-    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
-    case     .cancelAllRequests:                  return .cancelAllRequests
-    case let .cancelOrder(o):                     return .cancelOrder(o)
-    case let .checkOutOrder(o):                   return .completeOrder(o)
-    case let .createPlace(c, ie):            return .createPlace(c, ie)
-    case let .historyUpdated(r):                  return .historyUpdated(r)
-    case let .integrationEntitiesUpdated(r):      return .integrationEntitiesUpdated(r)
-    case     .generated(.entered(.mainUnlocked)): return .mainUnlocked
-    case let .orderCancelFinished(o, r):          return .orderCanceled(o, r)
-    case let .orderCompleteFinished(o, r):        return .orderCompleted(o, r)
-    case let .ordersUpdated(os):                  return .ordersUpdated(os)
-    case let .placesUpdated(ps):                  return .placesUpdated(ps)
-    case let .profileUpdated(p):                  return .profileUpdated(p)
-    case     .receivedPushNotification:           return .receivedPushNotification
-    case     .refreshAllRequests:                 return .refreshAllRequests
-    case     .startTracking:                      return .startTracking
-    case     .stopTracking:                       return .stopTracking
-    case     .switchToMap:                        return .switchToMap
-    case     .switchToOrders:                     return .switchToOrders
-    case     .switchToPlaces:                     return .switchToPlaces
-    case     .switchToProfile:                    return .switchToProfile
-    case let .tokenUpdated(r):                    return .tokenUpdated(r)
-    case     .updateOrders:                       return .updateOrders
-    case     .updatePlaces:                       return .updatePlaces
-    case let .updateIntegrations(s):              return .updateIntegrations(s)
-    case let .placeCreated(r):                    return .placeCreated(r)
-    default:                                      return nil
+    case let .appVisibilityChanged(v):                    return .appVisibilityChanged(v)
+    case     .cancelAllRequests:                          return .cancelAllRequests
+    case let .cancelOrder(o):                             return .cancelOrder(o)
+    case let .checkOutOrder(o):                           return .completeOrder(o)
+    case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
+    case let .historyUpdated(r):                          return .historyUpdated(r)
+    case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
+    case let .integrationEntitiesUpdatedWithSuccess(ies): return .integrationEntitiesUpdatedWithSuccess(ies)
+    case     .generated(.entered(.mainUnlocked)):         return .mainUnlocked
+    case let .orderCancelFinished(o, r):                  return .orderCanceled(o, r)
+    case let .orderCompleteFinished(o, r):                return .orderCompleted(o, r)
+    case let .ordersUpdated(os):                          return .ordersUpdated(os)
+    case let .placesUpdated(ps):                          return .placesUpdated(ps)
+    case let .profileUpdated(p):                          return .profileUpdated(p)
+    case     .receivedPushNotification:                   return .receivedPushNotification
+    case     .refreshAllRequests:                         return .refreshAllRequests
+    case     .startTracking:                              return .startTracking
+    case     .stopTracking:                               return .stopTracking
+    case     .switchToMap:                                return .switchToMap
+    case     .switchToOrders:                             return .switchToOrders
+    case     .switchToPlaces:                             return .switchToPlaces
+    case     .switchToProfile:                            return .switchToProfile
+    case let .tokenUpdated(r):                            return .tokenUpdated(r)
+    case     .updateOrders:                               return .updateOrders
+    case     .updatePlaces:                               return .updatePlaces
+    case let .updateIntegrations(s):                      return .updateIntegrations(s)
+    case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
+    case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
+    default:                                              return nil
     }
   },
   embed: { a in
     switch a {
-    case let .appVisibilityChanged(v):       return .appVisibilityChanged(v)
-    case     .cancelAllRequests:             return .cancelAllRequests
-    case let .cancelOrder(o):                return .cancelOrder(o)
-    case let .completeOrder(o):              return .checkOutOrder(o)
-    case let .createPlace(c, ie):            return .createPlace(c, ie)
-    case let .historyUpdated(r):             return .historyUpdated(r)
-    case let .integrationEntitiesUpdated(r): return .integrationEntitiesUpdated(r)
-    case     .mainUnlocked:                  return .generated(.entered(.mainUnlocked))
-    case let .orderCanceled(o, r):           return .orderCancelFinished(o, r)
-    case let .orderCompleted(o, r):          return .orderCompleteFinished(o, r)
-    case let .ordersUpdated(os):             return .ordersUpdated(os)
-    case let .placesUpdated(ps):             return .placesUpdated(ps)
-    case let .profileUpdated(p):             return .profileUpdated(p)
-    case     .receivedPushNotification:      return .receivedPushNotification
-    case     .refreshAllRequests:            return .refreshAllRequests
-    case     .startTracking:                 return .startTracking
-    case     .stopTracking:                  return .stopTracking
-    case     .switchToMap:                   return .switchToMap
-    case     .switchToOrders:                return .switchToOrders
-    case     .switchToPlaces:                return .switchToPlaces
-    case     .switchToProfile:               return .switchToProfile
-    case let .tokenUpdated(r):               return .tokenUpdated(r)
-    case     .updateOrders:                  return .updateOrders
-    case     .updatePlaces:                  return .updatePlaces
-    case let .updateIntegrations(s):         return .updateIntegrations(s)
-    case let .placeCreated(r):               return .placeCreated(r)
+    case let .appVisibilityChanged(v):                    return .appVisibilityChanged(v)
+    case     .cancelAllRequests:                          return .cancelAllRequests
+    case let .cancelOrder(o):                             return .cancelOrder(o)
+    case let .completeOrder(o):                           return .checkOutOrder(o)
+    case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
+    case let .historyUpdated(r):                          return .historyUpdated(r)
+    case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
+    case let .integrationEntitiesUpdatedWithSuccess(ies): return .integrationEntitiesUpdatedWithSuccess(ies)
+    case     .mainUnlocked:                               return .generated(.entered(.mainUnlocked))
+    case let .orderCanceled(o, r):                        return .orderCancelFinished(o, r)
+    case let .orderCompleted(o, r):                       return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(os):                          return .ordersUpdated(os)
+    case let .placesUpdated(ps):                          return .placesUpdated(ps)
+    case let .profileUpdated(p):                          return .profileUpdated(p)
+    case     .receivedPushNotification:                   return .receivedPushNotification
+    case     .refreshAllRequests:                         return .refreshAllRequests
+    case     .startTracking:                              return .startTracking
+    case     .stopTracking:                               return .stopTracking
+    case     .switchToMap:                                return .switchToMap
+    case     .switchToOrders:                             return .switchToOrders
+    case     .switchToPlaces:                             return .switchToPlaces
+    case     .switchToProfile:                            return .switchToProfile
+    case let .tokenUpdated(r):                            return .tokenUpdated(r)
+    case     .updateOrders:                               return .updateOrders
+    case     .updatePlaces:                               return .updatePlaces
+    case let .updateIntegrations(s):                      return .updateIntegrations(s)
+    case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
+    case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
     }
   }
 )

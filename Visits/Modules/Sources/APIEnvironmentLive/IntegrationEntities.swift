@@ -9,8 +9,8 @@ import Types
 
 func getIntegrationEntities(
   _ token:  Token.Value,
-  _ limit:  IntegrationEntity.Limit,
-  _ search: IntegrationEntity.Search
+  _ limit:  IntegrationLimit,
+  _ search: IntegrationSearch
 ) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never> {
   logEffect("getIntegrationEntities")
   
@@ -23,7 +23,7 @@ func getIntegrationEntities(
   .catchToEffect()
 }
 
-func integrationEntitiesRequest(auth token: Token.Value, limit: IntegrationEntity.Limit, search: IntegrationEntity.Search) -> URLRequest {
+func integrationEntitiesRequest(auth token: Token.Value, limit: IntegrationLimit, search: IntegrationSearch) -> URLRequest {
   var components = URLComponents()
   components.scheme = "https"
   components.host = "live-app-backend.htprod.hypertrack.com"

@@ -30,7 +30,7 @@ struct ChoosingCoordinateView: View {
             VStack(spacing: 0) {
               TopPadding(geometry: geometry)
               Header(
-                title: "Add place",
+                title: "Add Place",
                 backAction: { viewStore.send(.cancelAddPlace) },
                 refreshing: false
               )

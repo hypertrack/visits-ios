@@ -5,14 +5,15 @@ import Types
 // MARK: - Action
 
 public enum IntegrationAction: Equatable {
-  case integrationEntitiesUpdated(Result<[IntegrationEntity], APIError<Token.Expired>>)
+  case integrationEntitiesUpdatedWithSuccess([IntegrationEntity])
+  case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
 }
 
 // MARK: - Reducer
 
 public let integrationReducer = Reducer<IntegrationStatus, IntegrationAction, Void> { state, action, _ in
   switch action {
-  case let .integrationEntitiesUpdated(.success(ies)):
+  case let .integrationEntitiesUpdatedWithSuccess(ies):
     switch (state, ies.first) {
     case (.requesting, .some), (.unknown, .some): state = .integrated(.notRefreshing)
     case (.requesting, .none), (.unknown, .none): state = .notIntegrated
@@ -20,7 +21,7 @@ public let integrationReducer = Reducer<IntegrationStatus, IntegrationAction, Vo
     }
     
     return .none
-  case .integrationEntitiesUpdated(.failure):
+  case .integrationEntitiesUpdatedWithFailure:
     guard state == .requesting else { return .none }
     
     state = .unknown

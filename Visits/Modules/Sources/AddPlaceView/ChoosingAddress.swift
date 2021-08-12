@@ -7,7 +7,7 @@ import Views
 
 struct ChoosingAddressView: View {
   struct State: Equatable {
-    var search: Street?
+    var search: AddressSearch?
     var searchResults: [LocalSearchCompletion]
     var selectedResult: LocalSearchCompletion?
   }
@@ -15,7 +15,7 @@ struct ChoosingAddressView: View {
     case cancelChoosingAddress
     case searchPlaceOnMap
     case selectAddress(LocalSearchCompletion)
-    case updateAddressSearch(Street?)
+    case updateAddressSearch(AddressSearch?)
   }
   
   let store: Store<State, Action>
@@ -28,7 +28,7 @@ struct ChoosingAddressView: View {
           VStack(spacing: 0) {
             TopPadding(geometry: geometry)
             Header(
-              title: "Add place",
+              title: "Add Place",
               backAction: { viewStore.send(.cancelChoosingAddress) },
               refreshing: false
             )
@@ -39,7 +39,11 @@ struct ChoosingAddressView: View {
                   viewStore.search?.string ?? ""
                 },
                 set: { str in
-                  viewStore.send(.updateAddressSearch(NonEmptyString(rawValue: str).map(Street.init(rawValue:))))
+                  viewStore.send(
+                    .updateAddressSearch(
+                      NonEmptyString(rawValue: str).map(AddressSearch.init(rawValue:))
+                    )
+                  )
                 }
               ),
               geometry: geometry,

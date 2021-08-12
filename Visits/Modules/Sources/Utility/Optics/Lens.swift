@@ -65,6 +65,15 @@ public func ** <S, T, A, B, C, D> (
 
 // MARK: - Types
 
+public extension Lens where S == T, S == A, S == B {
+  static var `self`: LensM<S, S, S, S> {
+    LensM<S, S, S, S>(
+      get: identity,
+      set: { s in constant(s) }
+    )
+  }
+}
+
 public extension Lens where S == T, A == B, Value == Void {
   static func void() -> Lens<Root, Void> {
     Lens(
