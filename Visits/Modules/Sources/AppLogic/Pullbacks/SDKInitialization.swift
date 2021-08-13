@@ -34,7 +34,7 @@ private let sdkInitializationActionPrism: Prism<AppAction, SDKInitializationActi
 
 
 private struct SDKInitializationDomain {
-  var alert: Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?
+  var alert: Either<AlertState<ErrorAlertAction>, AlertState<SendErrorReportAction>>?
   var experience: Experience
   var flow: SDKInitializationState.Status
   var locationAlways: LocationAlwaysPermissions

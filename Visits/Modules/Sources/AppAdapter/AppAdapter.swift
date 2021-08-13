@@ -59,7 +59,7 @@ public extension Store where State == AppScreen.State, Action == AppScreen.Actio
 
 func fromAppState(_ appState: AppState) -> AppScreen.State {
   let screen: AppScreen.Screen
-  let alert: Either<AlertState<ErrorAlertAction>, AlertState<ErrorReportingAlertAction>>?
+  let alert: Either<AlertState<ErrorAlertAction>, AlertState<SendErrorReportAction>>?
   switch appState {
   case let .operational(o):
     alert = o.alert

@@ -2,6 +2,6 @@ public enum ErrorAlertAction: Equatable {
   case ok
 }
 
-public enum ErrorReportingAlertAction: Equatable {
+public enum SendErrorReportAction: Equatable {
   case yes, no
 }

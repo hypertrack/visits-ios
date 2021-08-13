@@ -122,7 +122,7 @@ public enum AppAction: Equatable {
   case restoredState(StorageState?, AppVersion, StateRestorationError?)
   // Alert
   case errorAlert(ErrorAlertAction)
-  case errorReportingAlert(ErrorReportingAlertAction)
+  case errorReportingAlert(SendErrorReportAction)
   // Internal
   case generated(InternalAction)
 }

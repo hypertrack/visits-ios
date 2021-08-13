@@ -24,13 +24,13 @@ public struct AppScreen: View {
   public struct State {
     public var screen: Screen
     public var errorAlert: AlertState<ErrorAlertAction>?
-    public var errorReportingAlert: AlertState<ErrorReportingAlertAction>?
+    public var errorReportingAlert: AlertState<SendErrorReportAction>?
     
     
     public init(
       screen: AppScreen.Screen,
       errorAlert: AlertState<ErrorAlertAction>? = nil,
-      errorReportingAlert: AlertState<ErrorReportingAlertAction>? = nil
+      errorReportingAlert: AlertState<SendErrorReportAction>? = nil
     ) {
       self.screen = screen
       self.errorAlert = errorAlert
@@ -56,7 +56,7 @@ public struct AppScreen: View {
     case tab(TabSelection)
     case map(MapView.Action)
     case errorAlert(ErrorAlertAction)
-    case errorReportingAlert(ErrorReportingAlertAction)
+    case errorReportingAlert(SendErrorReportAction)
   }
   
   let store: Store<State, Action>
@@ -102,7 +102,7 @@ public struct AppScreen: View {
         view.alert(self.store.scope(state: \.errorAlert, action: AppScreen.Action.errorAlert), dismiss: ErrorAlertAction.ok)
       }
       .modifier(let: viewStore.errorReportingAlert) { view, _ in
-        view.alert(self.store.scope(state: \.errorReportingAlert, action: AppScreen.Action.errorReportingAlert), dismiss: ErrorReportingAlertAction.no)
+        view.alert(self.store.scope(state: \.errorReportingAlert, action: AppScreen.Action.errorReportingAlert), dismiss: SendErrorReportAction.no)
       }
     }
   }

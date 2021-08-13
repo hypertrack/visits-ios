@@ -7,7 +7,7 @@ import Types
 public struct ManualReportState: Equatable {
   public enum Status: Equatable {
     case dismissed
-    case shown(AlertState<ErrorReportingAlertAction>)
+    case shown(AlertState<SendErrorReportAction>)
   }
   
   public var status: Status
@@ -21,7 +21,7 @@ public struct ManualReportState: Equatable {
 // MARK: - Action
 
 public enum ManualReportAction: Equatable {
-  case alert(ErrorReportingAlertAction)
+  case alert(SendErrorReportAction)
   case appWentOffScreen
   case shakeDetected
 }
