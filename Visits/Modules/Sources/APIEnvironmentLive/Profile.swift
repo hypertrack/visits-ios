@@ -41,7 +41,7 @@ extension Profile: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
     let name = try values.decode(Name.self, forKey: .name)
-    let metadata = try values.decode(JSON.Object.self, forKey: .metadata)
+    let metadata = (try values.decodeIfPresent(JSON.Object.self, forKey: .metadata)) ?? [:]
     
     self.init(name: name, metadata: metadata)
   }
