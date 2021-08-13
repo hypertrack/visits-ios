@@ -57,10 +57,15 @@ func handleBranchCallback(
 }
 
 func validate(deepLink params: [AnyHashable: Any]) -> Validated<DeepLink, NonEmptyString> {
-  zip(with: DeepLink.init)(
+  switch zip(with: DeepLink.init)(
     validate(key: "publishable_key", in: params, has: PublishableKey.self),
     validate(variant: params)
-  )
+  ) {
+  case let .valid(v):   return .valid(v)
+  case var .invalid(e):
+    e.append("Params: \(params)")
+    return .invalid(e)
+  }
 }
 
 // Not a Monad, because it doesn't accumulate the results
