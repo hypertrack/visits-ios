@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import NonEmpty
 import Types
 import Utility
 
@@ -23,12 +24,16 @@ public struct ErrorAlertState: Equatable {
 
 public enum ErrorAlertLogicAction: Equatable {
   case appVisibilityChanged(AppVisibility)
+  case deepLinkFailed(NonEmptyArray<NonEmptyString>)
   case errorAlert(ErrorAlertAction)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
+  case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case placeCreatedWithFailure(APIError<Token.Expired>)
+  case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
 }
@@ -45,11 +50,34 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     return .none
   case .appVisibilityChanged(.onScreen):
     return .none
+  case let .deepLinkFailed(e):
+    if e.contains(where: { $0.hasPrefix("Branch error") }) {
+      state.status = .shown(
+        .init(
+          title: TextState("Deep link failed"),
+          message: TextState("We couldn't contact our deep link server" + tryAgain),
+          dismissButton: dismissButton
+        )
+      )
+    } else {
+      state.status = .shown(
+        .init(
+          title: TextState("Deep link failed"),
+          message: TextState("We couldn't recognize this deep link, the app may be outdated or there is an issue with the link.\n\nPlease contact HyperTrack for help at help@hypertrack.com"),
+          dismissButton: dismissButton
+        )
+      )
+    }
+
+    return .none
   case let .historyUpdated(.failure(.network(u))),
+       let .integrationEntitiesUpdatedWithFailure(.network(u)),
        let .orderCancelFinished(_, .failure(.network(u))),
        let .orderCompleteFinished(_, .failure(.network(u))),
        let .ordersUpdated(.failure(.network(u))),
+       let .placeCreatedWithFailure(.network(u)),
        let .placesUpdated(.failure(.network(u))),
+       let .profileUpdated(.failure(.network(u))),
        let .signedIn(.failure(.network(u))),
        let .tokenUpdated(.failure(.network(u))):
     guard state.visibility == .onScreen else { return .none }
@@ -64,10 +92,13 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     
     return .none
   case let .historyUpdated(.failure(.api(e, _, _))),
+       let .integrationEntitiesUpdatedWithFailure(.api(e, _, _)),
        let .orderCancelFinished(_, .failure(.api(e, _, _))),
        let .orderCompleteFinished(_, .failure(.api(e, _, _))),
        let .ordersUpdated(.failure(.api(e, _, _))),
+       let .placeCreatedWithFailure(.api(e, _, _)),
        let .placesUpdated(.failure(.api(e, _, _))),
+       let .profileUpdated(.failure(.api(e, _, _))),
        let .signedIn(.failure(.api(e, _, _))),
        let .tokenUpdated(.failure(.api(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
@@ -82,10 +113,13 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     
     return .none
   case let .historyUpdated(.failure(.server(e, _, _))),
+       let .integrationEntitiesUpdatedWithFailure(.server(e, _, _)),
        let .orderCancelFinished(_, .failure(.server(e, _, _))),
        let .orderCompleteFinished(_, .failure(.server(e, _, _))),
        let .ordersUpdated(.failure(.server(e, _, _))),
+       let .placeCreatedWithFailure(.server(e, _, _)),
        let .placesUpdated(.failure(.server(e, _, _))),
+       let .profileUpdated(.failure(.server(e, _, _))),
        let .signedIn(.failure(.server(e, _, _))),
        let .tokenUpdated(.failure(.server(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
@@ -100,10 +134,13 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     
     return .none
   case let .historyUpdated(.failure(.unknown(p, _, _))),
+       let .integrationEntitiesUpdatedWithFailure(.unknown(p, _, _)),
        let .orderCancelFinished(_, .failure(.unknown(p, _, _))),
        let .orderCompleteFinished(_, .failure(.unknown(p, _, _))),
        let .ordersUpdated(.failure(.unknown(p, _, _))),
+       let .placeCreatedWithFailure(.unknown(p, _, _)),
        let .placesUpdated(.failure(.unknown(p, _, _))),
+       let .profileUpdated(.failure(.unknown(p, _, _))),
        let .signedIn(.failure(.unknown(p, _, _))),
        let .tokenUpdated(.failure(.unknown(p, _, _))):
     guard state.visibility == .onScreen else { return .none }
@@ -117,19 +154,23 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
     )
     
     return .none
-  case .historyUpdated(.success(_)),
-       .orderCancelFinished(_, .success(_)),
-       .orderCompleteFinished(_, .success(_)),
-       .ordersUpdated(.success(_)),
-       .placesUpdated(.success(_)),
-       .signedIn(.success(_)),
-       .tokenUpdated(.success(_)),
-       .historyUpdated(.failure(.error(_, _, _))),
-       .orderCancelFinished(_, .failure(.error(_, _, _))),
-       .orderCompleteFinished(_, .failure(.error(_, _, _))),
-       .ordersUpdated(.failure(.error(_, _, _))),
-       .placesUpdated(.failure(.error(_, _, _))),
-       .signedIn(.failure(.error(_, _, _))):
+  case .historyUpdated(.failure(.error)),
+       .historyUpdated(.success),
+       .integrationEntitiesUpdatedWithFailure(.error),
+       .orderCancelFinished(_, .failure(.error)),
+       .orderCancelFinished(_, .success),
+       .orderCompleteFinished(_, .failure(.error)),
+       .orderCompleteFinished(_, .success),
+       .ordersUpdated(.failure(.error)),
+       .ordersUpdated(.success),
+       .placeCreatedWithFailure(.error),
+       .placesUpdated(.failure(.error)),
+       .placesUpdated(.success),
+       .profileUpdated(.failure(.error)),
+       .profileUpdated(.success),
+       .signedIn(.failure(.error)),
+       .signedIn(.success),
+       .tokenUpdated(.success):
     return .none
   }
 }

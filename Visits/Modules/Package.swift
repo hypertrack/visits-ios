@@ -59,7 +59,7 @@ let targets: [Target] = [
   .target(name: "AutoSavingLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "BlockerLogic",                    dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "DeepLinkLogic",                   dependencies: ["AppArchitecture", architecture, nonEmpty, "Types", "Utility", "Validated"]),
-  .target(name: "ErrorAlertLogic",                 dependencies: [architecture, "Utility", "Types"]),
+  .target(name: "ErrorAlertLogic",                 dependencies: [architecture, nonEmpty, "Utility", "Types"]),
   .target(name: "FirstRunLogic",                   dependencies: [architecture, "Types"]),
   .target(name: "HistoryLogic",                    dependencies: [architecture, "Types"]),
   .target(name: "IntegrationLogic",                dependencies: [architecture, "Types"]),

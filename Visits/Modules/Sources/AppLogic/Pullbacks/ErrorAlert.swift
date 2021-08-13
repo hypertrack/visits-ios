@@ -39,29 +39,37 @@ private let errorAlertStateAffine: Affine<AppState, ErrorAlertState> = /AppState
 private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .init(
   extract: { appAction in
     switch appAction {
-    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
-    case let .errorAlert(a):                      return .errorAlert(a)
-    case let .historyUpdated(r):                  return .historyUpdated(r)
-    case let .orderCancelFinished(o, r):          return .orderCancelFinished(o, r)
-    case let .orderCompleteFinished(o, r):        return .orderCompleteFinished(o, r)
-    case let .ordersUpdated(r):                   return .ordersUpdated(r)
-    case let .placesUpdated(r):                   return .placesUpdated(r)
-    case let .signedIn(r):                        return .signedIn(r)
-    case let .tokenUpdated(r):                    return .tokenUpdated(r)
-    default:                                      return nil
+    case let .appVisibilityChanged(v):                  return .appVisibilityChanged(v)
+    case let .deepLinkFailed(e):                        return .deepLinkFailed(e)
+    case let .errorAlert(a):                            return .errorAlert(a)
+    case let .historyUpdated(r):                        return .historyUpdated(r)
+    case let .integrationEntitiesUpdatedWithFailure(e): return .integrationEntitiesUpdatedWithFailure(e)
+    case let .orderCancelFinished(o, r):                return .orderCancelFinished(o, r)
+    case let .orderCompleteFinished(o, r):              return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(r):                         return .ordersUpdated(r)
+    case let .placeCreatedWithFailure(e):               return .placeCreatedWithFailure(e)
+    case let .placesUpdated(r):                         return .placesUpdated(r)
+    case let .profileUpdated(r):                        return .profileUpdated(r)
+    case let .signedIn(r):                              return .signedIn(r)
+    case let .tokenUpdated(r):                          return .tokenUpdated(r)
+    default:                                            return nil
     }
   },
   embed: { errorAlertAction in
     switch errorAlertAction {
-    case let .appVisibilityChanged(v):            return .appVisibilityChanged(v)
-    case let .errorAlert(a):                      return .errorAlert(a)
-    case let .historyUpdated(r):                  return .historyUpdated(r)
-    case let .orderCancelFinished(o, r):          return .orderCancelFinished(o, r)
-    case let .orderCompleteFinished(o, r):        return .orderCompleteFinished(o, r)
-    case let .ordersUpdated(r):                   return .ordersUpdated(r)
-    case let .placesUpdated(r):                   return .placesUpdated(r)
-    case let .signedIn(r):                        return .signedIn(r)
-    case let .tokenUpdated(r):                    return .tokenUpdated(r)
+    case let .appVisibilityChanged(v):                  return .appVisibilityChanged(v)
+    case let .deepLinkFailed(e):                        return .deepLinkFailed(e)
+    case let .errorAlert(a):                            return .errorAlert(a)
+    case let .historyUpdated(r):                        return .historyUpdated(r)
+    case let .integrationEntitiesUpdatedWithFailure(e): return .integrationEntitiesUpdatedWithFailure(e)
+    case let .orderCancelFinished(o, r):                return .orderCancelFinished(o, r)
+    case let .orderCompleteFinished(o, r):              return .orderCompleteFinished(o, r)
+    case let .ordersUpdated(r):                         return .ordersUpdated(r)
+    case let .placeCreatedWithFailure(e):               return .placeCreatedWithFailure(e)
+    case let .placesUpdated(r):                         return .placesUpdated(r)
+    case let .profileUpdated(r):                        return .profileUpdated(r)
+    case let .signedIn(r):                              return .signedIn(r)
+    case let .tokenUpdated(r):                          return .tokenUpdated(r)
     }
   }
 )
