@@ -35,6 +35,17 @@ func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(
     success: Terminal.self,
     failure: Token.Expired.self
   )
+  .catch { (e: APIError<Token.Expired>) -> AnyPublisher<Terminal, APIError<Token.Expired>> in
+    switch e {
+    case let .unknown(p, _, _) where p == "Received unexpected status code 409":
+      return Just(unit)
+        .setFailureType(to: APIError<Token.Expired>.self)
+        .eraseToAnyPublisher()
+    default:
+      return Fail(error: e)
+        .eraseToAnyPublisher()
+    }
+  }
     .catchToEffect()
     .map { (o, $0) }
 }
@@ -49,6 +60,17 @@ func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect
     success: Terminal.self,
     failure: Token.Expired.self
   )
+  .catch { (e: APIError<Token.Expired>) -> AnyPublisher<Terminal, APIError<Token.Expired>> in
+    switch e {
+    case let .unknown(p, _, _) where p == "Received unexpected status code 409":
+      return Just(unit)
+        .setFailureType(to: APIError<Token.Expired>.self)
+        .eraseToAnyPublisher()
+    default:
+      return Fail(error: e)
+        .eraseToAnyPublisher()
+    }
+  }
     .catchToEffect()
     .map { (o, $0) }
 }
