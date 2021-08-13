@@ -24,7 +24,7 @@ private let manualReportStateAffine: Affine<AppState, ManualReportState> = /AppS
       
       switch s.alert {
       case     .none:     return manualReportState(.dismissed)
-      case let .right(a): return manualReportState(.shown(a))
+      case let .sendErrorReport(a): return manualReportState(.shown(a))
       default:            return nil
       }
     },
@@ -32,7 +32,7 @@ private let manualReportStateAffine: Affine<AppState, ManualReportState> = /AppS
       { s in
         switch d.status {
         case     .dismissed: return s |> \.alert *< .none     <> \.visibility *< d.visibility
-        case let .shown(a):  return s |> \.alert *< .right(a) <> \.visibility *< d.visibility
+        case let .shown(a):  return s |> \.alert *< .sendErrorReport(a) <> \.visibility *< d.visibility
         }
       } 
     }

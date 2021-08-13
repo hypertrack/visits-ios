@@ -22,7 +22,7 @@ private let errorAlertStateAffine: Affine<AppState, ErrorAlertState> = /AppState
       
       switch s.alert {
       case     .none:    return errorAlertState(.dismissed)
-      case let .left(a): return errorAlertState(.shown(a))
+      case let .errorAlert(a): return errorAlertState(.shown(a))
       default:           return nil
       }
     },
@@ -30,7 +30,7 @@ private let errorAlertStateAffine: Affine<AppState, ErrorAlertState> = /AppState
       { s in
         switch d.status {
         case     .dismissed: return s |> \.alert *< .none    <> \.visibility *< d.visibility
-        case let .shown(a):  return s |> \.alert *< .left(a) <> \.visibility *< d.visibility
+        case let .shown(a):  return s |> \.alert *< .errorAlert(a) <> \.visibility *< d.visibility
         }
       }
     }
