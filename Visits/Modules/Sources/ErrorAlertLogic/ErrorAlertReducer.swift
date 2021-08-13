@@ -144,7 +144,9 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .signedIn(.failure(.unknown(p, _, _))),
        let .tokenUpdated(.failure(.unknown(p, _, _))):
     guard state.visibility == .onScreen else { return .none }
-    
+
+    guard !p.string.hasPrefix("Received unexpected status code 404") else { return .none }
+
     state.status = .shown(
       .init(
         title: TextState("Network Issue"),

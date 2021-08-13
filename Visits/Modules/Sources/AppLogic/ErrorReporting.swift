@@ -77,6 +77,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       
       let error: APIError<Never>?
       switch action {
+      case let .profileUpdated(.failure(.unknown(p, _, _))) where p.string.hasPrefix("Received unexpected status code 404"): error = nil
       case let .tokenUpdated(.failure(e)):             error = e
       case let .signedIn(.failure(e)):                 error = toNever(e)
       case let .integrationEntitiesUpdatedWithFailure(e),
