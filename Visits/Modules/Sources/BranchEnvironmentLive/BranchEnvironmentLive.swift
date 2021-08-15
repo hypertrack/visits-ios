@@ -59,7 +59,8 @@ func handleBranchCallback(
 func validate(deepLink params: [AnyHashable: Any]) -> Validated<DeepLink, NonEmptyString> {
   switch zip(with: DeepLink.init)(
     validate(key: "publishable_key", in: params, has: PublishableKey.self),
-    validate(variant: params)
+    validate(variant: params),
+    validate(urlForKey: urlKey, in: params)
   ) {
   case let .valid(v):   return .valid(v)
   case var .invalid(e):
@@ -88,6 +89,22 @@ func validate<T>(key: NonEmptyString, value: Any, isOfType type: T.Type) -> Vali
     ?? .error("\(key)'s value is not a \(type)")
 }
 
+func validate(urlForKey key: NonEmptyString, in params: [AnyHashable: Any]) -> Validated<URL, NonEmptyString> {
+  validate(key: key, existsIn: params)
+    .flatMap { validate(key: key, value: $0, isOfType: String.self) }
+    .flatMap { validate(key: key, valueIsURL: $0) }
+}
+
+func validate(key: NonEmptyString, valueIsURL string: String) -> Validated<URL, NonEmptyString> {
+  switch URLComponents(string: string).flatMap({ (components: URLComponents) -> URL? in
+    var components = components
+    components.query = nil
+    return components.url
+  }) {
+  case let .some(url): return .valid(url)
+  case     .none:      return .error("\(key) is not a valid URL")
+  }
+}
 
 func validate(key: NonEmptyString, valueIsNonEmptyString string: String) -> Validated<NonEmptyString, NonEmptyString> {
   NonEmptyString(rawValue: string).map(Validated.valid)
@@ -134,6 +151,7 @@ func validate(metadata value: Any) -> Validated<JSON.Object, NonEmptyString> {
 let metadataKey: NonEmptyString = "metadata"
 let emailKey: NonEmptyString = "email"
 let driverIDKey: NonEmptyString = "driver_id"
+let urlKey: NonEmptyString = "~referring_link"
 
 func validate<T>(
   key: NonEmptyString,

@@ -141,20 +141,26 @@ extension DeepLink {
   }
   
   var metadata: JSON.Object {
+    let inviteID = JSON.string(url.absoluteString)
+    let emailKey = "email"
+    let phoneKey = "phone_number"
+    let inviteIDKey = "invite_id"
+
     switch self.variant {
     case .new(let tEmailPhoneNumber, var meta):
       switch tEmailPhoneNumber {
       case let .this(e):
-        meta["email"] = .string(e.string)
+        meta[emailKey] = .string(e.string)
       case let .that(p):
-        meta["phone_number"] = .string(p.string)
+        meta[phoneKey] = .string(p.string)
       case let .both(e, p):
-        meta["email"] = .string(e.string)
-        meta["phone_number"] = .string(p.string)
+        meta[emailKey] = .string(e.string)
+        meta[phoneKey] = .string(p.string)
       }
+      meta[inviteIDKey] = inviteID
       return meta
     case let .old(driverID):
-      return ["driver_id": .string(driverID.string)]
+      return ["driver_id": .string(driverID.string), inviteIDKey: inviteID]
     }
   }
   
