@@ -9,6 +9,7 @@ public extension HyperTrackEnvironment {
     didFailToRegisterForRemoteNotificationsWithError: { _ in .none},
     didReceiveRemoteNotification: { _, _ in .none },
     didRegisterForRemoteNotificationsWithDeviceToken: { _ in .none},
+    getCurrentLocation: { .none },
     makeSDK: { _ in .none},
     openSettings: { .none },
     registerForRemoteNotifications: { .none },
@@ -34,6 +35,7 @@ public extension HyperTrackEnvironment {
       didFailToRegisterForRemoteNotificationsWithError: noop.didFailToRegisterForRemoteNotificationsWithError,
       didReceiveRemoteNotification: noop.didReceiveRemoteNotification,
       didRegisterForRemoteNotificationsWithDeviceToken: noop.didRegisterForRemoteNotificationsWithDeviceToken,
+      getCurrentLocation: noop.getCurrentLocation,
       makeSDK: { _ in
         s = .unlocked(deviceID, .stopped)
         

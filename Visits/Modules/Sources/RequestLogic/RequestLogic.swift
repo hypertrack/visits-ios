@@ -9,12 +9,13 @@ import Types
 public struct RequestState: Equatable {
   public var requests: Set<Request>
   public var orders: Set<Order>
+  public var history: History?
   public var integrationStatus: IntegrationStatus
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
   
-  public init(requests: Set<Request>, orders: Set<Order>, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+  public init(requests: Set<Request>, orders: Set<Order>, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
     self.requests = requests; self.orders = orders; self.integrationStatus = integrationStatus; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
   }
 }
@@ -39,6 +40,7 @@ public enum RequestAction: Equatable {
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case receivedCurrentLocation(Coordinate?)
   case receivedPushNotification
   case refreshAllRequests
   case startTracking
@@ -59,6 +61,7 @@ public struct RequestEnvironment {
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var createPlace: (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
+  public var getCurrentLocation: () -> Effect<Coordinate?, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
@@ -73,6 +76,7 @@ public struct RequestEnvironment {
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     createPlace: @escaping (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
+    getCurrentLocation: @escaping () -> Effect<Coordinate?, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
@@ -86,6 +90,7 @@ public struct RequestEnvironment {
     self.capture = capture
     self.completeOrder = completeOrder
     self.createPlace = createPlace
+    self.getCurrentLocation = getCurrentLocation
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
     self.getOrders = getOrders
@@ -181,8 +186,30 @@ public let requestReducer = Reducer<
     state.token = token
     state.requests = Set(Request.allCases)
     state.integrationStatus = isIntegrationCheckPending ? .requesting : state.integrationStatus
-    
+
+    if state.history.noLocations {
+      return .merge(
+        effects,
+        environment.getCurrentLocation()
+          .map(RequestAction.receivedCurrentLocation)
+      )
+    }
+
     return effects
+  case let .receivedCurrentLocation(.some(c)):
+
+    switch state.history {
+    case .none:
+      state.history = .init(coordinates: [c])
+    case let .some(h) where h.coordinates.isEmpty:
+      state.history = h |> \.coordinates *< [c]
+    default:
+      break
+    }
+
+    return .none
+  case .receivedCurrentLocation(.none):
+    return .none
   case .appVisibilityChanged(.offScreen):
     let effects = Effect<RequestAction, Never>.merge(
       state.requests.map(cancelRequest(request:))
@@ -470,6 +497,16 @@ public let requestReducer = Reducer<
     )
   case .switchToPlaces, .switchToOrders:
     return .none
+  }
+}
+
+extension Optional where Wrapped == History {
+  var noLocations: Bool {
+    switch self {
+    case     .none:                                return true
+    case let .some(h) where h.coordinates.isEmpty: return true
+    default:                                       return false
+    }
   }
 }
 

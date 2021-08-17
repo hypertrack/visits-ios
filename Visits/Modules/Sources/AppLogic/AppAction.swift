@@ -33,6 +33,7 @@ public enum AppAction: Equatable {
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case cancelAllRequests
   case refreshAllRequests
+  case receivedCurrentLocation(Coordinate?)
   // Orders
   case selectOrder(Order)
   case updateOrders

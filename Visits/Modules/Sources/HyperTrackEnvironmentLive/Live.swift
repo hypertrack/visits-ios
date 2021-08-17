@@ -8,12 +8,13 @@ import LogEnvironment
 import NonEmpty
 import Types
 
+
 extension String: Error {}
 
 public extension HyperTrackEnvironment {
   static let live = Self(
     checkDeviceTrackability: {
-      Effect.result {
+      .result {
         logEffect("checkDeviceTrackability")
         return .success(servicesAvailability())
       }
@@ -36,8 +37,30 @@ public extension HyperTrackEnvironment {
         HyperTrack.didRegisterForRemoteNotificationsWithDeviceToken(deviceToken)
       }
     },
+    getCurrentLocation: {
+      .future { callback in
+        guard let lmd = lmd else { callback(.success(nil)); return }
+
+        lmd.didUpdateLocations = { locations in
+          callback(
+            .success(
+              locations.last
+                .map(\.coordinate)
+                .flatMap(Coordinate.init(coordinate2D:))
+            )
+          )
+        }
+
+        lmd.didFailWithError = {
+          callback(.success(nil))
+        }
+
+        lm.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+        lm.requestLocation()
+      }
+    },
     makeSDK: { pk in
-      Effect.result {
+      .result {
         logEffect("makeSDK: \(pk.string)")
         ht = try! HyperTrack(publishableKey: HyperTrack.PublishableKey(pk.string)!)
         return .success(statusUpdate())
@@ -68,7 +91,7 @@ public extension HyperTrackEnvironment {
       }
     },
     requestMotionPermissions: {
-      Effect.future { callback in
+      .future { callback in
         logEffect("requestMotionPermissions")
         mm.queryActivityStarting(
           from: Date(),
@@ -106,7 +129,7 @@ public extension HyperTrackEnvironment {
       }
     },
     subscribeToStatusUpdates: {
-      Effect.run { subscriber in
+      .run { subscriber in
         logEffect("subscribeToStatusUpdates")
         lmd = LocationManagerClientDelegate { subscriber.send(statusUpdate()) }
         
@@ -166,6 +189,8 @@ var cancellables: Set<AnyCancellable> = []
 
 class LocationManagerClientDelegate: NSObject, CLLocationManagerDelegate {
   let didChangeAuthorization: () -> Void
+  var didUpdateLocations: (([CLLocation]) -> Void)?
+  var didFailWithError: (() -> Void)?
   
   init(didChangeAuthorization: @escaping () -> Void) {
     self.didChangeAuthorization = didChangeAuthorization
@@ -178,6 +203,18 @@ class LocationManagerClientDelegate: NSObject, CLLocationManagerDelegate {
     didChangeAuthorization status: CLAuthorizationStatus
   ) {
     self.didChangeAuthorization()
+  }
+
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    if let didUpdateLocations = didUpdateLocations {
+      didUpdateLocations(locations)
+    }
+  }
+
+  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    if let didFailWithError = didFailWithError {
+      didFailWithError()
+    }
   }
 }
 

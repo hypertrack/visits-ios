@@ -9,6 +9,7 @@ public struct HyperTrackEnvironment {
   public var didFailToRegisterForRemoteNotificationsWithError: (String) -> Effect<Never, Never>
   public var didReceiveRemoteNotification: ([String : [String : String]], @escaping (UIBackgroundFetchResult) -> Void) -> Effect<Never, Never>
   public var didRegisterForRemoteNotificationsWithDeviceToken: (Data) -> Effect<Never, Never>
+  public var getCurrentLocation: () -> Effect<Coordinate?, Never>
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
   public var openSettings: () -> Effect<Never, Never>
   public var registerForRemoteNotifications: () -> Effect<Never, Never>
@@ -27,6 +28,7 @@ public struct HyperTrackEnvironment {
     didFailToRegisterForRemoteNotificationsWithError: @escaping (String) -> Effect<Never, Never>,
     didReceiveRemoteNotification: @escaping ([String : [String : String]], @escaping (UIBackgroundFetchResult) -> Void) -> Effect<Never, Never>,
     didRegisterForRemoteNotificationsWithDeviceToken:  @escaping (Data) -> Effect<Never, Never>,
+    getCurrentLocation: @escaping () -> Effect<Coordinate?, Never>,
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
     openSettings: @escaping () -> Effect<Never, Never>,
     registerForRemoteNotifications: @escaping () -> Effect<Never, Never>,
@@ -44,6 +46,7 @@ public struct HyperTrackEnvironment {
     self.didFailToRegisterForRemoteNotificationsWithError = didFailToRegisterForRemoteNotificationsWithError
     self.didReceiveRemoteNotification = didReceiveRemoteNotification
     self.didRegisterForRemoteNotificationsWithDeviceToken = didRegisterForRemoteNotificationsWithDeviceToken
+    self.getCurrentLocation = getCurrentLocation
     self.makeSDK = makeSDK
     self.openSettings = openSettings
     self.registerForRemoteNotifications = registerForRemoteNotifications

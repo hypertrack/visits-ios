@@ -92,6 +92,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .ordersUpdated(os):                          return .ordersUpdated(os)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
+    case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
     case     .startTracking:                              return .startTracking
@@ -125,6 +126,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .ordersUpdated(os):                          return .ordersUpdated(os)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
+    case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
     case     .startTracking:                              return .startTracking
@@ -150,6 +152,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       capture:                e.errorReporting.capture,
       completeOrder:          e.api.completeOrder,
       createPlace:            e.api.createPlace,
+      getCurrentLocation:     e.hyperTrack.getCurrentLocation,
       getHistory:             e.api.getHistory,
       getIntegrationEntities: e.api.getIntegrationEntities,
       getOrders:              e.api.getOrders,
