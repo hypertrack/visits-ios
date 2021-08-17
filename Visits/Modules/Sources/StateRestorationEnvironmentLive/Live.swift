@@ -29,8 +29,6 @@ public extension StateRestorationEnvironment {
             name: ud.string(forKey: RestorationKey.name.rawValue)
               >>- NonEmptyString.init(rawValue:)
               <¡> Name.init(rawValue:),
-            places: (ud.object(forKey: RestorationKey.places.rawValue) as? Data)
-              >>- { try? JSONDecoder().decode(Set<Place>.self, from: $0) },
             tabSelection: ud.string(forKey: RestorationKey.tabSelection.rawValue)
               >>- NonEmptyString.init(rawValue:)
               >-> TabSelection.prism.extract(from:),
@@ -65,9 +63,8 @@ public extension StateRestorationEnvironment {
         case let .signIn(e):
           screen = StoredScreen.prism.embed(.signIn).rawValue
           email = e?.string
-        case let .main(p, s, pk, n):
+        case let .main(s, pk, n):
           screen = StoredScreen.prism.embed(.main).rawValue
-          places = try? JSONEncoder().encode(p)
           tabSelection = TabSelection.prism.embed(s).rawValue
           name = n <¡> \.string
           publishableKey = pk <¡> \.string
@@ -75,7 +72,6 @@ public extension StateRestorationEnvironment {
         
         ud.set(screen, forKey: RestorationKey.screen.rawValue)
         ud.set(email, forKey: RestorationKey.email.rawValue)
-        ud.set(places, forKey: RestorationKey.places.rawValue)
         ud.set(tabSelection, forKey: RestorationKey.tabSelection.rawValue)
         ud.set(publishableKey, forKey: RestorationKey.publishableKey.rawValue)
         ud.set(name, forKey: RestorationKey.name.rawValue)
@@ -93,27 +89,26 @@ func restoredStateFrom(
   email: Email?,
   publishableKey: PublishableKey?,
   name: Name?,
-  places: Set<Place>?,
   tabSelection: TabSelection?,
   pushStatus: PushStatus?,
   experience: Experience?,
   locationAlways: LocationAlwaysPermissions?
 ) -> Result<StorageState?, StateRestorationError> {
-  switch (screen, email, publishableKey, name, places, tabSelection, pushStatus, experience, locationAlways) {
+  switch (screen, email, publishableKey, name, tabSelection, pushStatus, experience, locationAlways) {
   
   // Latest, onboarded app on the main screen
-  case let (.main, _, .some(publishableKey), .some(name), places, tabSelection, pushStatus, experience, locationAlways):
+  case let (.main, _, .some(publishableKey), .some(name), tabSelection, pushStatus, experience, locationAlways):
     return .success(
       StorageState(
         experience: experience ?? .regular,
-        flow: .main(places ?? [], tabSelection ?? .defaultTab, publishableKey, name),
+        flow: .main(tabSelection ?? .defaultTab, publishableKey, name),
         locationAlways: locationAlways ?? .notRequested,
         pushStatus: pushStatus ?? .dialogSplash(.notShown)
       )
     )
     
   // Latest app on Sign In screen
-  case let (.signIn, email, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.signIn, email, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -124,7 +119,7 @@ func restoredStateFrom(
     )
   
   // Latest app killed on first run splash screen
-  case let (.firstRun, _, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.firstRun, _, _, _, _, pushStatus, experience, locationAlways):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -135,18 +130,18 @@ func restoredStateFrom(
     )
     
   // Old app that got to deliveries screen.
-  case let (.none, _, .some(publishableKey), .some(name), _, _, _, _, _):
+  case let (.none, _, .some(publishableKey), .some(name), _, _, _, _):
     return .success(
       .init(
         experience: .regular,
-        flow: .main([], .defaultTab, publishableKey, name),
+        flow: .main(.defaultTab, publishableKey, name),
         locationAlways: .notRequested,
         pushStatus: .dialogSplash(.notShown)
       )
     )
     
   // Freshly installed app that didn't go though the deep link
-  case (.none, .none, .none, .none, .none, .none, .none, .none, .none):
+  case (.none, .none, .none, .none, .none, .none, .none, .none):
     return .success(nil)
     
   // State restoration failed, back to the starting screen
@@ -157,7 +152,6 @@ func restoredStateFrom(
         email: email,
         experience: experience,
         locationAlways: locationAlways,
-        places: places,
         publishableKey: publishableKey,
         pushStatus: pushStatus,
         screen: screen,
@@ -172,7 +166,6 @@ enum RestorationKey: String, CaseIterable {
   case email = "sXwAlVbnPT"
   case experience = "lQDSheJivt"
   case locationAlways = "wpZz4e12Ro"
-  case places = "Q8Cg06VCdL"
   case publishableKey = "UeiDZRFEOd"
   case pushStatus = "jC0FVlTWrC"
   case screen = "ZJNLfS0Nhw"

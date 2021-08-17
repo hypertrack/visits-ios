@@ -65,13 +65,14 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
         flow = .signIn(eg.email)
       case let .main(m) where m.map              == .initialState
                            && m.orders           == []
+                           && m.places == []
                            && m.selectedOrder    == nil
                            && m.requests         == []
                            && m.token            == nil
                            && m.history          == nil
                            && m.profile.metadata == [:]
                            && m.integrationStatus == .unknown:
-        flow = .main(m.places, m.tab, m.publishableKey, m.profile.name)
+        flow = .main(m.tab, m.publishableKey, m.profile.name)
       default:
         return nil
       }
@@ -103,8 +104,8 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
         flow = .firstRun
       case let .signIn(e):
         flow = .signIn(.entering(.init(email: e)))
-      case let .main(ps, ts, pk, n):
-        flow = .main(.init(map: .initialState, orders: [], places: ps, tab: ts, publishableKey: pk, profile: .init(name: n, metadata: [:])))
+      case let .main(ts, pk, n):
+        flow = .main(.init(map: .initialState, orders: [], places: [], tab: ts, publishableKey: pk, profile: .init(name: n, metadata: [:])))
       }
       return .operational(
         .init(

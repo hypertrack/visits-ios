@@ -2,7 +2,7 @@ public struct StorageState: Equatable {
   public enum Flow: Equatable {
     case firstRun
     case signIn(Email?)
-    case main(Set<Place>, TabSelection, PublishableKey, Name)
+    case main(TabSelection, PublishableKey, Name)
   }
   
   public var experience: Experience
@@ -34,7 +34,6 @@ public struct StateRestorationError: Error, Equatable {
   public var email: Email?
   public var experience: Experience?
   public var locationAlways: LocationAlwaysPermissions?
-  public var places: Set<Place>?
   public var publishableKey: PublishableKey?
   public var pushStatus: PushStatus?
   public var screen: StoredScreen?
@@ -45,7 +44,6 @@ public struct StateRestorationError: Error, Equatable {
     email: Email? = nil,
     experience: Experience? = nil,
     locationAlways: LocationAlwaysPermissions? = nil,
-    places: Set<Place>? = nil,
     publishableKey: PublishableKey? = nil,
     pushStatus: PushStatus? = nil,
     screen: StoredScreen? = nil,
@@ -55,7 +53,6 @@ public struct StateRestorationError: Error, Equatable {
     self.email = email
     self.experience = experience
     self.locationAlways = locationAlways
-    self.places = places
     self.publishableKey = publishableKey
     self.pushStatus = pushStatus
     self.screen = screen

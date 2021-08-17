@@ -27,7 +27,6 @@ private func toStorageState(_ o: OperationalState) -> StorageState {
   case let .signIn(.entering(e)): flow = .signIn(e.email)
   case let .signIn(.entered(e)): flow = .signIn(e.email)
   case let .main(m): flow = .main(
-    m.places,
     m.tab,
     m.publishableKey,
     m.profile.name
