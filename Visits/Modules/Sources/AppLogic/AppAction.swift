@@ -50,7 +50,7 @@ public enum AppAction: Equatable {
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
   // Places
   case selectPlace(Place?)
-  case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case updatePlaces
   case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
   case placeCreatedWithSuccess(Place)

@@ -17,25 +17,21 @@ public struct Place {
     public var id: ID
     public var entry: EntryTimestamp
     public var exit: ExitTimestamp
-    public var duration: Duration
     public var route: Route?
     
     public init(
       id: ID,
       entry: EntryTimestamp,
       exit: ExitTimestamp,
-      duration: Duration,
       route: Route? = nil
     ) {
       self.id = id
       self.entry = entry
       self.exit = exit
-      self.duration = duration
       self.route = route
     }
     
     public typealias ID                = Tagged<(Visit, id: ()),        NonEmptyString>
-    public typealias Duration          = Tagged<(Visit, duration: ()),  UInt>
     public typealias EntryTimestamp    = Tagged<(Visit, entry: ()),     Date>
     public typealias ExitTimestamp     = Tagged<(Visit, exit: ()),      Date>
   }
@@ -63,24 +59,20 @@ public struct Place {
   public struct Entry {
     public var id: ID
     public var entry: EntryTimestamp
-    public var duration: Duration
     public var route: Route?
     
     public init(
       id: ID,
       entry: EntryTimestamp,
-      duration: Duration,
       route: Place.Route? = nil
     ) {
       self.id = id
       self.entry = entry
-      self.duration = duration
       self.route = route
     }
     
     public typealias ID                = Tagged<(Entry, id: ()),        NonEmptyString>
     public typealias EntryTimestamp    = Tagged<(Entry, entry: ()),     Date>
-    public typealias Duration          = Tagged<(Entry, duration: ()),  UInt>
   }
   
   public init(

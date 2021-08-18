@@ -31,7 +31,7 @@ public enum ErrorAlertLogicAction: Equatable {
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
-  case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)

@@ -32,7 +32,7 @@ let placePreviewSample = Place(
     )
   ),
   visits: [
-    .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0)),
-    .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
+    .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date())),
+    .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()))
   ]
 )

@@ -109,7 +109,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
       .init(
         map: .initialState,
         orders: [],
-        places: [],
+        places: nil,
         tab: .defaultTab,
         publishableKey: deepLink.publishableKey,
         profile: .init(name: deepLink.name, metadata: deepLink.metadata)

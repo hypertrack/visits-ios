@@ -148,7 +148,7 @@ struct PlacesScreen_Previews: PreviewProvider {
               fullAddress: "Market Square, 1301 Market St, San Francisco, CA  94103, United States"
             ),
             createdAt: .init(rawValue: ISO8601DateFormatter().date(from: "2020-03-30T10:42:03Z")!),
-            currentlyInside: .init(id: "1", entry: .init(rawValue: ISO8601DateFormatter().date(from: "2020-04-01T19:27:00Z")!), duration: 0),
+            currentlyInside: .init(id: "1", entry: .init(rawValue: ISO8601DateFormatter().date(from: "2020-04-01T19:27:00Z")!)),
             metadata: ["name":"Home"],
             shape: .circle(
               .init(
@@ -177,8 +177,8 @@ struct PlacesScreen_Previews: PreviewProvider {
               )
             ),
             visits: [
-              .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0)),
-              .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()), duration: .init(rawValue: 0))
+              .init(id: "1", entry: .init(rawValue: Date()), exit: .init(rawValue: Date())),
+              .init(id: "2", entry: .init(rawValue: Date()), exit: .init(rawValue: Date()))
             ]
           )
         ], refreshing: false, integrationStatus: .integrated(.notRefreshing)

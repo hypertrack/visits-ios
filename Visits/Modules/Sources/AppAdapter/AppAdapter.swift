@@ -96,7 +96,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
         case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
           if let flow = m.addPlace {
-            screen = .addPlace(flow, m.places)
+            screen = .addPlace(flow, m.places?.places ?? [])
             break
           }
           
@@ -109,7 +109,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           screen = .main(
             m.map,
             ord,
-            m.places,
+            m.places?.places ?? [],
             m.selectedPlace,
             m.requests,
             m.history,

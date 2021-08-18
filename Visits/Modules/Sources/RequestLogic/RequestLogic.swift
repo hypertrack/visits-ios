@@ -39,7 +39,7 @@ public enum RequestAction: Equatable {
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
-  case placesUpdated(Result<Set<Place>, APIError<Token.Expired>>)
+  case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case receivedCurrentLocation(Coordinate?)
   case receivedPushNotification
   case refreshAllRequests
@@ -65,7 +65,7 @@ public struct RequestEnvironment {
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
-  public var getPlaces: (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>
+  public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
@@ -80,7 +80,7 @@ public struct RequestEnvironment {
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
-    getPlaces: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
+    getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
@@ -123,7 +123,7 @@ public let requestReducer = Reducer<
     getOrdersEffect(environment.getOrders(t, deID), environment.mainQueue)
   }
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getPlacesEffect(environment.getPlaces(t, deID), environment.mainQueue)
+    getPlacesEffect(environment.getPlaces(t, deID, pk, environment.date(), environment.calendar()), environment.mainQueue)
   }
   func getProfile(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getProfileEffect(environment.getProfile(t, deID), environment.mainQueue)
@@ -584,7 +584,7 @@ let getOrdersEffect = { (
 }
 
 func getPlacesEffect(
-  _ getPlaces: Effect<Result<Set<Place>, APIError<Token.Expired>>, Never>,
+  _ getPlaces: Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
   _ mainQueue: AnySchedulerOf<DispatchQueue>
 ) -> Effect<RequestAction, Never> {
   getPlaces

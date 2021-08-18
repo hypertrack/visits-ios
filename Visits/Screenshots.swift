@@ -1,7 +1,8 @@
 import Foundation
-import Utility
+import NonEmpty
 import Tagged
 import Types
+import Utility
 
 
 extension AppState {
@@ -21,7 +22,11 @@ extension AppState {
   
   static let placesScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.places *< [cityHall, artsCenter]
+      main |> \.places *< .init(
+        places: [cityHall, artsCenter],
+        requestedAt: Date(),
+        driveDistancesForDaysWithVisits: NonEmptyArray(rawValue: [UInt?](repeating: nil, count: 60))!
+      )
            <> \.tab *< .places
     )
   )
@@ -181,7 +186,6 @@ private let cityHall = Place(
       id: "1",
       entry: taggedDate(hour: 9, minute: 10, second: 50),
       exit: taggedDate(hour: 9, minute: 15, second: 50),
-      duration: 300,
       route: .init(
         distance: .init(rawValue: 1234),
         duration: .init(rawValue: 1234),
@@ -192,7 +196,6 @@ private let cityHall = Place(
       id: "2",
       entry: taggedDate(hour: 7, minute: 10, second: 50),
       exit: taggedDate(hour: 7, minute: 15, second: 50),
-      duration: 300,
       route: .init(
         distance: .init(rawValue: 1234),
         duration: .init(rawValue: 1234),
@@ -214,7 +217,6 @@ private let artsCenter = Place(
       id: "123456",
       entry: .init(rawValue: date(hour: 8, minute: 05, second: 30) - (24 * 60 * 60)),
       exit: .init(rawValue: date(hour: 8, minute: 30, second: 30) - (24 * 60 * 60)),
-      duration: 1500,
       route: .init(
         distance: .init(rawValue: 1234),
         duration: .init(rawValue: 1234),
@@ -253,7 +255,7 @@ private let operational_ = OperationalState(
 private let main = MainState(
   map: .initialState,
   orders: [],
-  places: [],
+  places: nil,
   tab: .orders,
   publishableKey: publishableKey,
   profile: .init(name: "User", metadata: ["email": "user@company.com"])

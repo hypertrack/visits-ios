@@ -6,10 +6,10 @@ import Utility
 // MARK: - State
 
 public struct PlacesState: Equatable {
-  public var places: Set<Place>
+  public var places: PlacesSummary?
   public var selected: Place?
   
-  public init(places: Set<Place>, selected: Place? = nil) { self.places = places; self.selected = selected }
+  public init(places: PlacesSummary? = nil, selected: Place? = nil) { self.places = places; self.selected = selected }
 }
 
 
@@ -17,7 +17,7 @@ public struct PlacesState: Equatable {
 
 public enum PlacesAction: Equatable {
   case placeCreated(Place)
-  case placesUpdated(Set<Place>)
+  case placesUpdated(PlacesSummary)
   case selectPlace(Place?)
 }
 
@@ -34,7 +34,9 @@ public let placesReducer = Reducer<PlacesState, PlacesAction, Void> { state, act
     
     return .none
   case let .placeCreated(p):
-    state.places = state.places |> Set<Place>.insert(p)
+    guard let places = state.places else { return .none }
+
+    state.places = places |> \.places *< (places.places |> Set<Place>.insert(p))
     state.selected = p
     
     return .none

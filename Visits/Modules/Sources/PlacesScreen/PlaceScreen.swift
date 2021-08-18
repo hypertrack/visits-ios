@@ -67,7 +67,7 @@ struct PlaceScreen: View {
             id: entry.id.rawValue,
             entry: entry.entry.rawValue,
             exit: nil,
-            duration: entry.duration.rawValue,
+            duration: safeAbsoluteDuration(from: entry.entry.rawValue, to: Date()),
             copy: copy
           )
           .padding(.horizontal)
@@ -87,7 +87,7 @@ struct PlaceScreen: View {
             id: visit.id.rawValue,
             entry: visit.entry.rawValue,
             exit: visit.exit.rawValue,
-            duration: visit.duration.rawValue,
+            duration: safeAbsoluteDuration(from: visit.entry.rawValue, to: visit.exit.rawValue),
             copy: copy
           )
           .padding(.horizontal)
@@ -121,4 +121,9 @@ struct PlaceScreen_Previews: PreviewProvider {
     )
     .preferredColorScheme(.dark)
   }
+}
+
+
+func safeAbsoluteDuration(from: Date, to: Date) -> UInt {
+  UInt(abs(from.timeIntervalSince(to)))
 }
