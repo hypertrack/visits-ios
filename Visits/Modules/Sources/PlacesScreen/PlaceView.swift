@@ -4,6 +4,12 @@ import Views
 
 struct PlaceView: View {
   let placeAndTime: PlacesSection.PlaceAndTime
+  let showNumberOfVisits: Bool
+
+  init(placeAndTime: PlacesSection.PlaceAndTime, showNumberOfVisits: Bool = true) {
+    self.placeAndTime = placeAndTime
+    self.showNumberOfVisits = showNumberOfVisits
+  }
   
   var body: some View {
     HStack {
@@ -12,7 +18,7 @@ struct PlaceView: View {
         .foregroundColor(.accentColor)
         .padding(.trailing, 10)
       VStack {
-        if placeAndTime.time != nil || placeAndTime.place.numberOfVisits != 0 {
+        if placeAndTime.time != nil || (placeAndTime.place.numberOfVisits != 0 && showNumberOfVisits) {
           HStack {
             if let time = placeAndTime.time {
               Text(time)
@@ -20,7 +26,7 @@ struct PlaceView: View {
                 .foregroundColor(Color(.secondaryLabel))
             }
             Spacer()
-            if case let count = placeAndTime.place.numberOfVisits, count != 0 {
+            if case let count = placeAndTime.place.numberOfVisits, count != 0, showNumberOfVisits {
               HStack {
                 Spacer()
                 Text("Visited \(count) \(count == 1 ? "time" : "times")")

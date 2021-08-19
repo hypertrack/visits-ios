@@ -41,7 +41,7 @@ public struct AppScreen: View {
     case loading
     case signIn(SignInState)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, Set<Place>, Place?, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
+    case main(MapState, OrderOrOrders, PlacesSummary?, Place?, PlacesPresentation, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
     case addPlace(AddPlace, Set<Place>)
   }
   
@@ -77,9 +77,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(m, s, p, sp, r, h, mv, pr, i, deID, sel, ver):
+        case let .main(m, s, ps, sp, pp, r, h, mv, pr, i, deID, sel, ver):
           MainBlock(
-            state: (m, s, p, sp, r, h, mv, pr, i, deID, sel, ver),
+            state: (m, s, ps, sp, pp, r, h, mv, pr, i, deID, sel, ver),
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -112,8 +112,9 @@ struct MainBlock: View {
   let state: (
     mapState: MapState,
     orderScreenState: OrderOrOrders,
-    places: Set<Place>,
+    placesSummary: PlacesSummary?,
     selectedPlace: Place?,
+    placesPresentation: PlacesPresentation,
     requests: Set<Request>,
     history: History?,
     orders: Set<Order>,
@@ -142,7 +143,7 @@ struct MainBlock: View {
           state: .init(
             autoZoom: state.mapState.autoZoom,
             orders: state.orders,
-            places: state.places,
+            places: state.placesSummary?.places ?? [],
             polyline: state.history?.coordinates ?? []
           ),
           send: sendMap
@@ -189,8 +190,9 @@ struct MainBlock: View {
       
       PlacesScreen(
         state: .init(
-          places: state.places,
+          places: state.placesSummary,
           selected: state.selectedPlace,
+          presentation: state.placesPresentation,
           refreshing: state.requests.contains(Request.places),
           integrationStatus: state.integrationStatus,
           coordinates: state.history?.coordinates ?? []

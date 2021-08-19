@@ -61,15 +61,17 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
         default:
           return nil
         }
-      case let .main(m) where m.map               == .initialState
-                           && m.orders            == []
-                           && m.selectedOrder     == nil
-                           && m.places            == nil
-                           && m.history           == nil
-                           && m.tab               == .defaultTab
+      case let .main(m) where m.map                == .initialState
+                           && m.orders             == []
+                           && m.selectedOrder      == nil
+                           && m.places             == nil
+                           && m.selectedPlace      == nil
+                           && m.placesPresentation == .byPlace
+                           && m.history            == nil
+                           && m.tab                == .defaultTab
                            && m.requests.isEmpty
-                           && m.integrationStatus == .unknown
-                           && m.token             == nil:
+                           && m.integrationStatus  == .unknown
+                           && m.token              == nil:
         flow = .initialized(m.profile)
         publishableKey = m.publishableKey
       default:

@@ -31,7 +31,8 @@ struct RouteView: View {
 }
 
 func localizedDistance(_ distanceMeters: UInt) -> String {
-  let formatter = MKDistanceFormatter()
-  formatter.unitStyle = .default
-  return formatter.string(fromDistance: CLLocationDistance(distanceMeters))
+  let measurement = Measurement<UnitLength>(value: Double(distanceMeters), unit: .meters)
+  let formatter = MeasurementFormatter()
+  formatter.unitOptions = [.naturalScale]
+  return formatter.string(from: measurement)
 }

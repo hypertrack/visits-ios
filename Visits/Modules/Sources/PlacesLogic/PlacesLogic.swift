@@ -8,14 +8,16 @@ import Utility
 public struct PlacesState: Equatable {
   public var places: PlacesSummary?
   public var selected: Place?
+  public var presentation: PlacesPresentation
   
-  public init(places: PlacesSummary? = nil, selected: Place? = nil) { self.places = places; self.selected = selected }
+  public init(places: PlacesSummary? = nil, selected: Place? = nil, presentation: PlacesPresentation) { self.places = places; self.selected = selected; self.presentation = presentation }
 }
 
 
 // MARK: - Action
 
 public enum PlacesAction: Equatable {
+  case changePlacesPresentation(PlacesPresentation)
   case placeCreated(Place)
   case placesUpdated(PlacesSummary)
   case selectPlace(Place?)
@@ -25,6 +27,10 @@ public enum PlacesAction: Equatable {
 
 public let placesReducer = Reducer<PlacesState, PlacesAction, Void> { state, action, _ in
   switch action {
+  case let .changePlacesPresentation(pp):
+    state.presentation = pp
+
+    return .none
   case let .placesUpdated(ps):
     state.places = ps
     

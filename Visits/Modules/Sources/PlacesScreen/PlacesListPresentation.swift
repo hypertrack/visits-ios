@@ -6,7 +6,7 @@ extension PlacesScreen.State {
   var placesToDisplay: [PlacesSection] {
     var notVisited: [Place] = []
     var visited: [(Place, Date)] = []
-    for place in places {
+    for place in places?.places ?? [] {
       let currentlyInside = place.currentlyInside != nil ? Date() : nil
       if let visit = currentlyInside ?? place.visits.first?.exit.rawValue {
         visited += [(place, visit)]
@@ -61,6 +61,47 @@ extension PlacesScreen.State {
         )
       )
     }
+    return sections
+  }
+
+  var visitsToDisplay: [VisitsSection] {
+    guard let places = places else { return [] }
+
+    var sections: [VisitsSection] = []
+
+    let calendar = Calendar.current
+
+    let requestedDateComponents = calendar.dateComponents([.year, .month, .day], from: places.requestedAt)
+    let cleanedRequestedDate = calendar.date(from: requestedDateComponents)!
+
+    for (day, distance) in places.driveDistancesForDaysWithVisits.enumerated() {
+      guard let distance = distance else { continue }
+
+      let date = calendar.date(byAdding: .day, value: -day, to: cleanedRequestedDate)!
+      let header = VisitsHeader(date: date, distance: distance)
+
+      let visits = places.places.flatMap { (p: Place) -> [VisitItem] in
+        var visitItems: [VisitItem] = []
+
+        if let inside = p.currentlyInside,
+           calendar.isDate(inside.entry.rawValue, equalTo: date, toGranularity: .day) {
+          visitItems.append(.init(entryOrVisit: .entry(inside), place: p))
+        }
+
+        for visit in p.visits {
+          if calendar.isDate(visit.entry.rawValue, equalTo: date, toGranularity: .day) {
+            visitItems.append(.init(entryOrVisit: .visit(visit), place: p))
+          }
+        }
+
+        return visitItems
+      }
+      .sorted(by: \.entryOrVisit.entry)
+      .reversed()
+
+      sections.append(.init(header: header, visits: Array(visits)))
+    }
+
     return sections
   }
 }

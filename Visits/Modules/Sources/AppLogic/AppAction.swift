@@ -55,6 +55,7 @@ public enum AppAction: Equatable {
   case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
   case placeCreatedWithSuccess(Place)
   case placeCreatedWithFailure(APIError<Token.Expired>)
+  case changePlacesPresentation(PlacesPresentation)
   // Adding Place
   case addPlace
   //   Choosing Coordinate

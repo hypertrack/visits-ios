@@ -19,10 +19,12 @@ struct VisitView: View {
         VStack(alignment: .leading) {
           Text(entryExitTime(entry: entry, exit: exit))
             .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundColor(Color(.label))
           if duration != 0 {
             Text(localizedTime(duration, style: .full))
               .font(.subheadline)
+              .fixedSize(horizontal: false, vertical: true)
               .foregroundColor(Color(.secondaryLabel))
           }
         }

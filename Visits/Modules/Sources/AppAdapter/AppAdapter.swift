@@ -109,8 +109,9 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           screen = .main(
             m.map,
             ord,
-            m.places?.places ?? [],
+            m.places,
             m.selectedPlace,
+            m.placesPresentation,
             m.requests,
             m.history,
             m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
@@ -218,6 +219,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .addPlace(.customAddressUpdated(a)): return .customAddressUpdated(a)
   case .addPlace(.decreaseAddPlaceRadius): return .decreaseAddPlaceRadius
   case .addPlace(.increaseAddPlaceRadius): return .increaseAddPlaceRadius
+  case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   }
 }
 
