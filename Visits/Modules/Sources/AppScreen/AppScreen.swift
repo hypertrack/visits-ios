@@ -47,7 +47,7 @@ public struct AppScreen: View {
   
   public enum Action {
     case addPlace(AddPlaceView.Action)
-    case signIn(SignInScreen.Action)
+    case signIn(SignInScreenAction)
     case blocker(Blocker.Action)
     case orders(OrdersScreen.Action)
     case order(OrderScreen.Action)
@@ -70,8 +70,14 @@ public struct AppScreen: View {
         case .loading:
           LoadingScreen()
         case let .signIn(s):
-          SignInScreen(state: s) {
-            viewStore.send(.signIn($0))
+          if #available(iOS 15.0, *) {
+            SignInScreen(state: s) {
+              viewStore.send(.signIn($0))
+            }
+          } else {
+            SignInScreeniOS14(state: s) {
+              viewStore.send(.signIn($0))
+            }
           }
         case let .blocker(s):
           Blocker(state: s) {
