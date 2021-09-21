@@ -4,7 +4,6 @@ import Views
 
 
 public struct SignInScreen: View {
-  public enum Focus { case email, password, none }
   public enum ButtonState { case normal, destructive, disabled }
   
   public enum Action {
@@ -21,7 +20,7 @@ public struct SignInScreen: View {
   
   let state: SignInState
   let send: (Action) -> Void
-  
+
   public init(
     state: SignInState,
     send: @escaping (Action) -> Void
@@ -58,8 +57,11 @@ public struct SignInScreen: View {
     case .entered:          return ""
     }
   }
-  
-  var fieldInFocus: Focus {
+
+  @available(iOS 15.0, *)
+  @FocusState private var swiftUIFocused: SignInState.Entering.Focus?
+
+  var fieldInFocus: SignInState.Entering.Focus? {
     switch state {
     case let .entering(eg):
       switch eg.focus {
@@ -88,42 +90,76 @@ public struct SignInScreen: View {
   public var body: some View {
     VStack {
       Title(title: "Sign in to your account")
-      TextFieldBlock(
-        text: Binding(
-          get: { email },
-          set: { send(.emailChanged($0)) }
-        ),
-        name: "Email address",
-        errorText: "",
-        focused: fieldInFocus == .email,
-        textContentType: .emailAddress,
-        keyboardType: .emailAddress,
-        returnKeyType: .next,
-        wantsToBecomeFocused: { send(.emailTapped) },
-        enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
-      )
-      .disabled(signingIn)
-      .padding(.top, 50)
-      .padding([.trailing, .leading], 16)
-      TextFieldBlock(
-        text: Binding(
-          get: { password },
-          set: { send(.passwordChanged($0)) }
-        ),
-        name: "Password",
-        errorText: errorMessage,
-        focused: fieldInFocus == .password,
-        textContentType: .password,
-        secure: true,
-        keyboardType: .default,
-        returnKeyType: .send,
-        enablesReturnKeyAutomatically: false,
-        wantsToBecomeFocused: { send(.passwordTapped) },
-        enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
-      )
-      .disabled(signingIn)
-      .padding(.top, 17)
-      .padding([.trailing, .leading], 16)
+      if #available(iOS 15.0, *) {
+        Group {
+          EmailField(
+            email: email,
+            focused: fieldInFocus == .email,
+            signingIn: signingIn,
+            send: {
+              switch $0 {
+              case let .emailChanged(e):                send(.emailChanged(e))
+              case     .emailEnterKeyboardButtonTapped: send(.emailEnterKeyboardButtonTapped)
+              case     .emailTapped:                    send(.emailTapped)
+              }
+            }
+          )
+            .focused($swiftUIFocused, equals: .email)
+          PasswordField(
+            password: password,
+            errorMessage: errorMessage,
+            focused: fieldInFocus == .password,
+            signingIn: signingIn,
+            send: {
+              switch $0 {
+              case let .passwordChanged(p):                send(.passwordChanged(p))
+              case     .passwordEnterKeyboardButtonTapped: send(.passwordEnterKeyboardButtonTapped)
+              case     .passwordTapped:                    send(.passwordTapped)
+              }
+            }
+          )
+            .focused($swiftUIFocused, equals: .password)
+        }
+        .synchronize(
+          .init(
+            get: { fieldInFocus },
+            set: { focus, _ in
+              switch focus {
+              case .none: send(.tappedOutsideFocus)
+              case .password: send(.passwordTapped)
+              case .email: send(.emailTapped)
+              }
+            }
+          ),
+          $swiftUIFocused
+        )
+      } else {
+        EmailField(
+          email: email,
+          focused: fieldInFocus == .email,
+          signingIn: signingIn,
+          send: {
+            switch $0 {
+            case let .emailChanged(e):                send(.emailChanged(e))
+            case     .emailEnterKeyboardButtonTapped: send(.emailEnterKeyboardButtonTapped)
+            case     .emailTapped:                    send(.emailTapped)
+            }
+          }
+        )
+        PasswordField(
+          password: password,
+          errorMessage: errorMessage,
+          focused: fieldInFocus == .password,
+          signingIn: signingIn,
+          send: {
+            switch $0 {
+            case let .passwordChanged(p):                send(.passwordChanged(p))
+            case     .passwordEnterKeyboardButtonTapped: send(.passwordEnterKeyboardButtonTapped)
+            case     .passwordTapped:                    send(.passwordTapped)
+            }
+          }
+        )
+      }
       switch buttonState {
       case .normal:
         PrimaryButton(
@@ -162,7 +198,89 @@ public struct SignInScreen: View {
   }
 }
 
-extension SignInScreen.Focus: Equatable {}
+struct EmailField: View {
+  enum Action {
+    case emailChanged(String)
+    case emailEnterKeyboardButtonTapped
+    case emailTapped
+  }
+
+  let email: String
+  let focused: Bool
+  let signingIn: Bool
+
+  let send: (Action) -> Void
+
+  var body: some View {
+    TextFieldBlock(
+      text: Binding(
+        get: { email },
+        set: { send(.emailChanged($0)) }
+      ),
+      name: "Email address",
+      errorText: "",
+      focused: focused,
+      textContentType: .emailAddress,
+      keyboardType: .emailAddress,
+      returnKeyType: .next,
+      wantsToBecomeFocused: { send(.emailTapped) },
+      enterButtonPressed: { send(.emailEnterKeyboardButtonTapped) }
+    )
+    .disabled(signingIn)
+    .padding(.top, 50)
+    .padding([.trailing, .leading], 16)
+  }
+}
+
+struct PasswordField: View {
+  enum Action {
+    case passwordChanged(String)
+    case passwordEnterKeyboardButtonTapped
+    case passwordTapped
+  }
+
+  let password: String
+  let errorMessage: String
+  let focused: Bool
+  let signingIn: Bool
+
+  let send: (Action) -> Void
+
+  var body: some View {
+    TextFieldBlock(
+      text: Binding(
+        get: { password },
+        set: { send(.passwordChanged($0)) }
+      ),
+      name: "Password",
+      errorText: errorMessage,
+      focused: focused,
+      textContentType: .password,
+      secure: true,
+      keyboardType: .default,
+      returnKeyType: .send,
+      enablesReturnKeyAutomatically: false,
+      wantsToBecomeFocused: { send(.passwordTapped) },
+      enterButtonPressed: { send(.passwordEnterKeyboardButtonTapped) }
+    )
+    .disabled(signingIn)
+    .padding(.top, 17)
+    .padding([.trailing, .leading], 16)
+  }
+}
+
+@available(iOS 15.0, *)
+private extension View {
+   func synchronize<Value: Equatable>(
+     _ first: Binding<Value>,
+     _ second: FocusState<Value>.Binding
+   ) -> some View {
+     self
+       .onChange(of: first.wrappedValue) { second.wrappedValue = $0 }
+       .onChange(of: second.wrappedValue) { first.wrappedValue = $0 }
+   }
+ }
+
 extension SignInScreen.ButtonState: Equatable {}
 extension SignInScreen.Action: Equatable {}
 

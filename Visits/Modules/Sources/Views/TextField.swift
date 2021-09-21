@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct TextFieldBlock: View {
   public enum NameStyle { case dimmed, pronounced }
-  
+
   @Binding private var text: String
   private let name: String
   private let errorText: String
@@ -60,19 +60,41 @@ public struct TextFieldBlock: View {
           .font(.smallMedium)
           .foregroundColor(colorScheme == .dark ? .white : .gunPowder)
       }
-      CustomTextField(
-        text: $text,
-        focused: focused,
-        textContentType: textContentType,
-        keyboardType: keyboardType,
-        returnKeyType: returnKeyType,
-        enablesReturnKeyAutomatically: enablesReturnKeyAutomatically,
-        isSecureTextEntry: secure,
-        wantsToBecomeFocused: wantsToBecomeFocused,
-        enterButtonPressed: enterButtonPressed
-      )
-      .frame(height: 29)
-      .offset(y: 5)
+      if #available(iOS 15.0, *) {
+        if secure {
+          SecureField(
+            "",
+            text: $text
+          )
+            .textContentType(textContentType)
+            .keyboardType(keyboardType)
+            .submitLabel(returnKeyTypeToLabel(returnKeyType))
+            .onSubmit(enterButtonPressed)
+        } else {
+          TextField(
+            "",
+            text: $text
+          )
+            .textContentType(textContentType)
+            .keyboardType(keyboardType)
+            .submitLabel(returnKeyTypeToLabel(returnKeyType))
+            .onSubmit(enterButtonPressed)
+        }
+      } else {
+        CustomTextField(
+          text: $text,
+          focused: focused,
+          textContentType: textContentType,
+          keyboardType: keyboardType,
+          returnKeyType: returnKeyType,
+          enablesReturnKeyAutomatically: enablesReturnKeyAutomatically,
+          isSecureTextEntry: secure,
+          wantsToBecomeFocused: wantsToBecomeFocused,
+          enterButtonPressed: enterButtonPressed
+        )
+        .frame(height: 29)
+        .offset(y: 5)
+      }
       Rectangle()
         .foregroundColor(.ghost)
         .frame(height: 1.0, alignment: .bottom)
@@ -84,6 +106,25 @@ public struct TextFieldBlock: View {
     }
     .contentShape(Rectangle())
     .onTapGesture { }
+  }
+}
+
+@available(iOS 15.0, *)
+func returnKeyTypeToLabel(_ returnKeyType: UIReturnKeyType) -> SubmitLabel {
+  switch returnKeyType {
+  case .default:       return .done
+  case .go:            return .go
+  case .google:        return .search
+  case .join:          return .join
+  case .next:          return .next
+  case .route:         return .route
+  case .search:        return .search
+  case .send:          return .send
+  case .yahoo:         return .search
+  case .done:          return .done
+  case .emergencyCall: return .next
+  case .continue:      return .continue
+  @unknown default:    return .done
   }
 }
 
