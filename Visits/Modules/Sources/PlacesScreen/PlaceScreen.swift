@@ -106,7 +106,7 @@ struct PlaceScreen: View {
         Spacer()
       }
     }
-    .navigationBarTitle(Text(state.place.name ?? state.place.fallbackTitle), displayMode: .inline)
+    .navigationBarTitle(Text(state.place.name?.rawValue ?? state.place.fallbackTitle.rawValue), displayMode: .inline)
   }
 }
 

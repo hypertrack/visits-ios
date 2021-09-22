@@ -102,7 +102,7 @@ let package = Package(
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.28.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-custom-dump",                     .exact("0.1.3")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
-    .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.3.1")),
+    .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.4.0")),
     .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
     .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.6.0")),
     .package(name: "Validated",  url: "https://github.com/pointfreeco/swift-validated.git",                   .exact("0.2.1"))
