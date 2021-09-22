@@ -110,6 +110,11 @@ public extension Order {
     case let .some(a): return a
     }
   }
+  
+  var name: NonEmptyString? {
+    return metadata["name"]?.rawValue
+  }
+
 }
 
 // MARK: - Foundation

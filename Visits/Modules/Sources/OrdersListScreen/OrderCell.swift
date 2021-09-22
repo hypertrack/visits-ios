@@ -4,12 +4,13 @@ import Views
 
 struct OrderCell: View {
   
-  enum OrderStatus: String {
-    case pending = "⏳ Pending"
-    case visited = "📦 Visited"
-    case completed = "🏁 Completed"
-    case canceled = "❌ Canceled"
-    case snoozed = "⏸ Snoozed"
+  private enum OrderIconStatus: String {
+    case ongoing = "square"
+    case visited = "dot.square"
+    case completed = "checkmark.square"
+    case canceled = "xmark.square"
+    case snoozed = "minus.square"
+    
   }
   
   let order: Order
@@ -27,38 +28,36 @@ struct OrderCell: View {
   
   var body: some View {
     HStack {
-      Spacer()
-      //            TODO: Images to reflect order status? [OA]
-      //            Image(systemName: "mappin.circle")
-      //                .font(.title)
-      //                .foregroundColor(.accentColor)
-      //                .padding(.trailing, 10)
+      Image(systemName: orderIconStatus().rawValue)
+          .font(.title)
+          .foregroundColor(.accentColor)
+          .padding(.trailing, 10)
       VStack {
-        PrimaryRow(address)
+        PrimaryRow(primary)
         Spacer()
-        SecondaryRow(date)
-          .padding(.bottom, -3)
+        if let secondary = secondary {
+          SecondaryRow(secondary)
+            .padding(.bottom, -3)
+        }
       }
-      Text(orderCellStatus().rawValue.capitalized)
-        .font(.caption)
-        .foregroundColor(Color(.secondaryLabel))
-
     }
     .padding(.vertical, 10)
   }
-  
-  private var date: String {
-    return OrderCell.dateFormatter.string(from: order.createdAt)
+    
+  private var primary: String {
+    return order.name?.rawValue
+      ?? order.address.anyAddressStreetBias?.rawValue
+      ?? OrderCell.dateFormatter.string(from: order.createdAt)
   }
   
-  private var address: String {
-    return order.address.anyAddressStreetBias?.rawValue ?? "No address availible"
+  private var secondary: String? {
+    return order.name != nil ? order.address.anyAddressStreetBias?.rawValue : nil
   }
   
-  func orderCellStatus() -> OrderStatus {
+  private func orderIconStatus() -> OrderIconStatus {
     switch order.status {
     case .ongoing, .cancelling, .completing:
-      return order.visited != nil ? .visited : .pending
+      return order.visited != nil ? .visited : .ongoing
     case .completed:
       return .completed
     case .cancelled:

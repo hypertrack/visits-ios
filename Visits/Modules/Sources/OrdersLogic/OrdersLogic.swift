@@ -24,20 +24,9 @@ public enum OrdersAction: Equatable {
   case ordersUpdated(Set<Order>)
 }
 
-// MARK: - Environment
-
-public struct OrdersEnvironment {
-  public var capture: (CaptureMessage) -> Effect<Never, Never>
-  public var notifySuccess: () -> Effect<Never, Never>
-  
-  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>) {
-    self.capture = capture; self.notifySuccess = notifySuccess
-  }
-}
-
 // MARK: - Reducer
 
-public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrdersEnvironment>> { state, action, _ in
+public let ordersReducer = Reducer<OrdersState, OrdersAction, Void> { state, action, _ in
   switch action {
   case .ordersUpdated(let updatedOrders):
     state.orders = state.orders.updatedById(with: updatedOrders)

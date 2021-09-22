@@ -13,7 +13,7 @@ let ordersP: Reducer<
 > = ordersReducer.pullback(
   state: ordersStateAffine,
   action: ordersActionPrism,
-  environment: toOrdersEnvironment
+  environment: constant(())
 )
 
 private let ordersStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** ordersStateMainLens
@@ -59,12 +59,3 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     }
   }
 )
-
-private func toOrdersEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<OrdersEnvironment> {
-  e.map { e in
-    .init(
-      capture: e.errorReporting.capture,
-      notifySuccess: e.hapticFeedback.notifySuccess
-    )
-  }
-}
