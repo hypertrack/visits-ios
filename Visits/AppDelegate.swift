@@ -1,6 +1,5 @@
 import HyperTrack
 import AppAdapter
-import UIKit
 
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,8 +8,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    viewStore.send(.finishedLaunching)
+    setupUIAppearance()
 
+    viewStore.send(.finishedLaunching)
     HyperTrack.registerForRemoteNotifications()
     return true
   }
