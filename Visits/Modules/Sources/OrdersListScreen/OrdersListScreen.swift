@@ -68,6 +68,12 @@ public struct OrdersListScreen: View {
           }
         }
         .listStyle(PlainListStyle())
+        if state.orders.isEmpty {
+          Text("No orders yet")
+            .font(.title)
+            .foregroundColor(Color(.secondaryLabel))
+            .fontWeight(.bold)
+        }
       }
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
