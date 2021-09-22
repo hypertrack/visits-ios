@@ -177,4 +177,4 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
   }
 }
 
-private let dismissButton = AlertState<ErrorAlertAction>.Button.default(TextState("OK"), send: .ok)
+private let dismissButton = AlertState<ErrorAlertAction>.Button.default(TextState("OK"), action: .send(.ok))

@@ -51,8 +51,8 @@ public let manualReportReducer = Reducer<
       .init(
         title: TextState("Is something wrong?"),
         message: TextState("Do you want to send a report?"),
-        primaryButton: .default(TextState("Send"), send: .yes),
-        secondaryButton: .destructive(TextState("Cancel"), send: .no)
+        primaryButton: .default(TextState("Send"), action: .send(.yes)),
+        secondaryButton: .destructive(TextState("Cancel"), action: .send(.no))
       )
     )
     
