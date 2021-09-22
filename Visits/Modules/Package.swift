@@ -3,6 +3,7 @@
 import PackageDescription
 
 let architecture = Target.Dependency.product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+let customDump = Target.Dependency.product(name: "CustomDump", package: "swift-custom-dump")
 let nonEmpty = Target.Dependency.product(name: "NonEmpty", package: "swift-nonempty")
 let tagged = Target.Dependency.product(name: "Tagged", package: "swift-tagged")
 let orderedCollections = Target.Dependency.product(name: "OrderedCollections", package: "swift-collections")
@@ -48,10 +49,10 @@ let targets: [Target] = [
   .target(name: "PasteboardEnvironment",           dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "PasteboardEnvironmentLive",       dependencies: ["LogEnvironment", "PasteboardEnvironment"]),
   .target(name: "PushEnvironment",                 dependencies: [architecture]),
-  .target(name: "StateRestorationEnvironment",     dependencies: [architecture, "Types"]),
+  .target(name: "StateRestorationEnvironment",     dependencies: [architecture, customDump, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapDependency", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
+  .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", customDump, "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapDependency", "MapLogic", nonEmpty, "OrdersLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
   .target(name: "AddPlaceLogic",                   dependencies: ["AppArchitecture", architecture, "Types", "Utility"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
@@ -97,10 +98,11 @@ let package = Package(
   },
   dependencies: [
     .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.39.4")),
-    .package(                    url: "https://github.com/apple/swift-collections",                           .exact("0.0.5")),
-    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.23.0")),
+    .package(                    url: "https://github.com/apple/swift-collections",                           .exact("1.0.1")),
+    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.28.0")),
+    .package(                    url: "https://github.com/pointfreeco/swift-custom-dump",                     .exact("0.1.3")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
-    .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.3.1")),
+    .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.4.0")),
     .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
     .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.6.0")),
     .package(name: "Validated",  url: "https://github.com/pointfreeco/swift-validated.git",                   .exact("0.2.1"))

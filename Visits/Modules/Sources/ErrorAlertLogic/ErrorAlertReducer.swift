@@ -51,7 +51,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
   case .appVisibilityChanged(.onScreen):
     return .none
   case let .deepLinkFailed(e):
-    if e.contains(where: { $0.hasPrefix("Branch error") }) {
+    if e.contains(where: { $0.rawValue.hasPrefix("Branch error") }) {
       state.status = .shown(
         .init(
           title: TextState("Deep link failed"),
@@ -177,4 +177,4 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
   }
 }
 
-private let dismissButton = AlertState<ErrorAlertAction>.Button.default(TextState("OK"), send: .ok)
+private let dismissButton = AlertState<ErrorAlertAction>.Button.default(TextState("OK"), action: .send(.ok))
