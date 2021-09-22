@@ -99,6 +99,7 @@ let package = Package(
   dependencies: [
     .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.39.4")),
     .package(                    url: "https://github.com/apple/swift-collections",                           .exact("1.0.1")),
+    .package(                    url: "https://github.com/pointfreeco/combine-schedulers",                    .exact("0.5.3")),
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.28.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-custom-dump",                     .exact("0.1.3")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.8.0")),
