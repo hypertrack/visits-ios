@@ -83,15 +83,10 @@ public typealias CurrentLocation = Tagged<CurrentLocationTag, Coordinate>
 public enum CurrentLocationTag {}
 
 public enum PlaceRadius: UInt16, Equatable, CaseIterable {
+  case fifty = 50
   case hundred = 100
   case hundredFifty = 150
   case twoHundred = 200
-  case twoHundredFifty = 250
-  case threeHundred = 300
-  case threeHundredFifty = 350
-  case fourHundred = 400
-  case fourHundredFifty = 450
-  case fiveHundred = 500
   
   public func next() -> Self {
     let nextIndex = PlaceRadius.allCases.index(after: currentIndex)
