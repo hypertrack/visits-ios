@@ -172,7 +172,7 @@ struct MainBlock: View {
         }
       }
       .tabItem {
-        Image(systemName: "map")
+        Image(systemName: "map.fill")
         Text("Map")
       }
       .tag(TabSelection.map)
@@ -181,14 +181,14 @@ struct MainBlock: View {
       case let .order(v):
         OrderScreen(state: v, send: sendOrder)
         .tabItem {
-          Image(systemName: "list.dash")
+          Image(systemName: "checkmark.square.fill")
           Text("Orders")
         }
         .tag(TabSelection.orders)
       case let .orders(vs):
         OrdersScreen(state: .init(orders: vs, refreshing: state.requests.contains(Request.orders)), send: sendOrders)
         .tabItem {
-          Image(systemName: "list.dash")
+          Image(systemName: "checkmark.square.fill")
           Text("Orders")
         }
         .tag(TabSelection.orders)
@@ -206,7 +206,7 @@ struct MainBlock: View {
         send: sendPlaces
       )
         .tabItem {
-          Image(systemName: "mappin.and.ellipse")
+          Image(systemName: "mappin.circle.fill")
           Text("Places")
         }
         .tag(TabSelection.places)
@@ -222,7 +222,7 @@ struct MainBlock: View {
         )
       )
       .tabItem {
-        Image(systemName: "timer")
+        Image(systemName: "clock.fill")
         Text("Summary")
       }
       .tag(TabSelection.summary)
@@ -237,7 +237,7 @@ struct MainBlock: View {
         send: sendProfile
       )
       .tabItem {
-        Image(systemName: "person")
+        Image(systemName: "person.fill")
         Text("Profile")
       }
       .tag(TabSelection.profile)
