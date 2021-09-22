@@ -41,7 +41,6 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case let .checkOutOrder(o):            return .order(.completeOrder(o))
     case let .orderNoteChanged(n):         return .order(.noteChanged(n <¡> Order.Note.init(rawValue:)))
     case let .selectOrder(o):              return .selectOrder(o)
-    case     .deselectOrder:               return .deselectOrder
     case let .ordersUpdated(.success(os)): return .ordersUpdated(os)
     default:                               return nil
     }
@@ -56,7 +55,6 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case let .order(.completeOrder(o)):       return .checkOutOrder(o)
     case let .order(.noteChanged(n)):         return .orderNoteChanged(n?.rawValue)
     case let .selectOrder(o):                 return .selectOrder(o)
-    case     .deselectOrder:                  return .deselectOrder
     case let .ordersUpdated(os):              return .ordersUpdated(.success(os))
     }
   }

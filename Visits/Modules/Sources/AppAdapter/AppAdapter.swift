@@ -5,7 +5,7 @@ import ComposableArchitecture
 import LoadingScreen
 import MapScreen
 import OrderScreen
-import OrdersScreen
+import OrdersListScreen
 import Utility
 import SignInScreen
 import Types
@@ -99,22 +99,16 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             screen = .addPlace(flow, m.places?.places ?? [])
             break
           }
-          
-          let ord: OrderOrOrders
-          switch m.selectedOrder {
-          case     .none:        ord = .orders(m.orders)
-          case let .some(order): ord = .order(order)
-          }
-          
+                    
           screen = .main(
             m.map,
-            ord,
             m.places,
             m.selectedPlace,
             m.placesPresentation,
             m.requests,
             m.history,
-            m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
+            m.orders,
+            m.selectedOrder,
             m.profile,
             m.integrationStatus,
             deID,
@@ -167,7 +161,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders
   case let .orders(.orderTapped(o)): return .selectOrder(o)
-  case .order(.backButtonTapped): return .deselectOrder
   case .order(.cancelButtonTapped): return .cancelSelectedOrder
   case .order(.checkOutButtonTapped): return .completeSelectedOrder
   case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)

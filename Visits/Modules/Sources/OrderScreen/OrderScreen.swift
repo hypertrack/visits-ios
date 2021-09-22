@@ -27,7 +27,6 @@ public struct OrderScreen: View {
   }
   
   public enum Action: Equatable {
-    case backButtonTapped
     case cancelButtonTapped
     case checkOutButtonTapped
     case copyTextPressed(NonEmptyString)
@@ -88,13 +87,13 @@ public struct OrderScreen: View {
   }
   
   public var body: some View {
-    Navigation(
-      title: title,
-      leading: {
-        BackButton { send(.backButtonTapped) }
-      },
-      trailing: { EmptyView() }
-    ) {
+//    Navigation(
+//      title: title,
+//      leading: {
+//        EmptyView()
+//      },
+//      trailing: { EmptyView() }
+//    ) {
       ZStack {
         InformationView(
           order: state,
@@ -132,18 +131,8 @@ public struct OrderScreen: View {
           send(.tappedOutsideFocusedTextField)
         }
       }
-      .gesture(
-        DragGesture()
-          .updating(
-            $dragOffset,
-            body: { value, state, transaction in
-              if(value.startLocation.x < 20 && value.translation.width > 100) {
-                send(.backButtonTapped)
-              }
-            }
-          )
-      )
-    }
+      .navigationBarTitle(Text(state.address.anyAddressStreetBias?.rawValue ?? "Order"), displayMode: .inline)
+//    }
   }
 }
 
