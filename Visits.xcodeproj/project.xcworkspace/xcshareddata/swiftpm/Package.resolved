@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "0959ba76a1d4a98fd11163aa83fd49c25b93bfae",
-          "version": "0.0.5"
+          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
+          "version": "1.0.1"
         }
       },
       {
@@ -78,8 +78,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-identified-collections",
         "state": {
           "branch": null,
-          "revision": "edececbdb56b07e9402f2f3f5b907d220a28b4ea",
-          "version": "0.1.1"
+          "revision": "c8e6a40209650ab619853cd4ce89a0aa51792754",
+          "version": "0.3.0"
         }
       },
       {
