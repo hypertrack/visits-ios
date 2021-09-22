@@ -60,7 +60,7 @@ public struct OrdersListScreen: View {
     NavigationView {
       ZStack {
         navigationLink
-        List(state.orders) { order in
+        List(state.orders.sorted(by: \.sortableName)) { order in
           Button {
             send(.orderTapped(order))
           } label: {
@@ -75,6 +75,7 @@ public struct OrdersListScreen: View {
             .fontWeight(.bold)
         }
       }
+      .navigationBarTitle(Text("Orders"), displayMode: .automatic)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
@@ -87,7 +88,13 @@ public struct OrdersListScreen: View {
           }
         }
       }
-    }
+    }.navigationViewStyle(StackNavigationViewStyle())
   }
   
+}
+
+private extension Order {
+  var sortableName: String {
+    return name?.rawValue ?? ""
+  }
 }

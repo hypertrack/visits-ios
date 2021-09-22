@@ -2,6 +2,7 @@ import AppArchitecture
 import ComposableArchitecture
 import NonEmpty
 import OrdersLogic
+import OrderLogic
 import Utility
 import Types
 
@@ -13,7 +14,7 @@ let ordersP: Reducer<
 > = ordersReducer.pullback(
   state: ordersStateAffine,
   action: ordersActionPrism,
-  environment: constant(())
+  environment: toOrderEnvironment
 )
 
 private let ordersStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** ordersStateMainLens
@@ -59,3 +60,12 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     }
   }
 )
+
+private func toOrderEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<OrderEnvironment> {
+   e.map { e in
+     .init(
+       capture: e.errorReporting.capture,
+       notifySuccess: e.hapticFeedback.notifySuccess
+     )
+   }
+ }
