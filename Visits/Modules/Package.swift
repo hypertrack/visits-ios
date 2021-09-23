@@ -21,7 +21,7 @@ let targets: [Target] = [
   .target(name: "MapDrawing",                      dependencies: ["Types"]),
   .target(name: "MapScreen",                       dependencies: ["Types", "MapDrawing"]),
   .target(name: "OrderScreen",                     dependencies: [architecture, "MapDetailView", nonEmpty, "Types", "Views"]),
-  .target(name: "OrdersListScreen",                dependencies: [architecture, "Types", "Views"]),
+  .target(name: "OrdersListScreen",                dependencies: [architecture, "OrderScreen", "Types", "Views"]),
   .target(name: "PlacesScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views"]),
   .target(name: "ProfileScreen",                   dependencies: [nonEmpty, "Types", "Utility", "Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),
