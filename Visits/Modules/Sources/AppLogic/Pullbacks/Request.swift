@@ -48,19 +48,9 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
   inject: { d in
     { s in
       switch (s.flow, s.sdk.status) {
-      case let (.main(m), .unlocked(_, us)):
-        let orders: Set<Order>
-        let selectedOrder: Order?
-        if let so = m.selectedOrder {
-          (selectedOrder, orders) = selectOrder(id: so.id, from: d.orders)
-        } else {
-          orders = d.orders
-          selectedOrder = nil
-        }
-        
+      case let (.main(m), .unlocked(_, us)):        
         let main = AppFlow.main(
-          m |> \.orders *< orders
-            <> \.selectedOrder *< selectedOrder
+          m |> \.orders *< d.orders
             <> \.publishableKey *< d.publishableKey
             <> \.requests *< d.requests
             <> \.integrationStatus *< d.integrationStatus
