@@ -11,7 +11,7 @@ let orderedCollections = Target.Dependency.product(name: "OrderedCollections", p
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Utility"]),
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
-  .target(name: "Utility"),
+  .target(name: "Utility",                         dependencies: [architecture]),
   // Screen
   .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
   .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
