@@ -1,5 +1,6 @@
 import AppArchitecture
 import ComposableArchitecture
+import IdentifiedCollections
 import OrderLogic
 import Utility
 import Types
@@ -8,29 +9,34 @@ import Types
 // MARK: - State
 
 public struct OrdersState: Equatable {
-  public var orders: Set<Order>
-  public var selected: Order?
+  public var orders: IdentifiedArrayOf<Order>
+  public var selectedId: Order.ID?
   
-  public init(orders: Set<Order>, selected: Order? = nil) {
-    self.orders = Set<Order>(orders)
-    self.selected = selected
+  public init(orders: IdentifiedArrayOf<Order>, selectedId: Order.ID? = nil) {
+    self.orders = orders
+    self.selectedId = selectedId
   }
+  
+  var selected: Order? {
+    return orders[safeId: selectedId]
+  }
+  
 }
 
 // MARK: - Action
 
 public enum OrdersAction: Equatable {
-  case order(OrderAction)
-  case selectOrder(Order?)
+  case order(id: Order.ID, action: OrderAction)
+  case selectOrder(Order.ID?)
   case ordersUpdated(Set<Order>)
 }
 
 // MARK: - Reducer
 
 public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrderEnvironment>>.combine(
-  orderReducer.optional().pullback(
-    state: \.selected,
-    action: /OrdersAction.order,
+  orderReducer.forEach(
+    state: \.orders,
+    action: /OrdersAction.order(id:action:),
     environment: { e in
       e.map { e in
         .init(
@@ -40,20 +46,27 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       }
     }
   ),
-  Reducer { state, action, _ in
+  Reducer { state, action, _ in    
     switch action {
     case .ordersUpdated(let updatedOrders):
-      state.orders = state.orders.updatedById(with: updatedOrders)
-      state.selected = state.orders.first(where: { $0 == state.selected })
+      state.orders = IdentifiedArrayOf<Order>(uniqueElements: updatedOrders)
     case .selectOrder(let selectedOrder):
-      state.selected = selectedOrder
-    case .order:
-      //update order in collection, after it was changed in OrderLogic
-      if let selected = state.selected {
-        state.orders = state.orders.updatedById(with: [selected])
-      }
+      state.selectedId = selectedOrder//?.id
+    case .order(let id, let action):
+      break
+      //??
+      
     }
     return .none
   }
 )
-
+//
+//public let orderToOrdersPrism = Prism<OrdersAction, OrderAction> { ordersAction in
+//  switch ordersAction {
+//  case .order(let action): return action
+//  default: nil
+//  }
+//} embed: { orderAction in
+//  return .order(
+//}
+//

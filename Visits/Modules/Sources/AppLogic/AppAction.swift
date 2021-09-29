@@ -35,15 +35,16 @@ public enum AppAction: Equatable {
   case refreshAllRequests
   case receivedCurrentLocation(Coordinate?)
   // Orders
-  case selectOrder(Order?)
+  case selectOrder(Order.ID?)
   case updateOrders
   // Order
-  case cancelSelectedOrder
+  case cancelSelectedOrder(Order.ID)
   case cancelOrder(Order)
-  case completeSelectedOrder
+  case completeSelectedOrder(Order.ID)
   case checkOutOrder(Order)
-  case orderNoteChanged(NonEmptyString?)
-  case focusOrderNote
+  case orderNoteChanged(Order.ID, NonEmptyString?)
+  case focusOrderNote(Order.ID)
+  case orderDismissFocus(Order.ID)
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)

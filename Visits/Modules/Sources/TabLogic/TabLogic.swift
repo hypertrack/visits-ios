@@ -5,7 +5,7 @@ import Types
 // MARK: - Action
 
 public enum TabAction: Equatable {
-  case selectOrder(Order)
+  case selectOrder(Order.ID)
   case selectPlace(Place)
   case switchTo(TabSelection)
 }

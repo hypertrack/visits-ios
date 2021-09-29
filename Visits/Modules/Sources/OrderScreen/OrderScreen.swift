@@ -27,14 +27,14 @@ public struct OrderScreen: View {
   }
   
   public enum Action: Equatable {
-    case cancelButtonTapped
-    case checkOutButtonTapped
+    case cancelButtonTapped(Order.ID)
+    case checkOutButtonTapped(Order.ID)
     case copyTextPressed(NonEmptyString)
     case mapTapped(Coordinate, Address)
     case noteEnterKeyboardButtonTapped
-    case noteFieldChanged(String)
-    case noteTapped
-    case tappedOutsideFocusedTextField
+    case noteFieldChanged(Order.ID, String)
+    case noteTapped(Order.ID)
+    case tappedOutsideFocusedTextField(Order.ID)
   }
   
   @Environment(\.colorScheme) var colorScheme
@@ -106,10 +106,10 @@ public struct OrderScreen: View {
           orderNote: orderNote,
           deleveryNoteBinding: Binding(
             get: { orderNote },
-            set: { send(.noteFieldChanged($0)) }
+            set: { send(.noteFieldChanged(state.id, $0)) }
           ),
           noteFieldFocused: noteFieldFocused,
-          orderNoteWantsToBecomeFocused: { send(.noteTapped) },
+          orderNoteWantsToBecomeFocused: { send(.noteTapped(state.id)) },
           orderNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
           mapTapped: { send(.mapTapped($0, $1)) },
           copyTextPressed: {
@@ -120,15 +120,15 @@ public struct OrderScreen: View {
         )
         ButtonView(
           status: state.status,
-          cancelButtonTapped: { send(.cancelButtonTapped) },
-          checkOutButtonTapped: { send(.checkOutButtonTapped) }
+          cancelButtonTapped: { send(.cancelButtonTapped(state.id)) },
+          checkOutButtonTapped: { send(.checkOutButtonTapped(state.id)) }
         )
         .padding(.bottom, -10)
       }
       .modifier(AppBackground())
       .onTapGesture {
         if noteFieldFocused {
-          send(.tappedOutsideFocusedTextField)
+          send(.tappedOutsideFocusedTextField(state.id))
         }
       }
       .navigationBarTitle(Text(state.address.anyAddressStreetBias?.rawValue ?? "Order"), displayMode: .inline)

@@ -4,7 +4,7 @@ import Types
 // MARK: - Orders
 
 public func putOrders(
-  orders: Set<Order>,
+  orders: [Order],
   onMapView mapView: MKMapView
 ) {
   removeOrdersFrom(mapView: mapView)

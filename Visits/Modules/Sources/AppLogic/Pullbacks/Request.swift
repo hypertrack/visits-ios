@@ -1,5 +1,6 @@
 import AppArchitecture
 import ComposableArchitecture
+import IdentifiedCollections
 import Utility
 import RequestLogic
 import Types
@@ -35,7 +36,7 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
     case let (.main(m), .unlocked(deID, _)):
       return .init(
         requests: m.requests,
-        orders: m.selectedOrder.map { Set.insert($0)(m.orders) } ?? m.orders,
+        orders: m.orders,
         integrationStatus: m.integrationStatus,
         deviceID: deID,
         publishableKey: m.publishableKey,

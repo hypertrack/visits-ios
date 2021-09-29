@@ -101,19 +101,20 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
           }
                     
           screen = .main(
-            m.map,
-            m.places,
-            m.selectedPlace,
-            m.placesPresentation,
-            m.requests,
-            m.history,
-            m.orders,
-            m.selectedOrder,
-            m.profile,
-            m.integrationStatus,
-            deID,
-            m.tab,
-            o.version
+            MainBlockState(mapState: m.map,
+                           placesSummary: m.places,
+                           selectedPlace: m.selectedPlace,
+                           placesPresentation: m.placesPresentation,
+                           requests: m.requests,
+                           history: m.history,
+                           orders: m.orders,
+                           selectedOrderId: m.selectedOrderId,
+                           profile: m.profile,
+                           integrationStatus: m.integrationStatus,
+                           deviceID: deID,
+                           tabSelection: m.tab,
+                           version: o.version
+                          )
           )
         }
       }
@@ -161,22 +162,22 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders
   case let .orders(.orderTapped(o)): return .selectOrder(o)
-  case .order(.cancelButtonTapped): return .cancelSelectedOrder
-  case .order(.checkOutButtonTapped): return .completeSelectedOrder
+  case let .order(.cancelButtonTapped(oid)): return .cancelSelectedOrder(oid)
+  case let .order(.checkOutButtonTapped(oid)): return .completeSelectedOrder(oid)
   case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)
   case let .order(.mapTapped(c, a)), let .places(.mapTapped(c, a)): return .openInMaps(c, a)
   case .order(.noteEnterKeyboardButtonTapped): return .dismissFocus
-  case let .order(.noteFieldChanged(d)) where d.isEmpty: return .orderNoteChanged(nil)
-  case let .order(.noteFieldChanged(d)): return .orderNoteChanged(.init(stringLiteral: d))
-  case .order(.noteTapped): return .focusOrderNote
-  case .order(.tappedOutsideFocusedTextField): return .dismissFocus
+  case let .order(.noteFieldChanged(oid, d)) where d.isEmpty: return .orderNoteChanged(oid, nil)
+  case let .order(.noteFieldChanged(oid, d)): return .orderNoteChanged(oid, .init(stringLiteral: d))
+  case let .order(.noteTapped(oid)): return .focusOrderNote(oid)
+  case let .order(.tappedOutsideFocusedTextField(oid)): return .orderDismissFocus(oid)
   case .tab(.map): return .switchToMap
   case .tab(.orders): return .switchToOrders
   case .tab(.summary): return .switchToSummary
   case .tab(.profile): return .switchToProfile
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
-  case let .map(.selectedOrder(o)): return .selectOrder(o)
+  case let .map(.selectedOrder(o)): return .selectOrder(o.id)
   case let .map(.selectedPlace(p)): return .selectPlace(p)
   case .map(.enableAutoZoom): return .mapEnableAutoZoom
   case .tab(.places): return .switchToPlaces
