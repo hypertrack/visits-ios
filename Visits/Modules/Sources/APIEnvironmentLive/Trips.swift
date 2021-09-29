@@ -83,7 +83,7 @@ extension Order: Decodable {
     let statusString = try values.decode(String.self, forKey: .status)
     let status: Order.Status
     switch statusString {
-    case "ongoing":
+    case "assigned", "ongoing":
       status = .ongoing(.unfocused)
     case "completed":
       let completedDate = try decodeTimestamp(decoder: decoder, container: values, key: .completedAt)
