@@ -238,7 +238,7 @@ public let requestReducer = Reducer<
         default:          return o
         }
       }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray)
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     state.token = state.token == .refreshing ? .none : state.token
     
     return effects
@@ -449,7 +449,7 @@ public let requestReducer = Reducer<
         default:          return o
         }
       }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray)
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     switch state.integrationStatus {
     case .requesting:              state.integrationStatus = .unknown
     case .integrated(.refreshing): state.integrationStatus = .integrated(.notRefreshing)
@@ -482,7 +482,7 @@ public let requestReducer = Reducer<
         default:          return o
         }
       }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray)
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     state.integrationStatus = .unknown
     
     return .merge(

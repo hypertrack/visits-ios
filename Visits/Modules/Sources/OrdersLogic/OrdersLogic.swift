@@ -60,13 +60,3 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
     return .none
   }
 )
-//
-//public let orderToOrdersPrism = Prism<OrdersAction, OrderAction> { ordersAction in
-//  switch ordersAction {
-//  case .order(let action): return action
-//  default: nil
-//  }
-//} embed: { orderAction in
-//  return .order(
-//}
-//

@@ -174,7 +174,7 @@ struct MainBlock: View {
         MapView(
           state: .init(
             autoZoom: state.mapState.autoZoom,
-            orders: IdentifiedArrayOf(uniqueElements: state.orders),
+            orders: state.orders,
             places: state.placesSummary?.places ?? [],
             polyline: state.history?.coordinates ?? []
           ),
