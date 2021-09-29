@@ -49,7 +49,7 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
   Reducer { state, action, _ in    
     switch action {
     case .ordersUpdated(let updatedOrders):
-      state.orders = IdentifiedArrayOf<Order>(uniqueElements: updatedOrders)
+      state.orders = IdentifiedArrayOf<Order>(uniqueElements: Array(updatedOrders).sortedOrders())
     case .selectOrder(let selectedOrder):
       state.selectedId = selectedOrder//?.id
     case .order(let id, let action):
