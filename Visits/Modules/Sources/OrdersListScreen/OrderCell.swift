@@ -62,7 +62,7 @@ struct OrderCell: View {
       return .completed
     case .cancelled:
       return .canceled
-    case .disabled:
+    case .snoozed:
       return .snoozed
     }
   }

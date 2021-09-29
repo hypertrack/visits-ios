@@ -90,8 +90,8 @@ extension Order: Decodable {
       status = .completed(completedDate)
     case "cancelled":
       status = .cancelled
-    case "disabled":
-      status = .disabled
+    case "snoozed":
+      status = .snoozed
     default:
       throw DecodingError.dataCorrupted(
         .init(codingPath: decoder.codingPath, debugDescription: "Unrecognized order status: \(statusString)")

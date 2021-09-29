@@ -149,7 +149,7 @@ class OrderCanceledAnnotationView: MKAnnotationView {
   }
 }
 
-class OrderDisabledAnnotationView: MKAnnotationView {
+class OrderSnoozedAnnotationView: MKAnnotationView {
   override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
     self.canShowCallout = true
@@ -185,7 +185,7 @@ func drawOrder(status: Order.Status, visited: Order.Visited?) {
        (.completed, _):   emoji = "🏁"
   case (.cancelling, _),
        (.cancelled, _):   emoji = "❌"
-  case (.disabled, _):    emoji = "⏸"
+  case (.snoozed, _):    emoji = "⏸"
   }
   
   switch visited {
@@ -730,7 +730,7 @@ let orderPendingAnnotationID = "OrderPendingAnnotation"
 let orderVisitedAnnotationID = "OrderVisitedAnnotation"
 let orderCompletedAnnotationID = "OrderCompletedAnnotation"
 let orderCanceledAnnotationID = "OrderCanceledAnnotation"
-let orderDisabledAnnotationID = "OrderDisabledAnnotation"
+let orderSnoozedAnnotationID = "OrderSnoozedAnnotation"
 let placeAnnotationID = "PlaceAnnotation"
 
 
@@ -741,7 +741,7 @@ public func registerAnnotations(for mapView: MKMapView) {
   mapView.register(OrderVisitedAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderVisitedAnnotationID)
   mapView.register(OrderCompletedAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderCompletedAnnotationID)
   mapView.register(OrderCanceledAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderCanceledAnnotationID)
-  mapView.register(OrderDisabledAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderDisabledAnnotationID)
+  mapView.register(OrderSnoozedAnnotationView.self, forAnnotationViewWithReuseIdentifier: orderSnoozedAnnotationID)
   mapView.register(PlaceAnnotationView.self, forAnnotationViewWithReuseIdentifier: placeAnnotationID)
 }
 
@@ -763,7 +763,7 @@ public func annotationViewForAnnotation(
          (.completed, _):   reuseIdentifier = orderCompletedAnnotationID
     case (.cancelling, _),
          (.cancelled, _):   reuseIdentifier = orderCanceledAnnotationID
-    case (.disabled, _):    reuseIdentifier = orderDisabledAnnotationID
+    case (.snoozed, _):    reuseIdentifier = orderSnoozedAnnotationID
     }
     return mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier, for: orderAnnotation)
   case let placeAnnotation as PlaceAnnotation:
@@ -846,7 +846,7 @@ public func calloutAccessoryControlTapped(for annotationView: MKAnnotationView) 
        is OrderVisitedAnnotationView,
        is OrderCompletedAnnotationView,
        is OrderCanceledAnnotationView,
-       is OrderDisabledAnnotationView:
+       is OrderSnoozedAnnotationView:
     return .order((annotationView.annotation as! OrderAnnotation).order)
   case is PlaceAnnotationView:
     return .place((annotationView.annotation as! PlaceAnnotation).place)

@@ -79,7 +79,7 @@ public struct OrderScreen: View {
   
   public var finished: Bool {
     switch state.status {
-    case .completed, .cancelled, .disabled:
+    case .completed, .cancelled, .snoozed:
       return true
     default:
       return false
@@ -157,7 +157,7 @@ struct StatusView: View {
       VisitStatus(text: "Marked Complete at: \(DateFormatter.stringTime(time))", state: .completed)
     case .cancelled:
       VisitStatus(text: "Marked Canceled", state: .custom(color: .red))
-    case .disabled:
+    case .snoozed:
       VisitStatus(text: "Snoozed", state: .custom(color: .gray))
     }
   }
@@ -253,7 +253,7 @@ struct ButtonView: View {
       case .completed:  self = .hidingButtons(.completed)
       case .cancelling: self = .showingButtons(.cancelling)
       case .cancelled:  self = .hidingButtons(.cancelled)
-      case .disabled:   self = .hidingButtons(.disabled)
+      case .snoozed:   self = .hidingButtons(.snoozed)
       }
     }
     
@@ -261,7 +261,7 @@ struct ButtonView: View {
     case hidingButtons(HidingButtons)
     
     enum ShowingButtons { case ongoing, completing, cancelling }
-    enum HidingButtons { case completed, cancelled, disabled }
+    enum HidingButtons { case completed, cancelled, snoozed }
   }
   
   var body: some View {
