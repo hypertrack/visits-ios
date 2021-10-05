@@ -2,17 +2,18 @@ import MapDrawing
 import MapKit
 import SwiftUI
 import Types
+import IdentifiedCollections
 
 
 public struct MapView: View {
   
   public struct State: Equatable {
     public var autoZoom: AutoZoom
-    public var orders: Set<Order>
+    public var orders: IdentifiedArrayOf<Order>
     public var places: Set<Place>
     public var polyline: [Coordinate]
     
-    public init(autoZoom: AutoZoom, orders: Set<Order>, places: Set<Place>, polyline: [Coordinate]) {
+    public init(autoZoom: AutoZoom, orders: IdentifiedArrayOf<Order>, places: Set<Place>, polyline: [Coordinate]) {
       self.autoZoom = autoZoom; self.orders = orders; self.places = places; self.polyline = polyline
     }
   }
@@ -69,7 +70,7 @@ public struct MapView: View {
 
 struct MapViewRepresentable: UIViewRepresentable {
   var polyline: [Coordinate]
-  var orders: Set<Order>
+  var orders: IdentifiedArrayOf<Order>
   var places: Set<Place>
   var autoZoom: AutoZoom
   var sendSelectedOrder: (Order) -> Void
@@ -91,7 +92,7 @@ struct MapViewRepresentable: UIViewRepresentable {
     mapView.showsUserLocation = polyline.isEmpty
     
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
-    putOrders(orders: orders, onMapView: mapView)
+    putOrders(orders: orders.elements, onMapView: mapView)
     putPlaces(places: places, onMapView: mapView)
     zoomIfNeeded(onMapView: mapView)
   }

@@ -3,6 +3,7 @@ import NonEmpty
 import Tagged
 import Types
 import Utility
+import IdentifiedCollections
 
 
 extension AppState {
@@ -15,7 +16,7 @@ extension AppState {
   
   static let orderScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.selectedOrder *< .some(notSent)
+      main |> \.selectedOrderId *< .some(notSent.id)
            <> \.tab *< .orders
     )
   )
@@ -172,7 +173,21 @@ private let checkedOut3 = Order(
   visited: .entered(Date())
 )
 
-private let orders: Set<Order> = [notSent, entered, checkedOut1, checkedOut2, checkedOut3]
+private let canceled = Order(
+  id: Order.ID(rawValue: "ID6"),
+  tripID: "_",
+  createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
+  location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
+  address: .init(
+    street: Street(rawValue: "601 Eddy St"),
+    fullAddress: FullAddress(rawValue: "601 Eddy St, San Francisco, CA  94109, United States")
+  ),
+  status: .cancelled,
+  note: nil,
+  visited: .entered(Date())
+)
+
+private let orders = IdentifiedArrayOf<Order>(uniqueElements: [notSent, entered, checkedOut1, checkedOut2, checkedOut3, canceled])
 
 private let cityHall = Place(
   id: "1",

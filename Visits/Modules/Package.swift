@@ -11,9 +11,9 @@ let orderedCollections = Target.Dependency.product(name: "OrderedCollections", p
 let targets: [Target] = [
   .target(name: "AppArchitecture",                 dependencies: [architecture, "LogEnvironment", "Utility"]),
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
-  .target(name: "Utility"),
+  .target(name: "Utility",                         dependencies: [architecture]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
   .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
@@ -21,7 +21,7 @@ let targets: [Target] = [
   .target(name: "MapDrawing",                      dependencies: ["Types"]),
   .target(name: "MapScreen",                       dependencies: ["Types", "MapDrawing"]),
   .target(name: "OrderScreen",                     dependencies: [architecture, "MapDetailView", nonEmpty, "Types", "Views"]),
-  .target(name: "OrdersScreen",                    dependencies: [architecture, "Types", "Views"]),
+  .target(name: "OrdersListScreen",                dependencies: [architecture, "OrderScreen", "Types", "Views"]),
   .target(name: "PlacesScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views"]),
   .target(name: "ProfileScreen",                   dependencies: [nonEmpty, "Types", "Utility", "Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),

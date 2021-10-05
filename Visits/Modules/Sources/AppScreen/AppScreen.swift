@@ -5,7 +5,7 @@ import LoadingScreen
 import MapKit
 import MapScreen
 import OrderScreen
-import OrdersScreen
+import OrdersListScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
@@ -13,12 +13,6 @@ import SummaryScreen
 import SwiftUI
 import Types
 import Views
-
-
-public enum OrderOrOrders: Equatable {
-  case order(Order)
-  case orders(Set<Order>)
-}
 
 public struct AppScreen: View {
   public struct State {
@@ -37,11 +31,12 @@ public struct AppScreen: View {
       self.errorReportingAlert = errorReportingAlert
     }
   }
+  
   public enum Screen {
     case loading
     case signIn(SignInState)
     case blocker(Blocker.State)
-    case main(MapState, OrderOrOrders, PlacesSummary?, Place?, PlacesPresentation, Set<Request>, History?, Set<Order>, Profile, IntegrationStatus, DeviceID, TabSelection, AppVersion)
+    case main(MainBlockState)
     case addPlace(AddPlace, Set<Place>)
   }
   
@@ -49,7 +44,7 @@ public struct AppScreen: View {
     case addPlace(AddPlaceView.Action)
     case signIn(SignInScreenAction)
     case blocker(Blocker.Action)
-    case orders(OrdersScreen.Action)
+    case orders(OrdersListScreen.Action)
     case order(OrderScreen.Action)
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
@@ -83,9 +78,9 @@ public struct AppScreen: View {
           Blocker(state: s) {
             viewStore.send(.blocker($0))
           }
-        case let .main(m, s, ps, sp, pp, r, h, mv, pr, i, deID, sel, ver):
+        case let .main(s):
           MainBlock(
-            state: (m, s, ps, sp, pp, r, h, mv, pr, i, deID, sel, ver),
+            state: s,
             sendMap: { viewStore.send(.map($0)) },
             sendOrder: { viewStore.send(.order($0)) },
             sendOrders: { viewStore.send(.orders($0)) },
@@ -114,25 +109,56 @@ public struct AppScreen: View {
   }
 }
 
+public struct MainBlockState: Equatable {
+  public let mapState: MapState
+  public let placesSummary: PlacesSummary?
+  public let selectedPlace: Place?
+  public let placesPresentation: PlacesPresentation
+  public let requests: Set<Request>
+  public let history: History?
+  public let orders: IdentifiedArrayOf<Order>
+  public let selectedOrderId: Order.ID?
+  public let profile: Profile
+  public let integrationStatus: IntegrationStatus
+  public let deviceID: DeviceID
+  public let tabSelection: TabSelection
+  public let version: AppVersion
+  
+  public init(mapState: MapState,
+              placesSummary: PlacesSummary?,
+              selectedPlace: Place?,
+              placesPresentation: PlacesPresentation,
+              requests: Set<Request>,
+              history: History?,
+              orders: IdentifiedArrayOf<Order>,
+              selectedOrderId: Order.ID?,
+              profile: Profile,
+              integrationStatus: IntegrationStatus,
+              deviceID: DeviceID,
+              tabSelection: TabSelection,
+              version: AppVersion) {
+    self.mapState = mapState
+    self.placesSummary = placesSummary
+    self.selectedPlace = selectedPlace
+    self.placesPresentation = placesPresentation
+    self.requests = requests
+    self.history = history
+    self.orders = orders
+    self.selectedOrderId = selectedOrderId
+    self.profile = profile
+    self.integrationStatus = integrationStatus
+    self.deviceID = deviceID
+    self.tabSelection = tabSelection
+    self.version = version
+  }
+}
+
 struct MainBlock: View {
-  let state: (
-    mapState: MapState,
-    orderScreenState: OrderOrOrders,
-    placesSummary: PlacesSummary?,
-    selectedPlace: Place?,
-    placesPresentation: PlacesPresentation,
-    requests: Set<Request>,
-    history: History?,
-    orders: Set<Order>,
-    profile: Profile,
-    integrationStatus: IntegrationStatus,
-    deviceID: DeviceID,
-    tabSelection: TabSelection,
-    version: AppVersion
-  )
+  
+  let state: MainBlockState
   let sendMap: (MapView.Action) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
-  let sendOrders: (OrdersScreen.Action) -> Void
+  let sendOrders: (OrdersListScreen.Action) -> Void
   let sendPlaces: (PlacesScreen.Action) -> Void
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
@@ -177,23 +203,17 @@ struct MainBlock: View {
       }
       .tag(TabSelection.map)
       
-      switch state.orderScreenState {
-      case let .order(v):
-        OrderScreen(state: v, send: sendOrder)
+      OrdersListScreen(state: .init(orders: state.orders,
+                                    selected: state.selectedOrderId,
+                                    refreshing: state.requests.contains(Request.orders)),
+                       send: sendOrders,
+                       sendOrderAction: sendOrder)
         .tabItem {
           Image(systemName: "checkmark.square.fill")
           Text("Orders")
         }
         .tag(TabSelection.orders)
-      case let .orders(vs):
-        OrdersScreen(state: .init(orders: vs, refreshing: state.requests.contains(Request.orders)), send: sendOrders)
-        .tabItem {
-          Image(systemName: "checkmark.square.fill")
-          Text("Orders")
-        }
-        .tag(TabSelection.orders)
-      }
-      
+
       PlacesScreen(
         state: .init(
           places: state.placesSummary,

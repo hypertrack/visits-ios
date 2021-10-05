@@ -27,15 +27,14 @@ public struct OrderScreen: View {
   }
   
   public enum Action: Equatable {
-    case backButtonTapped
-    case cancelButtonTapped
-    case checkOutButtonTapped
+    case cancelButtonTapped(Order.ID)
+    case checkOutButtonTapped(Order.ID)
     case copyTextPressed(NonEmptyString)
     case mapTapped(Coordinate, Address)
     case noteEnterKeyboardButtonTapped
-    case noteFieldChanged(String)
-    case noteTapped
-    case tappedOutsideFocusedTextField
+    case noteFieldChanged(Order.ID, String)
+    case noteTapped(Order.ID)
+    case tappedOutsideFocusedTextField(Order.ID)
   }
   
   @Environment(\.colorScheme) var colorScheme
@@ -80,7 +79,7 @@ public struct OrderScreen: View {
   
   public var finished: Bool {
     switch state.status {
-    case .completed, .cancelled, .disabled:
+    case .completed, .cancelled, .snoozed:
       return true
     default:
       return false
@@ -88,13 +87,13 @@ public struct OrderScreen: View {
   }
   
   public var body: some View {
-    Navigation(
-      title: title,
-      leading: {
-        BackButton { send(.backButtonTapped) }
-      },
-      trailing: { EmptyView() }
-    ) {
+//    Navigation(
+//      title: title,
+//      leading: {
+//        EmptyView()
+//      },
+//      trailing: { EmptyView() }
+//    ) {
       ZStack {
         InformationView(
           order: state,
@@ -107,10 +106,10 @@ public struct OrderScreen: View {
           orderNote: orderNote,
           deleveryNoteBinding: Binding(
             get: { orderNote },
-            set: { send(.noteFieldChanged($0)) }
+            set: { send(.noteFieldChanged(state.id, $0)) }
           ),
           noteFieldFocused: noteFieldFocused,
-          orderNoteWantsToBecomeFocused: { send(.noteTapped) },
+          orderNoteWantsToBecomeFocused: { send(.noteTapped(state.id)) },
           orderNoteEnterButtonPressed: { send(.noteEnterKeyboardButtonTapped) },
           mapTapped: { send(.mapTapped($0, $1)) },
           copyTextPressed: {
@@ -121,29 +120,19 @@ public struct OrderScreen: View {
         )
         ButtonView(
           status: state.status,
-          cancelButtonTapped: { send(.cancelButtonTapped) },
-          checkOutButtonTapped: { send(.checkOutButtonTapped) }
+          cancelButtonTapped: { send(.cancelButtonTapped(state.id)) },
+          checkOutButtonTapped: { send(.checkOutButtonTapped(state.id)) }
         )
         .padding(.bottom, -10)
       }
       .modifier(AppBackground())
       .onTapGesture {
         if noteFieldFocused {
-          send(.tappedOutsideFocusedTextField)
+          send(.tappedOutsideFocusedTextField(state.id))
         }
       }
-      .gesture(
-        DragGesture()
-          .updating(
-            $dragOffset,
-            body: { value, state, transaction in
-              if(value.startLocation.x < 20 && value.translation.width > 100) {
-                send(.backButtonTapped)
-              }
-            }
-          )
-      )
-    }
+      .navigationBarTitle(Text(state.address.anyAddressStreetBias?.rawValue ?? "Order"), displayMode: .inline)
+//    }
   }
 }
 
@@ -168,7 +157,7 @@ struct StatusView: View {
       VisitStatus(text: "Marked Complete at: \(DateFormatter.stringTime(time))", state: .completed)
     case .cancelled:
       VisitStatus(text: "Marked Canceled", state: .custom(color: .red))
-    case .disabled:
+    case .snoozed:
       VisitStatus(text: "Snoozed", state: .custom(color: .gray))
     }
   }
@@ -264,7 +253,7 @@ struct ButtonView: View {
       case .completed:  self = .hidingButtons(.completed)
       case .cancelling: self = .showingButtons(.cancelling)
       case .cancelled:  self = .hidingButtons(.cancelled)
-      case .disabled:   self = .hidingButtons(.disabled)
+      case .snoozed:   self = .hidingButtons(.snoozed)
       }
     }
     
@@ -272,7 +261,7 @@ struct ButtonView: View {
     case hidingButtons(HidingButtons)
     
     enum ShowingButtons { case ongoing, completing, cancelling }
-    enum HidingButtons { case completed, cancelled, disabled }
+    enum HidingButtons { case completed, cancelled, snoozed }
   }
   
   var body: some View {

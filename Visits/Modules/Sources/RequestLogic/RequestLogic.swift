@@ -8,14 +8,14 @@ import Types
 
 public struct RequestState: Equatable {
   public var requests: Set<Request>
-  public var orders: Set<Order>
+  public var orders: IdentifiedArrayOf<Order>
   public var history: History?
   public var integrationStatus: IntegrationStatus
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
   
-  public init(requests: Set<Request>, orders: Set<Order>, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+  public init(requests: Set<Request>, orders: IdentifiedArrayOf<Order>, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
     self.requests = requests; self.orders = orders; self.integrationStatus = integrationStatus; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
   }
 }
@@ -231,14 +231,14 @@ public let requestReducer = Reducer<
     )
     
     state.requests = []
-    state.orders = state.orders.map { o in
+    let ordersArray: [Order] = state.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
       }
-      |> Set.init
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     state.token = state.token == .refreshing ? .none : state.token
     
     return effects
@@ -294,7 +294,7 @@ public let requestReducer = Reducer<
     else { return environment.capture("Can't process order cancellation because there is no order or its status is not .cancelling").fireAndForget() }
     
     state.orders.remove(order)
-    state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
+    state.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
     
     if case .success = r, !state.requests.contains(.orders) {
       let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
@@ -310,7 +310,7 @@ public let requestReducer = Reducer<
     else { return environment.capture("Can't process order completion because there is no order or its status is not .completing").fireAndForget() }
     
     state.orders.remove(order)
-    state.orders.insert(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
+    state.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
     
     if case .success = r, !state.requests.contains(.orders) {
       let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
@@ -374,7 +374,7 @@ public let requestReducer = Reducer<
     else { return .none }
     
     state.orders.remove(order)
-    state.orders.insert(order |> \.status *< .cancelling)
+    state.orders.updateOrAppend(order |> \.status *< .cancelling)
     
     let (token, effects) = requestOrRefreshToken(state.token, request: cancelOrder(o))
     state.token = token
@@ -388,7 +388,7 @@ public let requestReducer = Reducer<
     else { return .none }
     
     state.orders.remove(order)
-    state.orders.insert(order |> \.status *< .completing)
+    state.orders.updateOrAppend(order |> \.status *< .completing)
     
     let (token, effects) = requestOrRefreshToken(state.token, request: completeOrder(o))
     state.token = token
@@ -441,14 +441,15 @@ public let requestReducer = Reducer<
     
     state.token = .none
     state.requests = []
-    state.orders = state.orders.map { o in
+    
+    let ordersArray: [Order] = state.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
       }
-      |> Set.init
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     switch state.integrationStatus {
     case .requesting:              state.integrationStatus = .unknown
     case .integrated(.refreshing): state.integrationStatus = .integrated(.notRefreshing)
@@ -474,14 +475,14 @@ public let requestReducer = Reducer<
     
     state.token = .none
     state.requests = []
-    state.orders = state.orders.map { o in
+    let ordersArray: [Order] = state.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
       }
-      |> Set.init
+    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
     state.integrationStatus = .unknown
     
     return .merge(

@@ -6,4 +6,10 @@ public extension Set {
       return set
     }
   }
+
+  func updated(with new: Set<Element>) -> Set<Element> {
+    var updated = new
+    self.forEach { updated.insert($0) }
+    return updated
+  }
 }

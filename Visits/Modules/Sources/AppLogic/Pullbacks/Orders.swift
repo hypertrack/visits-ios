@@ -2,6 +2,7 @@ import AppArchitecture
 import ComposableArchitecture
 import NonEmpty
 import OrdersLogic
+import OrderLogic
 import Utility
 import Types
 
@@ -13,7 +14,7 @@ let ordersP: Reducer<
 > = ordersReducer.pullback(
   state: ordersStateAffine,
   action: ordersActionPrism,
-  environment: toOrdersEnvironment
+  environment: toOrderEnvironment
 )
 
 private let ordersStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** ordersStateMainLens
@@ -22,51 +23,52 @@ private let ordersStateMainLens = Lens<MainState, OrdersState>(
   get: { s in
     .init(
       orders: s.orders,
-      selected: s.selectedOrder
+      selectedId: s.selectedOrderId
     )
   },
   set: { d in
-     \.orders *< d.orders <> \.selectedOrder *< d.selected
+     \.orders *< d.orders <> \.selectedOrderId *< d.selectedId
   }
 )
 
 private let ordersActionPrism = Prism<AppAction, OrdersAction>(
   extract: { a in
     switch a {
-    case     .focusOrderNote:              return .order(.focusNote)
-    case     .dismissFocus:                return .order(.dismissFocus)
-    case     .cancelSelectedOrder:         return .order(.cancelSelectedOrder)
-    case let .cancelOrder(o):              return .order(.cancelOrder(o))
-    case     .completeSelectedOrder:       return .order(.completeSelectedOrder)
-    case let .checkOutOrder(o):            return .order(.completeOrder(o))
-    case let .orderNoteChanged(n):         return .order(.noteChanged(n <¡> Order.Note.init(rawValue:)))
+    case let .focusOrderNote(oid):         return .order(id: oid, action: .focusNote)
+    case let .orderDismissFocus(oid):      return .order(id: oid, action: .dismissFocus)
+    case let .cancelSelectedOrder(oid):    return .order(id: oid, action: .cancelSelectedOrder)
+    case let .cancelOrder(o):              return .order(id: o.id, action: .cancelOrder(o))
+    case let .completeSelectedOrder(oid):       return .order(id: oid, action: .completeSelectedOrder)
+    case let .checkOutOrder(o):            return .order(id: o.id, action: .completeOrder(o))
+    case let .orderNoteChanged(oid, n):    return .order(id: oid, action: .noteChanged(n <¡> Order.Note.init(rawValue:)))
     case let .selectOrder(o):              return .selectOrder(o)
-    case     .deselectOrder:               return .deselectOrder
     case let .ordersUpdated(.success(os)): return .ordersUpdated(os)
     default:                               return nil
     }
   },
   embed: { a in
     switch a {
-    case     .order(.focusNote):              return .focusOrderNote
-    case     .order(.dismissFocus):           return .dismissFocus
-    case     .order(.cancelSelectedOrder):    return .cancelSelectedOrder
-    case let .order(.cancelOrder(o)):         return .cancelOrder(o)
-    case     .order(.completeSelectedOrder):  return .completeSelectedOrder
-    case let .order(.completeOrder(o)):       return .checkOutOrder(o)
-    case let .order(.noteChanged(n)):         return .orderNoteChanged(n?.rawValue)
+    case let .order(oid, orderAction):
+      switch orderAction {
+      case     .focusNote:                      return .focusOrderNote(oid)
+      case     .dismissFocus:                   return .orderDismissFocus(oid)
+      case     .cancelSelectedOrder:            return .cancelSelectedOrder(oid)
+      case let .cancelOrder(o):                 return .cancelOrder(o)
+      case     .completeSelectedOrder:          return .completeSelectedOrder(oid)
+      case let .completeOrder(o):               return .checkOutOrder(o)
+      case let .noteChanged(n):                 return .orderNoteChanged(oid, n?.rawValue)
+      }
     case let .selectOrder(o):                 return .selectOrder(o)
-    case     .deselectOrder:                  return .deselectOrder
     case let .ordersUpdated(os):              return .ordersUpdated(.success(os))
     }
   }
 )
 
-private func toOrdersEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<OrdersEnvironment> {
-  e.map { e in
-    .init(
-      capture: e.errorReporting.capture,
-      notifySuccess: e.hapticFeedback.notifySuccess
-    )
-  }
-}
+private func toOrderEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<OrderEnvironment> {
+   e.map { e in
+     .init(
+       capture: e.errorReporting.capture,
+       notifySuccess: e.hapticFeedback.notifySuccess
+     )
+   }
+ }

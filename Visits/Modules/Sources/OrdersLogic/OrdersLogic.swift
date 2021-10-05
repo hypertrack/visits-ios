@@ -1,47 +1,42 @@
 import AppArchitecture
 import ComposableArchitecture
-import NonEmpty
+import IdentifiedCollections
 import OrderLogic
 import Utility
-import Tagged
 import Types
 
 
 // MARK: - State
 
 public struct OrdersState: Equatable {
-  public var orders: Set<Order>
-  public var selected: Order?
+  public var orders: IdentifiedArrayOf<Order>
+  public var selectedId: Order.ID?
   
-  public init(orders: Set<Order>, selected: Order? = nil) { self.orders = orders; self.selected = selected }
+  public init(orders: IdentifiedArrayOf<Order>, selectedId: Order.ID? = nil) {
+    self.orders = orders
+    self.selectedId = selectedId
+  }
+  
+  var selected: Order? {
+    return orders[safeId: selectedId]
+  }
+  
 }
 
 // MARK: - Action
 
 public enum OrdersAction: Equatable {
-  case order(OrderAction)
-  case selectOrder(Order)
-  case deselectOrder
+  case order(id: Order.ID, action: OrderAction)
+  case selectOrder(Order.ID?)
   case ordersUpdated(Set<Order>)
-}
-
-// MARK: - Environment
-
-public struct OrdersEnvironment {
-  public var capture: (CaptureMessage) -> Effect<Never, Never>
-  public var notifySuccess: () -> Effect<Never, Never>
-  
-  public init(capture: @escaping (CaptureMessage) -> Effect<Never, Never>, notifySuccess: @escaping () -> Effect<Never, Never>) {
-    self.capture = capture; self.notifySuccess = notifySuccess
-  }
 }
 
 // MARK: - Reducer
 
-public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrdersEnvironment>>.combine(
-  orderReducer.optional().pullback(
-    state: \.selected,
-    action: /OrdersAction.order,
+public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<OrderEnvironment>>.combine(
+  orderReducer.forEach(
+    state: \.orders,
+    action: /OrdersAction.order(id:action:),
     environment: { e in
       e.map { e in
         .init(
@@ -51,45 +46,17 @@ public let ordersReducer = Reducer<OrdersState, OrdersAction, SystemEnvironment<
       }
     }
   ),
-  Reducer { state, action, environment in
+  Reducer { state, action, _ in    
     switch action {
-    case .order:
-      return .none
-    case let .selectOrder(o):
+    case .ordersUpdated(let updatedOrders):
+      state.orders = IdentifiedArrayOf<Order>(uniqueElements: Array(updatedOrders).sortedOrders())
+    case .selectOrder(let selectedOrder):
+      state.selectedId = selectedOrder//?.id
+    case .order(let id, let action):
+      break
+      //??
       
-      let (os, o) = selectOrder(os: state.orders, selected: state.selected, toSelect: o.id)
-      state.orders = os
-      state.selected = o
-      
-      return .none
-    case .deselectOrder:
-      guard let o = state.selected else { return .none }
-      
-      state.orders = state.orders |> Set.insert(o)
-      state.selected = nil
-      
-      return .none
-    case let .ordersUpdated(os):
-      if let o = state.selected {
-        let (newOs, newO) = selectOrder(os: os, selected: nil, toSelect: o.id)
-        state.orders = newOs
-        state.selected = newO
-      } else {
-        state.orders = os
-        state.selected = nil
-      }
-      
-      return .none
     }
+    return .none
   }
 )
-
-private func combine(_ os: Set<Order>, _ o: Order?) -> Set<Order> {
-  o.map { Set.insert($0)(os) } ?? os
-}
-
-private func selectOrder(os: Set<Order>, selected: Order?, toSelect: Order.ID) -> (Set<Order>, Order?) {
-  let os = combine(os, selected)
-  let o: Order? = os.firstIndex(where: { $0.id.string == toSelect.string }).map { os[$0] }
-  return (os.filter { $0.id.string != toSelect.string }, o)
-}

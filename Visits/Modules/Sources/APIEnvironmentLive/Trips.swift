@@ -83,15 +83,15 @@ extension Order: Decodable {
     let statusString = try values.decode(String.self, forKey: .status)
     let status: Order.Status
     switch statusString {
-    case "ongoing":
+    case "assigned", "ongoing":
       status = .ongoing(.unfocused)
     case "completed":
       let completedDate = try decodeTimestamp(decoder: decoder, container: values, key: .completedAt)
       status = .completed(completedDate)
     case "cancelled":
       status = .cancelled
-    case "disabled":
-      status = .disabled
+    case "snoozed":
+      status = .snoozed
     default:
       throw DecodingError.dataCorrupted(
         .init(codingPath: decoder.codingPath, debugDescription: "Unrecognized order status: \(statusString)")

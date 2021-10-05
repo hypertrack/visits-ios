@@ -21,7 +21,7 @@ public struct Order {
     case completed(Date)
     case cancelling
     case cancelled
-    case disabled
+    case snoozed
     
     public enum NoteFocus { case focused, unfocused }
   }
@@ -92,17 +92,6 @@ extension Order.Visited {
   }
 }
 
-public func selectOrder(id: Order.ID, from orders: Set<Order>) -> (Order?, Set<Order>) {
-  (
-    orders.firstIndex(where: { $0.id == id }).map { orders[$0] },
-    orders.filter { $0.id != id }
-  )
-}
-
-public func insertOrder(_ o: Order?, into orders: Set<Order>) -> Set<Order> {
-  o.map { Set.insert($0)(orders) } ?? orders
-}
-
 public extension Order {
   var title: NonEmptyString {
     switch self.address.anyAddressStreetBias {
@@ -110,6 +99,11 @@ public extension Order {
     case let .some(a): return a
     }
   }
+  
+  var name: NonEmptyString? {
+    return metadata["name"]?.rawValue
+  }
+
 }
 
 // MARK: - Foundation
@@ -127,3 +121,13 @@ extension Order.Status.NoteFocus: Equatable {}
 extension Order.Status.NoteFocus: Hashable {}
 
 extension Order: Identifiable {}
+
+public extension Array where Element == Order {
+  func sortedOrders() -> Array<Order> {
+    return self.sorted { lhs, rhs in
+      let lc = lhs.name?.rawValue ?? lhs.id.string
+      let rc = rhs.name?.rawValue ?? rhs.id.string
+      return lc.compare(rc, options: .caseInsensitive) == .orderedAscending
+    }
+  }
+}
