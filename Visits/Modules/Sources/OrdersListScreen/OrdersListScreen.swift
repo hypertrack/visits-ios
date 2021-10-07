@@ -19,12 +19,10 @@ public struct OrdersListScreen: View {
   public struct State {
     public let orders: IdentifiedArrayOf<Order>
     public let selected: Order.ID?
-    public let refreshing: Bool
     
-    public init(orders: IdentifiedArrayOf<Order>, selected: Order.ID?, refreshing: Bool) {
+    public init(orders: IdentifiedArrayOf<Order>, selected: Order.ID?) {
       self.orders = orders
       self.selected = selected
-      self.refreshing = refreshing
     }
   }
     
@@ -60,10 +58,8 @@ public struct OrdersListScreen: View {
   }
   
   public var body: some View {
-    NavigationView {
       ZStack {
         navigationLink
-        
         List(state.orders.elements) { order in
           Button {
             send(.orderTapped(order.id))
@@ -72,27 +68,7 @@ public struct OrdersListScreen: View {
           }
         }
         .listStyle(PlainListStyle())
-        if state.orders.isEmpty {
-          Text("No orders yet")
-            .font(.title)
-            .foregroundColor(Color(.secondaryLabel))
-            .fontWeight(.bold)
-        }
       }
-      .navigationBarTitle(Text("Orders"), displayMode: .automatic)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
-            send(.refreshButtonTapped)
-          }
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: { send(.clockOutButtonTapped) }) {
-            Text("Clock Out")
-          }
-        }
-      }
-    }.navigationViewStyle(StackNavigationViewStyle())
   }
   
 }

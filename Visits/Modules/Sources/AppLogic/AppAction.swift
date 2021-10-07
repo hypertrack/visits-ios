@@ -47,7 +47,7 @@ public enum AppAction: Equatable {
   case orderDismissFocus(Order.ID)
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
-  case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
+  case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
   // Places
   case selectPlace(Place?)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)

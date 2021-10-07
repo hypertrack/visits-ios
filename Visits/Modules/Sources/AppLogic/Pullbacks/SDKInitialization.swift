@@ -62,8 +62,8 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
           return nil
         }
       case let .main(m) where m.map                == .initialState
-                           && m.orders             == []
-                           && m.selectedOrder      == nil
+                           && m.trip               == nil
+                           && m.selectedOrderId    == nil
                            && m.places             == nil
                            && m.selectedPlace      == nil
                            && m.placesPresentation == .byPlace
@@ -103,7 +103,7 @@ private let sdkInitializationStatePrism = Prism<AppState, SDKInitializationDomai
         )
       )
     case let .initialized(p):
-      flow = .main(.init(map: .initialState, orders: [], places: nil, tab: .defaultTab, publishableKey: d.publishableKey, profile: p))
+      flow = .main(.init(map: .initialState, trip: nil, places: nil, tab: .defaultTab, publishableKey: d.publishableKey, profile: p))
     }
     
     return .operational(

@@ -36,7 +36,7 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
     case let (.main(m), .unlocked(deID, _)):
       return .init(
         requests: m.requests,
-        orders: m.orders,
+        trip: m.trip,
         integrationStatus: m.integrationStatus,
         deviceID: deID,
         publishableKey: m.publishableKey,
@@ -51,7 +51,7 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
       switch (s.flow, s.sdk.status) {
       case let (.main(m), .unlocked(_, us)):        
         let main = AppFlow.main(
-          m |> \.orders *< d.orders
+          m |> \.trip *< d.trip
             <> \.publishableKey *< d.publishableKey
             <> \.requests *< d.requests
             <> \.integrationStatus *< d.integrationStatus
@@ -80,7 +80,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .generated(.entered(.mainUnlocked)):         return .mainUnlocked
     case let .orderCancelFinished(o, r):                  return .orderCanceled(o, r)
     case let .orderCompleteFinished(o, r):                return .orderCompleted(o, r)
-    case let .ordersUpdated(os):                          return .ordersUpdated(os)
+//    case let .tripsUpdated(os):                           return .tripsUpdated(os)
+    case let .tripUpdated(t):                            return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
     case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
@@ -114,7 +115,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .mainUnlocked:                               return .generated(.entered(.mainUnlocked))
     case let .orderCanceled(o, r):                        return .orderCancelFinished(o, r)
     case let .orderCompleted(o, r):                       return .orderCompleteFinished(o, r)
-    case let .ordersUpdated(os):                          return .ordersUpdated(os)
+    case let .tripUpdated(t):                             return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
     case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
@@ -146,7 +147,8 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getCurrentLocation:     e.hyperTrack.getCurrentLocation,
       getHistory:             e.api.getHistory,
       getIntegrationEntities: e.api.getIntegrationEntities,
-      getOrders:              e.api.getOrders,
+      getTrip:               e.api.getTrip,
+//      getOrders:              e.api.getOrders,
       getPlaces:              e.api.getPlaces,
       getProfile:             e.api.getProfile,
       getToken:               e.api.getToken,

@@ -9,7 +9,7 @@ import IdentifiedCollections
 extension AppState {
   static let ordersScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.orders *< orders
+      main |> \.trip *< .some(trip)
            <> \.tab *< .orders
     )
   )
@@ -34,7 +34,7 @@ extension AppState {
   
   static let mapScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.orders *< orders
+      main |> \.trip *< .some(trip)
            <> \.history *< History(
                              coordinates: [
                                Coordinate(latitude: 37.76477793772538, longitude: -122.41957068443297)!,
@@ -189,6 +189,8 @@ private let canceled = Order(
 
 private let orders = IdentifiedArrayOf<Order>(uniqueElements: [notSent, entered, checkedOut1, checkedOut2, checkedOut3, canceled])
 
+private let trip = Trip(id: "SADFQSF123", createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!, status: .active, orders: orders.elements)
+
 private let cityHall = Place(
   id: "1",
   address: .init(street: "San Francisco City Hall", fullAddress: "San Francisco City Hall, 400 Van Ness Ave, San Francisco, CA  94102, United States"),
@@ -269,7 +271,7 @@ private let operational_ = OperationalState(
 
 private let main = MainState(
   map: .initialState,
-  orders: [],
+  trip: nil,
   places: nil,
   tab: .orders,
   publishableKey: publishableKey,

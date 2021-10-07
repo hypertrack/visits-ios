@@ -8,22 +8,22 @@ import Types
 
 // MARK: - Get
 
-func getOrders(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never> {
-  logEffect("getHistory")
-  
-  return getTrips(auth: token, deviceID: deID)
-    .map { trips in
-      trips
-        .filter { $0.status == .active && !$0.orders.isEmpty }
-        .sorted(by: \.createdAt)
-        .first
-        .map { trip in
-          trip.orders.map { $0 |> \Order.tripID *< Order.TripID(rawValue: trip.id) } |> Set.init
-        }
-      ?? []
-    }
-    .catchToEffect()
-}
+//func getOrders(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never> {
+//  logEffect("getHistory")
+//  
+//  return getTrips(auth: token, deviceID: deID)
+//    .map { trips in
+//      trips
+//        .filter { $0.status == .active && !$0.orders.isEmpty }
+//        .sorted(by: \.createdAt)
+//        .first
+//        .map { trip in
+//          trip.orders.map { $0 |> \Order.tripID *< Order.TripID(rawValue: trip.id) } |> Set.init
+//        }
+//      ?? []
+//    }
+//    .catchToEffect()
+//}
 
 // MARK: - Cancel
 

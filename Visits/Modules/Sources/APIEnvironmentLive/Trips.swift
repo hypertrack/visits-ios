@@ -1,10 +1,27 @@
+import AppArchitecture
+import ComposableArchitecture
 import APIEnvironment
+import Utility
 import Combine
 import Foundation
 import NonEmpty
 import Tagged
 import Types
 
+func getTrip(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never> {
+  return getTrips(auth: token, deviceID: deID)
+      .map { trips in
+        trips
+          .filter { $0.status == .active && !$0.orders.isEmpty }
+          .sorted(by: \.createdAt)
+          .first
+          .map { trip in
+            let orders = trip.orders.map { $0 |> \Order.tripID *< Order.TripID(rawValue: trip.id) }
+            return Trip(id: trip.id, createdAt: trip.createdAt, status: trip.status, orders: orders)
+          }
+      }
+      .catchToEffect()
+}
 
 func getTrips(auth token: Token.Value, deviceID: DeviceID) -> AnyPublisher<[Trip], APIError<Token.Expired>> {
   paginate(
@@ -38,14 +55,6 @@ struct TripsPage {
   let paginationToken: PaginationToken?
 }
   
-struct Trip {
-  let id: NonEmptyString
-  let createdAt: Date
-  let status: Status
-  let orders: [Order]
-  
-  enum Status { case active, completed, processingCompletion }
-}
 
 extension Order: Decodable {
   enum CodingKeys: String, CodingKey {
@@ -165,13 +174,14 @@ extension Trip: Decodable {
     case orders
   }
   
-  init(from decoder: Decoder) throws {
+  public init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
-    id = try values.decode(NonEmptyString.self, forKey: .id)
+    let id = try values.decode(NonEmptyString.self, forKey: .id)
     
-    createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
+    let createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
+    var status: Trip.Status
     let statusString = try values.decode(String.self, forKey: .status)
     switch statusString {
     case "active":                status = .active
@@ -182,6 +192,8 @@ extension Trip: Decodable {
         .init(codingPath: decoder.codingPath, debugDescription: "Unrecognized trip status: \(statusString)")
       )
     }
-    orders = try values.decodeIfPresent([Order].self, forKey: .orders) ?? []
+    let orders = try values.decodeIfPresent([Order].self, forKey: .orders) ?? []
+    
+    self.init(id: id, createdAt: createdAt, status: status, orders: orders)
   }
 }

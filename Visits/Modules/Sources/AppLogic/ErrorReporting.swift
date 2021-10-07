@@ -82,7 +82,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
       case let .tokenUpdated(.failure(e)):             error = e
       case let .signedIn(.failure(e)):                 error = toNever(e)
       case let .integrationEntitiesUpdatedWithFailure(e),
-           let .ordersUpdated(.failure(e)),
+           let .tripUpdated(.failure(e)),
            let .placesUpdated(.failure(e)),
            let .placeCreatedWithFailure(e),
            let .profileUpdated(.failure(e)),

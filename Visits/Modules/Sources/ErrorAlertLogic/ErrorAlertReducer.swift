@@ -30,7 +30,7 @@ public enum ErrorAlertLogicAction: Equatable {
   case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleteFinished(Order, Result<Terminal, APIError<Token.Expired>>)
-  case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
+  case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
@@ -74,7 +74,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .integrationEntitiesUpdatedWithFailure(.network(u)),
        let .orderCancelFinished(_, .failure(.network(u))),
        let .orderCompleteFinished(_, .failure(.network(u))),
-       let .ordersUpdated(.failure(.network(u))),
+       let .tripUpdated(.failure(.network(u))),
        let .placeCreatedWithFailure(.network(u)),
        let .placesUpdated(.failure(.network(u))),
        let .profileUpdated(.failure(.network(u))),
@@ -95,7 +95,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .integrationEntitiesUpdatedWithFailure(.api(e, _, _)),
        let .orderCancelFinished(_, .failure(.api(e, _, _))),
        let .orderCompleteFinished(_, .failure(.api(e, _, _))),
-       let .ordersUpdated(.failure(.api(e, _, _))),
+       let .tripUpdated(.failure(.api(e, _, _))),
        let .placeCreatedWithFailure(.api(e, _, _)),
        let .placesUpdated(.failure(.api(e, _, _))),
        let .profileUpdated(.failure(.api(e, _, _))),
@@ -116,7 +116,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .integrationEntitiesUpdatedWithFailure(.server(e, _, _)),
        let .orderCancelFinished(_, .failure(.server(e, _, _))),
        let .orderCompleteFinished(_, .failure(.server(e, _, _))),
-       let .ordersUpdated(.failure(.server(e, _, _))),
+       let .tripUpdated(.failure(.server(e, _, _))),
        let .placeCreatedWithFailure(.server(e, _, _)),
        let .placesUpdated(.failure(.server(e, _, _))),
        let .profileUpdated(.failure(.server(e, _, _))),
@@ -137,7 +137,7 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .integrationEntitiesUpdatedWithFailure(.unknown(p, _, _)),
        let .orderCancelFinished(_, .failure(.unknown(p, _, _))),
        let .orderCompleteFinished(_, .failure(.unknown(p, _, _))),
-       let .ordersUpdated(.failure(.unknown(p, _, _))),
+       let .tripUpdated(.failure(.unknown(p, _, _))),
        let .placeCreatedWithFailure(.unknown(p, _, _)),
        let .placesUpdated(.failure(.unknown(p, _, _))),
        let .profileUpdated(.failure(.unknown(p, _, _))),
@@ -163,8 +163,8 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        .orderCancelFinished(_, .success),
        .orderCompleteFinished(_, .failure(.error)),
        .orderCompleteFinished(_, .success),
-       .ordersUpdated(.failure(.error)),
-       .ordersUpdated(.success),
+       .tripUpdated(.failure(.error)),
+       .tripUpdated(.success),
        .placeCreatedWithFailure(.error),
        .placesUpdated(.failure(.error)),
        .placesUpdated(.success),

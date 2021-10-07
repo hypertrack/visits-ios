@@ -107,7 +107,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            placesPresentation: m.placesPresentation,
                            requests: m.requests,
                            history: m.history,
-                           orders: m.orders,
+                           trip: m.trip,
                            selectedOrderId: m.selectedOrderId,
                            profile: m.profile,
                            integrationStatus: m.integrationStatus,

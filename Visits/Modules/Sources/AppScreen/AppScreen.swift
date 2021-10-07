@@ -6,6 +6,7 @@ import MapKit
 import MapScreen
 import OrderScreen
 import OrdersListScreen
+import TripScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
@@ -116,7 +117,7 @@ public struct MainBlockState: Equatable {
   public let placesPresentation: PlacesPresentation
   public let requests: Set<Request>
   public let history: History?
-  public let orders: IdentifiedArrayOf<Order>
+  public let trip: Trip?
   public let selectedOrderId: Order.ID?
   public let profile: Profile
   public let integrationStatus: IntegrationStatus
@@ -130,7 +131,7 @@ public struct MainBlockState: Equatable {
               placesPresentation: PlacesPresentation,
               requests: Set<Request>,
               history: History?,
-              orders: IdentifiedArrayOf<Order>,
+              trip: Trip?,
               selectedOrderId: Order.ID?,
               profile: Profile,
               integrationStatus: IntegrationStatus,
@@ -143,7 +144,7 @@ public struct MainBlockState: Equatable {
     self.placesPresentation = placesPresentation
     self.requests = requests
     self.history = history
-    self.orders = orders
+    self.trip = trip
     self.selectedOrderId = selectedOrderId
     self.profile = profile
     self.integrationStatus = integrationStatus
@@ -174,7 +175,7 @@ struct MainBlock: View {
         MapView(
           state: .init(
             autoZoom: state.mapState.autoZoom,
-            orders: state.orders,
+            orders: state.trip?.orders ?? IdentifiedArrayOf<Order>(),
             places: state.placesSummary?.places ?? [],
             polyline: state.history?.coordinates ?? []
           ),
@@ -203,9 +204,9 @@ struct MainBlock: View {
       }
       .tag(TabSelection.map)
       
-      OrdersListScreen(state: .init(orders: state.orders,
-                                    selected: state.selectedOrderId,
-                                    refreshing: state.requests.contains(Request.orders)),
+      TripScreen(state: .init(trip: state.trip,
+                              selected: state.selectedOrderId,
+                              refreshing: state.requests.contains(Request.trip)),
                        send: sendOrders,
                        sendOrderAction: sendOrder)
         .tabItem {
