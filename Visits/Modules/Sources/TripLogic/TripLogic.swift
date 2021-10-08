@@ -11,27 +11,13 @@ import NonEmpty
 
 public struct TripState: Equatable {
 
-//  public var id: NonEmptyString
-//  public var createdAt: Date
-//  public var status: Trip.Status
-//
-//  public var orders: IdentifiedArrayOf<Order>
   public var trip: Trip?
   public var selectedOrderId: Order.ID?
   
-  public init(//id: NonEmptyString, createdAt: Date, status: Trip.Status, orders: IdentifiedArrayOf<Order>, selectedOrderId: Order.ID? = nil) {
-    trip: Trip?, selectedOrderId: Order.ID? = nil) {
-//    self.orders = orders
+  public init(trip: Trip?, selectedOrderId: Order.ID? = nil) {
     self.trip = trip
     self.selectedOrderId = selectedOrderId
-//    self.id = id
-//    self.createdAt = createdAt
-//    self.status = status
   }
-  
-//  var selectedOrder: Order? {
-//    return trip?.orders[safeId: selectedOrderId]
-//  }
 }
 
 // MARK: - Action

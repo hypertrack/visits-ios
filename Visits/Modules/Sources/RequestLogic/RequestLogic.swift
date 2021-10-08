@@ -71,7 +71,6 @@ public struct RequestEnvironment {
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
   public var getTrip: (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>
-//  public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
@@ -87,7 +86,6 @@ public struct RequestEnvironment {
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
     getTrip: @escaping (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
-//    getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
@@ -131,9 +129,6 @@ public let requestReducer = Reducer<
   func getTrip(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getTripEffect(environment.getTrip(t, deID), environment.mainQueue)
   }
-//  func getOrders(_ t: Token.Value) -> Effect<RequestAction, Never> {
-//    getOrdersEffect(environment.getOrders(t, deID), environment.mainQueue)
-//  }
   
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getPlacesEffect(environment.getPlaces(t, deID, pk, environment.date(), environment.calendar()), environment.mainQueue)
@@ -595,17 +590,6 @@ let getTripEffect = { (getTrip: Effect<Result<Trip?, APIError<Token.Expired>>, N
     .map(RequestAction.tripUpdated)
     .eraseToEffect()
 }
-
-//let getOrdersEffect = { (
-//  getOrders: Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
-//  mainQueue: AnySchedulerOf<DispatchQueue>
-//) in
-//  getOrders
-//    .cancellable(id: RequestingOrdersID())
-//    .receive(on: mainQueue)
-//    .map(RequestAction.ordersUpdated)
-//    .eraseToEffect()
-//}
 
 func getPlacesEffect(
   _ getPlaces: Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
