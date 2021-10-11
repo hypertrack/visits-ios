@@ -36,7 +36,6 @@ public struct APIEnvironment {
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
     self.getTrip = getTrip
-//    self.getOrders = getOrders
     self.getPlaces = getPlaces
     self.getProfile = getProfile
     self.getToken = getToken

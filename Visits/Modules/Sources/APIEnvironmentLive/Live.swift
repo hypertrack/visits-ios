@@ -10,7 +10,6 @@ public extension APIEnvironment {
     getHistory: getHistory(_:_:_:),
     getIntegrationEntities: getIntegrationEntities(_:_:_:),
     getTrip: getTrip(_:_:),
-//    getOrders: getOrders(_:_:),
     getPlaces: getPlaces(_:_:_:_:_:),
     getProfile: getProfile(_:_:),
     getToken: getToken(_:_:),

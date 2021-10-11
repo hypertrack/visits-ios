@@ -100,7 +100,6 @@ public struct RequestEnvironment {
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
     self.getTrip = getTrip
-//    self.getOrders = getOrders
     self.getPlaces = getPlaces
     self.getProfile = getProfile
     self.getToken = getToken
@@ -150,7 +149,6 @@ public let requestReducer = Reducer<
       switch r {
       case .history:  return getHistory(t)
       case .trip:    return getTrip(t)
-//      case .orders:   return getOrders(t)
       case .places:   return getPlaces(t)
       case .profile:  return getProfile(t)
       }
@@ -162,7 +160,6 @@ public let requestReducer = Reducer<
     switch r {
     case .history:  id = RequestingHistoryID()
     case .trip:     id = RequestingTripsID()
-//    case .orders:   id = RequestingOrdersID()
     case .places:   id = RequestingPlacesID()
     case .profile:  id = RequestingProfileID()
     }

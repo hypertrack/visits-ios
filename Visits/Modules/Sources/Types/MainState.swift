@@ -21,9 +21,3 @@ public struct MainState: Equatable {
     self.map = map; self.trip = trip; self.selectedOrderId = selectedOrderId; self.places = places; self.placesPresentation = placesPresentation; self.selectedPlace = selectedPlace; self.addPlace = addPlace; self.history = history; self.tab = tab; self.publishableKey = publishableKey; self.profile = profile; self.integrationStatus = integrationStatus; self.requests = requests; self.token = token
   }
 }
-
-//public extension MainState {
-//  var selectedOrder: Order? {
-//    return orders[safeId: selectedOrderId]
-//  }
-//}
