@@ -108,7 +108,7 @@ func decodeMetadata<CodingKey>(
   decoder: Decoder,
   container: KeyedDecodingContainer<CodingKey>,
   key: CodingKey
-) throws -> NonEmptyDictionary<NonEmptyString, NonEmptyString>? {
+) throws -> [NonEmptyString: NonEmptyString] {
   if let metadataContainer = try? container.nestedContainer(keyedBy: DynamicKey.self, forKey: key) {
     var mutMetadata: [NonEmptyString: NonEmptyString] = [:]
     for key in metadataContainer.allKeys {
@@ -120,8 +120,8 @@ func decodeMetadata<CodingKey>(
         mutMetadata[nonEmptyKey] = nonEmptyValue
       }
     }
-    return NonEmptyDictionary(rawValue: mutMetadata)
+    return mutMetadata
   } else {
-    return nil
+    return [:]
   }
 }

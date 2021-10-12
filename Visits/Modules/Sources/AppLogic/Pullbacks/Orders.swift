@@ -1,37 +1,37 @@
 import AppArchitecture
 import ComposableArchitecture
 import NonEmpty
-import OrdersLogic
+import TripLogic
 import OrderLogic
 import Utility
 import Types
 
 
-let ordersP: Reducer<
+let tripP: Reducer<
   AppState,
   AppAction,
   SystemEnvironment<AppEnvironment>
-> = ordersReducer.pullback(
-  state: ordersStateAffine,
-  action: ordersActionPrism,
+> = tripReducer.pullback(
+  state: tripStateAffine,
+  action: tripActionPrism,
   environment: toOrderEnvironment
 )
 
-private let ordersStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** ordersStateMainLens
+private let tripStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** tripStateMainLens
 
-private let ordersStateMainLens = Lens<MainState, OrdersState>(
+private let tripStateMainLens = Lens<MainState, TripState>(
   get: { s in
     .init(
-      orders: s.orders,
-      selectedId: s.selectedOrderId
+      trip: s.trip,
+      selectedOrderId: s.selectedOrderId
     )
   },
   set: { d in
-     \.orders *< d.orders <> \.selectedOrderId *< d.selectedId
+     \.trip *< d.trip <> \.selectedOrderId *< d.selectedOrderId
   }
 )
 
-private let ordersActionPrism = Prism<AppAction, OrdersAction>(
+private let tripActionPrism = Prism<AppAction, TripAction>(
   extract: { a in
     switch a {
     case let .focusOrderNote(oid):         return .order(id: oid, action: .focusNote)
@@ -42,7 +42,7 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
     case let .checkOutOrder(o):            return .order(id: o.id, action: .completeOrder(o))
     case let .orderNoteChanged(oid, n):    return .order(id: oid, action: .noteChanged(n <¡> Order.Note.init(rawValue:)))
     case let .selectOrder(o):              return .selectOrder(o)
-    case let .ordersUpdated(.success(os)): return .ordersUpdated(os)
+    case let .tripUpdated(.success(t)):   return .tripUpdated(t)
     default:                               return nil
     }
   },
@@ -59,7 +59,7 @@ private let ordersActionPrism = Prism<AppAction, OrdersAction>(
       case let .noteChanged(n):                 return .orderNoteChanged(oid, n?.rawValue)
       }
     case let .selectOrder(o):                 return .selectOrder(o)
-    case let .ordersUpdated(os):              return .ordersUpdated(.success(os))
+    case let .tripUpdated(t):                return .tripUpdated(.success(t))
     }
   }
 )

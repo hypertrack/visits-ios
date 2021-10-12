@@ -309,7 +309,6 @@ struct OrderScreen_Previews: PreviewProvider {
     OrderScreen(
       state: Order(
         id: Order.ID(rawValue: "ID7"),
-        tripID: "Blah",
         createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
         location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
         address: .init(

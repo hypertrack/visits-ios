@@ -269,7 +269,7 @@ extension Place {
     let id: Place.ID = wrap(geofence.id)
     let address: Address = .init(string: geofence.address)
     let createdAt: Place.CreatedTimestamp = wrap(geofence.createdAt)
-    let metadata: [Place.Name : Place.Contents] = geofence.metadata.map(\.rawValue).map(wrapDictionary) ?? [:]
+    let metadata: [Place.Name : Place.Contents] = wrapDictionary(geofence.metadata)
     let shape = geofence.shape
        
     func wrapRoute(_ routeTo: RouteTo) -> Place.Route {
@@ -336,7 +336,7 @@ struct Geofence {
   let deviceID: NonEmptyString
   let address: String
   let createdAt: Date
-  let metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?
+  let metadata: [NonEmptyString: NonEmptyString]
   let shape: GeofenceShape
   var markers: [GeofenceMarker]
 }

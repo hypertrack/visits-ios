@@ -1,6 +1,6 @@
 public enum Request: Equatable, Hashable, CaseIterable {
   case history
-  case orders
+  case trip
   case places
   case profile
 }

@@ -2,21 +2,27 @@ import AppArchitecture
 import ComposableArchitecture
 import Utility
 import Types
+import IdentifiedCollections
 
 
 // MARK: - State
 
 public struct RequestState: Equatable {
   public var requests: Set<Request>
-  public var orders: IdentifiedArrayOf<Order>
+  public var trip: Trip?
   public var history: History?
   public var integrationStatus: IntegrationStatus
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
   
-  public init(requests: Set<Request>, orders: IdentifiedArrayOf<Order>, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
-    self.requests = requests; self.orders = orders; self.integrationStatus = integrationStatus; self.deviceID = deviceID; self.publishableKey = publishableKey; self.token = token
+  public init(requests: Set<Request>, trip: Trip?, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+    self.requests = requests
+    self.trip = trip
+    self.integrationStatus = integrationStatus
+    self.deviceID = deviceID
+    self.publishableKey = publishableKey
+    self.token = token
   }
 }
 
@@ -37,7 +43,7 @@ public enum RequestAction: Equatable {
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
-  case ordersUpdated(Result<Set<Order>, APIError<Token.Expired>>)
+  case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case receivedCurrentLocation(Coordinate?)
@@ -57,34 +63,34 @@ public enum RequestAction: Equatable {
 // MARK: - Environment
 
 public struct RequestEnvironment {
-  public var cancelOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var cancelOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var capture: (CaptureMessage) -> Effect<Never, Never>
-  public var completeOrder: (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var completeOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var createPlace: (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
   public var getCurrentLocation: () -> Effect<Coordinate?, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
   public var getIntegrationEntities: (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>
-  public var getOrders: (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>
+  public var getTrip: (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
-  public var updateOrderNote: (Token.Value, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var updateOrderNote: (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
   public init(
-    cancelOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    cancelOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
-    completeOrder: @escaping (Token.Value, DeviceID, Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    completeOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     createPlace: @escaping (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
     getCurrentLocation: @escaping () -> Effect<Coordinate?, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
     getIntegrationEntities: @escaping (Token.Value, IntegrationLimit, IntegrationSearch) -> Effect<Result<[IntegrationEntity], APIError<Token.Expired>>, Never>,
-    getOrders: @escaping (Token.Value, DeviceID) -> Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
+    getTrip: @escaping (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
-    updateOrderNote: @escaping (Token.Value, DeviceID, Order, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+    updateOrderNote: @escaping (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
     self.cancelOrder = cancelOrder
     self.capture = capture
@@ -93,7 +99,7 @@ public struct RequestEnvironment {
     self.getCurrentLocation = getCurrentLocation
     self.getHistory = getHistory
     self.getIntegrationEntities = getIntegrationEntities
-    self.getOrders = getOrders
+    self.getTrip = getTrip
     self.getPlaces = getPlaces
     self.getProfile = getProfile
     self.getToken = getToken
@@ -113,15 +119,16 @@ public let requestReducer = Reducer<
   let pk = state.publishableKey
   let deID = state.deviceID
   
-  func cancelOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in cancelOrderEffect(o, environment.cancelOrder(t, deID, o), { note in environment.updateOrderNote(t, deID, o, note) }, environment.mainQueue) }
+  func cancelOrder(_ o: Order, _ tripID: Trip.ID) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in cancelOrderEffect(o, environment.cancelOrder(t, deID, o, tripID), { note in environment.updateOrderNote(t, deID, o, tripID, note) }, environment.mainQueue) }
   }
-  func completeOrder(_ o: Order) -> (Token.Value) -> Effect<RequestAction, Never> {
-    { t in completeOrderEffect(o, environment.completeOrder(t, deID, o), { note in environment.updateOrderNote(t, deID, o, note) }, environment.mainQueue) }
+  func completeOrder(_ o: Order, _ tripID: Trip.ID) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in completeOrderEffect(o, environment.completeOrder(t, deID, o, tripID), { note in environment.updateOrderNote(t, deID, o, tripID, note) }, environment.mainQueue) }
   }
-  func getOrders(_ t: Token.Value) -> Effect<RequestAction, Never> {
-    getOrdersEffect(environment.getOrders(t, deID), environment.mainQueue)
+  func getTrip(_ t: Token.Value) -> Effect<RequestAction, Never> {
+    getTripEffect(environment.getTrip(t, deID), environment.mainQueue)
   }
+  
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getPlacesEffect(environment.getPlaces(t, deID, pk, environment.date(), environment.calendar()), environment.mainQueue)
   }
@@ -141,7 +148,7 @@ public let requestReducer = Reducer<
     { r in
       switch r {
       case .history:  return getHistory(t)
-      case .orders:   return getOrders(t)
+      case .trip:    return getTrip(t)
       case .places:   return getPlaces(t)
       case .profile:  return getProfile(t)
       }
@@ -152,7 +159,7 @@ public let requestReducer = Reducer<
     let id: AnyHashable
     switch r {
     case .history:  id = RequestingHistoryID()
-    case .orders:   id = RequestingOrdersID()
+    case .trip:     id = RequestingTripsID()
     case .places:   id = RequestingPlacesID()
     case .profile:  id = RequestingProfileID()
     }
@@ -231,14 +238,14 @@ public let requestReducer = Reducer<
     )
     
     state.requests = []
-    let ordersArray: [Order] = state.orders.map { o in
+    let ordersArray: [Order] = state.trip?.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
-      }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
+      } ?? []
+    state.trip?.orders = IdentifiedArrayOf<Order>(uniqueElements: ordersArray)
     state.token = state.token == .refreshing ? .none : state.token
     
     return effects
@@ -252,12 +259,12 @@ public let requestReducer = Reducer<
     
     return effects
   case .updateOrders:
-    guard !state.requests.contains(.orders) else { return .none }
+    guard !state.requests.contains(.trip) else { return .none }
     
-    let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+    let (token, effects) = requestOrRefreshToken(state.token, request: .trip |> flip(requestEffect))
     
     state.token = token
-    state.requests.insert(.orders)
+    state.requests.insert(.trip)
     
     return effects
   case .updatePlaces, .placeCreatedWithSuccess:
@@ -278,7 +285,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.profile)
     
     return effects
-  case .ordersUpdated(.failure(.error)),
+  case .tripUpdated(.failure(.error)),
        .placesUpdated(.failure(.error)),
        .historyUpdated(.failure(.error)),
        .placeCreatedWithFailure(.error),
@@ -290,41 +297,40 @@ public let requestReducer = Reducer<
     
     return getToken
   case let .orderCanceled(o, r):
-    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .cancelling }).first
+    guard let order = state.trip?.orders.filter({ $0.id == o.id && $0.status == .cancelling }).first
     else { return environment.capture("Can't process order cancellation because there is no order or its status is not .cancelling").fireAndForget() }
     
-    state.orders.remove(order)
-    state.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
+    state.trip?.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .cancelled : .ongoing(.unfocused)))
     
-    if case .success = r, !state.requests.contains(.orders) {
-      let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+    if case .success = r, !state.requests.contains(.trip) {
+      let (token, effects) = requestOrRefreshToken(state.token, request: .trip |> flip(requestEffect))
       state.token = token
-      state.requests.insert(.orders)
+      state.requests.insert(.trip)
       
       return effects
     }
     
     return .none
   case let .orderCompleted(o, r):
-    guard let order = state.orders.filter({ $0.id == o.id && $0.status == .completing }).first
+    guard let order = state.trip?.orders.filter({ $0.id == o.id && $0.status == .completing }).first
     else { return environment.capture("Can't process order completion because there is no order or its status is not .completing").fireAndForget() }
     
-    state.orders.remove(order)
-    state.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
+    state.trip?.orders.remove(order)
+    state.trip?.orders.updateOrAppend(order |> \.status *< (resultSuccess(r) != nil ? .completed(environment.date()) : .ongoing(.unfocused)))
     
-    if case .success = r, !state.requests.contains(.orders) {
-      let (token, effects) = requestOrRefreshToken(state.token, request: .orders |> flip(requestEffect))
+    if case .success = r, !state.requests.contains(.trip) {
+      let (token, effects) = requestOrRefreshToken(state.token, request: .trip |> flip(requestEffect))
       state.token = token
-      state.requests.insert(.orders)
+      state.requests.insert(.trip)
       
       return effects
     }
     
     return .none
-  case .ordersUpdated:
-    guard state.requests.contains(.orders) else { return .none }
+  case .tripUpdated:
+    guard state.requests.contains(.trip) else { return .none }
     
-    state.requests.remove(.orders)
+    state.requests.remove(.trip)
     
     return .merge(
       .cancel(id: RequestingCancelOrdersID()),
@@ -367,30 +373,28 @@ public let requestReducer = Reducer<
     
     return .none
   case let .cancelOrder(o):
-    guard let order = state.orders.filter({
+    guard let trip = state.trip, let order = trip.orders.filter({
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
     }).first
     else { return .none }
     
-    state.orders.remove(order)
-    state.orders.updateOrAppend(order |> \.status *< .cancelling)
+    state.trip?.orders.updateOrAppend(order |> \.status *< .cancelling)
     
-    let (token, effects) = requestOrRefreshToken(state.token, request: cancelOrder(o))
+    let (token, effects) = requestOrRefreshToken(state.token, request: cancelOrder(o, trip.id))
     state.token = token
     
     return effects
   case let .completeOrder(o):
-    guard let order = state.orders.filter({
+    guard let trip = state.trip, let order = trip.orders.filter({
       guard $0.id == o.id, case .ongoing = $0.status else { return false }
       return true
     }).first
     else { return .none }
     
-    state.orders.remove(order)
-    state.orders.updateOrAppend(order |> \.status *< .completing)
+    state.trip?.orders.updateOrAppend(order |> \.status *< .completing)
     
-    let (token, effects) = requestOrRefreshToken(state.token, request: completeOrder(o))
+    let (token, effects) = requestOrRefreshToken(state.token, request: completeOrder(o, trip.id))
     state.token = token
     
     return effects
@@ -405,17 +409,23 @@ public let requestReducer = Reducer<
     case let .integrated(.refreshing(s)): requestIntegration = getIntegrationEntities(t, s)
     default:                              requestIntegration = .none
     }
-    
-    return .merge(
-      state.requests.map(requestEffect(t))
-      +
-      state.orders.compactMap { o in
+    let resumeOrderCancellationAndCompletion: [Effect<RequestAction, Never>]
+    if let trip = state.trip, !trip.orders.isEmpty {
+      resumeOrderCancellationAndCompletion = trip.orders.compactMap { o in
         switch o.status {
-        case .cancelling: return t |> cancelOrder(o)
-        case .completing: return t |> completeOrder(o)
+        case .cancelling: return t |> cancelOrder(o, trip.id)
+        case .completing: return t |> completeOrder(o, trip.id)
         default:          return nil
         }
       }
+    } else {
+      resumeOrderCancellationAndCompletion = []
+    }
+    let orders = state.trip?.orders ?? IdentifiedArrayOf<Order>()
+    return .merge(
+      state.requests.map(requestEffect(t))
+      +
+      resumeOrderCancellationAndCompletion
       +
       [requestIntegration]
     )
@@ -442,14 +452,14 @@ public let requestReducer = Reducer<
     state.token = .none
     state.requests = []
     
-    let ordersArray: [Order] = state.orders.map { o in
+    let ordersArray: [Order] = state.trip?.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
-      }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
+      } ?? []
+    state.trip?.orders = IdentifiedArrayOf(uniqueElements: ordersArray)
     switch state.integrationStatus {
     case .requesting:              state.integrationStatus = .unknown
     case .integrated(.refreshing): state.integrationStatus = .integrated(.notRefreshing)
@@ -475,20 +485,21 @@ public let requestReducer = Reducer<
     
     state.token = .none
     state.requests = []
-    let ordersArray: [Order] = state.orders.map { o in
+    let ordersArray: [Order] = state.trip?.orders.map { o in
         switch o.status {
         case .cancelling,
              .completing: return o |> \.status *< .ongoing(.unfocused)
         default:          return o
         }
-      }
-    state.orders = IdentifiedArrayOf(uniqueElements: ordersArray.sortedOrders())
+      } ?? []
+    state.trip?.orders = IdentifiedArrayOf(uniqueElements: ordersArray)
     state.integrationStatus = .unknown
     
     return .merge(
       .cancel(id: RequestingCancelOrdersID()),
       .cancel(id: RequestingCompleteOrdersID()),
       .cancel(id: RequestingOrdersID()),
+      .cancel(id: RequestingTripsID()),
       .cancel(id: RequestingHistoryID()),
       .cancel(id: RequestingIntegrationEntitiesID()),
       .cancel(id: RequestingPlacesID()),
@@ -514,6 +525,7 @@ extension Optional where Wrapped == History {
 struct RequestingCancelOrdersID: Hashable {}
 struct RequestingCompleteOrdersID: Hashable {}
 struct RequestingOrdersID: Hashable {}
+struct RequestingTripsID: Hashable {}
 struct RequestingHistoryID: Hashable {}
 struct RequestingIntegrationEntitiesID: Hashable {}
 struct RequestingPlacesID: Hashable {}
@@ -573,14 +585,12 @@ let completeOrderEffect = { (
   }
 }
 
-let getOrdersEffect = { (
-  getOrders: Effect<Result<Set<Order>, APIError<Token.Expired>>, Never>,
-  mainQueue: AnySchedulerOf<DispatchQueue>
-) in
-  getOrders
-    .cancellable(id: RequestingOrdersID())
-    .receive(on: mainQueue)
-    .map(RequestAction.ordersUpdated)
+let getTripEffect = { (getTrip: Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
+                        queue: AnySchedulerOf<DispatchQueue>) in
+  getTrip
+    .cancellable(id: RequestingTripsID())
+    .receive(on: queue)
+    .map(RequestAction.tripUpdated)
     .eraseToEffect()
 }
 

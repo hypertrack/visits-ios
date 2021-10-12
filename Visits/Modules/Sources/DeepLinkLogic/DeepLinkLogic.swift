@@ -108,7 +108,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
     state.flow = .main(
       .init(
         map: .initialState,
-        orders: [],
+        trip: nil,
         places: nil,
         tab: .defaultTab,
         publishableKey: deepLink.publishableKey,

@@ -176,7 +176,6 @@ struct MapView_Previews: PreviewProvider {
         orders: [
           .init(
             id: Order.ID(rawValue: "ID5"),
-            tripID: "_",
             createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
             location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
             address: .init(

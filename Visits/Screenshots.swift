@@ -9,7 +9,7 @@ import IdentifiedCollections
 extension AppState {
   static let ordersScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.orders *< orders
+      main |> \.trip *< .some(trip)
            <> \.tab *< .orders
     )
   )
@@ -34,7 +34,7 @@ extension AppState {
   
   static let mapScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
-      main |> \.orders *< orders
+      main |> \.trip *< .some(trip)
            <> \.history *< History(
                              coordinates: [
                                Coordinate(latitude: 37.76477793772538, longitude: -122.41957068443297)!,
@@ -101,7 +101,6 @@ extension AppState {
 
 private let notSent = Order(
   id: Order.ID(rawValue: "ID4"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 37, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.780592, longitude: -122.413322)!,
   address: .init(
@@ -119,7 +118,6 @@ private let notSent = Order(
 
 private let entered = Order(
   id: Order.ID(rawValue: "ID7"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 40, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.778655, longitude: -122.422231)!,
   address: .init(
@@ -133,7 +131,6 @@ private let entered = Order(
 
 private let checkedOut1 = Order(
   id: Order.ID(rawValue: "ID1"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 35, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.776692, longitude: -122.416557)!,
   address: .init(
@@ -147,7 +144,6 @@ private let checkedOut1 = Order(
 
 private let checkedOut2 = Order(
   id: Order.ID(rawValue: "ID2"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.776753, longitude: -122.420371)!,
   address: .init(
@@ -161,7 +157,6 @@ private let checkedOut2 = Order(
 
 private let checkedOut3 = Order(
   id: Order.ID(rawValue: "ID5"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
   address: .init(
@@ -175,7 +170,6 @@ private let checkedOut3 = Order(
 
 private let canceled = Order(
   id: Order.ID(rawValue: "ID6"),
-  tripID: "_",
   createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!,
   location: Coordinate(latitude: 37.783049, longitude: -122.418242)!,
   address: .init(
@@ -188,6 +182,8 @@ private let canceled = Order(
 )
 
 private let orders = IdentifiedArrayOf<Order>(uniqueElements: [notSent, entered, checkedOut1, checkedOut2, checkedOut3, canceled])
+
+private let trip = Trip(id: "SADFQSF123", createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!, status: .active, orders: orders.elements, metadata: ["Name": "VIP Delivery"])
 
 private let cityHall = Place(
   id: "1",
@@ -269,7 +265,7 @@ private let operational_ = OperationalState(
 
 private let main = MainState(
   map: .initialState,
-  orders: [],
+  trip: nil,
   places: nil,
   tab: .orders,
   publishableKey: publishableKey,
