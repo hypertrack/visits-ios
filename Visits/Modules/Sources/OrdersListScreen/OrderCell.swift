@@ -10,7 +10,6 @@ struct OrderCell: View {
     case completed = "checkmark.square"
     case canceled = "xmark.square"
     case snoozed = "minus.square"
-    
   }
   
   let order: Order
@@ -30,7 +29,7 @@ struct OrderCell: View {
     HStack {
       Image(systemName: orderIconStatus().rawValue)
           .font(.title)
-          .foregroundColor(.accentColor)
+          .foregroundColor(orderIconColor(orderIconStatus()))
           .padding(.trailing, 10)
       VStack {
         PrimaryRow(primary)
@@ -64,6 +63,13 @@ struct OrderCell: View {
       return .canceled
     case .snoozed:
       return .snoozed
+    }
+  }
+
+  private func orderIconColor(_ status: OrderIconStatus) -> Color {
+    switch status {
+    case .ongoing, .visited: return .accentColor
+    case .completed, .canceled, .snoozed: return .ghost
     }
   }
 }
