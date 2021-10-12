@@ -42,7 +42,7 @@ public struct SystemEnvironment<Environment> {
     Self(
       environment: environment,
       date: Date.init,
-      calendar: { Calendar.current },
+      calendar: { .init(identifier: .gregorian) },
       mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
       backgroundQueue: DispatchQueue(
         label: "com.hypertrack.visits.background",

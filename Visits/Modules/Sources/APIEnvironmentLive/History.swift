@@ -34,6 +34,9 @@ func historyRequest(auth token: Token.Value, deviceID: DeviceID, date: Date) -> 
 
 func historyDate(from date: Date) -> String {
   let formatter = DateFormatter()
+  formatter.calendar = .init(identifier: .gregorian)
+  formatter.locale = .init(identifier: "en_US_POSIX")
+  formatter.timeZone = .init(secondsFromGMT: 0)
   formatter.dateFormat = "yyyy-MM-dd"
   return formatter.string(from: date)
 }
