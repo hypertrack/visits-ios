@@ -36,7 +36,7 @@ public struct TripScreen: View {
       VStack {
         if let trip = state.trip {
           ContentCell(title: "ID",
-                      subTitle: trip.id.rawValue,
+                      subTitle: trip.id.string,
                       leadingPadding: 24,
                       isCopyButtonEnabled: true)
           ForEach(metadata.sorted(by:>), id: \.key) { key, value in

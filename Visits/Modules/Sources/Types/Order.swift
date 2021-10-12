@@ -6,7 +6,6 @@ import Tagged
 
 public struct Order {
   public var id: ID
-  public var tripID: TripID
   public var createdAt: Date
   public var location: Coordinate
   public var address: Address
@@ -33,7 +32,6 @@ public struct Order {
   
   public init(
     id: ID,
-    tripID: TripID,
     createdAt: Date,
     location: Coordinate,
     address: Address,
@@ -43,7 +41,6 @@ public struct Order {
     metadata: [Name: Contents] = [:]
   ) {
     self.id = id
-    self.tripID = tripID
     self.createdAt = createdAt
     self.location = location
     self.address = address

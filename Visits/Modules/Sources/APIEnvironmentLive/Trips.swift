@@ -12,13 +12,9 @@ func getTrip(_ token: Token.Value, _ deID: DeviceID) -> Effect<Result<Trip?, API
   return getTrips(auth: token, deviceID: deID)
       .map { trips in
         trips
-          .filter { $0.status == .active && !$0.orders.isEmpty }
+          .filter { $0.status == .active && !$0.orders.isEmpty && $0.id != unassignedTrip }
           .sorted(by: \.createdAt)
           .first
-          .map { trip in
-            let orders = trip.orders.map { $0 |> \Order.tripID *< Order.TripID(rawValue: trip.id) }
-            return Trip(id: trip.id, createdAt: trip.createdAt, status: trip.status, orders: orders)
-          }
       }
       .catchToEffect()
 }
@@ -79,7 +75,6 @@ extension Order: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
 
     let id = try values.decode(ID.self, forKey: .id)
-    let tripID:Order.TripID = "STUB"
     
     let createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
@@ -126,30 +121,17 @@ extension Order: Decodable {
     case (.none, .some), (.none, .none):
       visited = nil
     }
-    
-    let metadata = repackageMetadata(try decodeMetadata(decoder: decoder, container: values, key: .metadata))
-    
+
     self.init(
       id: id,
-      tripID: tripID,
       createdAt: createdAt,
       location: location,
       address: address,
       status: status,
       note: note,
       visited: visited,
-      metadata: metadata
+      metadata: wrapDictionary(try decodeMetadata(decoder: decoder, container: values, key: .metadata))
     )
-  }
-}
-
-func repackageMetadata(_ metadata: NonEmptyDictionary<NonEmptyString, NonEmptyString>?) -> [Order.Name: Order.Contents] {
-  switch metadata {
-  case let .some(metadata):
-    return Dictionary(
-      uniqueKeysWithValues: metadata.rawValue.map { (Order.Name(rawValue: $0), Order.Contents(rawValue: $1)) }
-    )
-  case .none: return [:]
   }
 }
 
@@ -172,12 +154,13 @@ extension Trip: Decodable {
     case createdAt = "started_at"
     case status
     case orders
+    case metadata
   }
   
   public init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
-    let id = try values.decode(NonEmptyString.self, forKey: .id)
+    let id = (try? values.decode(ID.self, forKey: .id)) ?? unassignedTrip
     
     let createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
@@ -193,7 +176,15 @@ extension Trip: Decodable {
       )
     }
     let orders = try values.decodeIfPresent([Order].self, forKey: .orders) ?? []
-    
-    self.init(id: id, createdAt: createdAt, status: status, orders: orders)
+
+    self.init(
+      id: id,
+      createdAt: createdAt,
+      status: status,
+      orders: orders,
+      metadata: wrapDictionary(try decodeMetadata(decoder: decoder, container: values, key: .metadata))
+    )
   }
 }
+
+private let unassignedTrip: Trip.ID = "UNASSIGNED"

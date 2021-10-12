@@ -8,11 +8,11 @@ import Types
 
 // MARK: - Cancel
 
-func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("cancelOrder \(o.id)")
   
   return callAPI(
-    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, status: .cancelled),
+    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, tripID: tripID, status: .cancelled),
     success: Terminal.self,
     failure: Token.Expired.self
   )
@@ -33,11 +33,11 @@ func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(
 
 // MARK: - Complete
 
-func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("completeOrder \(o.id)")
   
   return callAPI(
-    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, status: .completed),
+    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, tripID: tripID, status: .completed),
     success: Terminal.self,
     failure: Token.Expired.self
   )
@@ -61,8 +61,8 @@ enum APIOrderStatus: String {
   case cancelled = "cancel"
 }
 
-func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, status: APIOrderStatus) -> URLRequest {
-  let url = URL(string: "\(clientURL)/trips/\(order.tripID)/orders/\(order.id)/\(status.rawValue)")!
+func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, status: APIOrderStatus) -> URLRequest {
+  let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)/\(status.rawValue)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
   request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
@@ -73,11 +73,11 @@ func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order
 
 // MARK: - Update Note
 
-func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ note: Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID, _ note: Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
   logEffect("update order \(o.id) note: \(String(describing: o.note))")
   
   return callAPI(
-    request: updateOrderNoteRequest(auth: token, deviceID: deID, order: o, note: note),
+    request: updateOrderNoteRequest(auth: token, deviceID: deID, order: o, tripID: tripID, note: note),
     success: Trip.self,
     failure: Token.Expired.self
   )
@@ -85,8 +85,8 @@ func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ note:
     .map { (o, $0.map(constant(unit))) }
 }
 
-func updateOrderNoteRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, note: Order.Note) -> URLRequest {
-  let url = URL(string: "\(clientURL)/trips/\(order.tripID)/orders/\(order.id)")!
+func updateOrderNoteRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, note: Order.Note) -> URLRequest {
+  let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
   request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
