@@ -38,15 +38,17 @@ public struct TripScreen: View {
           ContentCell(title: "ID",
                       subTitle: trip.id.rawValue,
                       leadingPadding: 24,
-                      isCopyButtonEnabled: true) { str in
-            if let na = NonEmptyString(rawValue: str) {
-              sendOrderAction(.copyTextPressed(na))
-            }
+                      isCopyButtonEnabled: true)
+          ForEach(metadata.sorted(by:>), id: \.key) { key, value in
+            ContentCell(
+              title: key,
+              subTitle: value,
+              leadingPadding: 24,
+              copyTextPressed
+            )
           }
-          ContentCell(title: "Created",
-                      subTitle: "Trip @ \(DateFormatter.stringTime(trip.createdAt))",
-                      leadingPadding: 24,
-                      isCopyButtonEnabled: false)
+          .padding(.top, 8)
+          
           OrdersListScreen(state: .init(orders: trip.orders,
                                         selected: state.selectedOrderId),
                            send: send,
@@ -74,6 +76,22 @@ public struct TripScreen: View {
 
     }
     .navigationViewStyle(StackNavigationViewStyle())
+  }
+  
+  private var copyTextPressed: (String) -> Void {
+    return {str in
+      if let na = NonEmptyString(rawValue: str) {
+        sendOrderAction(.copyTextPressed(na))
+      }
+    }
+  }
+  
+  private var metadata: [String: String] {
+    let keysAndValues = state.trip?.metadata
+      .map({ $0 })
+      .sorted(by: \.key)
+      .map({ ("\($0)", "\($1)") })
+    return Dictionary(uniqueKeysWithValues: keysAndValues ?? [])
   }
 }
 

@@ -6,7 +6,7 @@ import Types
 
 
 let store = Store<AppState, AppAction>(
-  initialState: .initialState,
+  initialState: AppState.ordersScreenshot,
   reducer: appReducer,
   environment: SystemEnvironment.live(environment: AppEnvironment.live)
 )

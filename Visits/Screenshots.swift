@@ -189,7 +189,7 @@ private let canceled = Order(
 
 private let orders = IdentifiedArrayOf<Order>(uniqueElements: [notSent, entered, checkedOut1, checkedOut2, checkedOut3, canceled])
 
-private let trip = Trip(id: "SADFQSF123", createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!, status: .active, orders: orders.elements)
+private let trip = Trip(id: "SADFQSF123", createdAt: Calendar.current.date(bySettingHour: 9, minute: 38, second: 0, of: Date())!, status: .active, orders: orders.elements, metadata: ["Name": "VIP Delivery"])
 
 private let cityHall = Place(
   id: "1",
