@@ -66,7 +66,7 @@ public struct OrdersListScreen<Content: View>: View {
       navigationLink
       List {
         content()
-        ForEach(state.orders.elements) { order in
+        ForEach(ordersSortedLikeATaskManager(state.orders.elements)) { order in
           Button {
             send(.orderTapped(order.id))
           } label: {
@@ -83,4 +83,27 @@ private extension Order {
   var sortableName: String {
     return name?.rawValue ?? ""
   }
+}
+
+extension Order.Status {
+  var isOngoing: Bool {
+    if case .ongoing = self {
+      return true
+    }
+    return false
+  }
+}
+
+private func ordersSortedLikeATaskManager(_ orders: [Order]) -> [Order] {
+  var ongoing: [Order] = []
+  var actedUpon: [Order] = []
+
+  for order in orders {
+    if order.status.isOngoing {
+      ongoing.append(order)
+    } else {
+      actedUpon.append(order)
+    }
+  }
+  return ongoing + actedUpon
 }

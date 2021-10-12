@@ -118,13 +118,3 @@ extension Order.Status.NoteFocus: Equatable {}
 extension Order.Status.NoteFocus: Hashable {}
 
 extension Order: Identifiable {}
-
-public extension Array where Element == Order {
-  func sortedOrders() -> Array<Order> {
-    return self.sorted { lhs, rhs in
-      let lc = lhs.name?.rawValue ?? lhs.id.string
-      let rc = rhs.name?.rawValue ?? rhs.id.string
-      return lc.compare(rc, options: .caseInsensitive) == .orderedAscending
-    }
-  }
-}
