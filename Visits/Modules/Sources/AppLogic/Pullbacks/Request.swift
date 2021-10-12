@@ -80,7 +80,6 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .generated(.entered(.mainUnlocked)):         return .mainUnlocked
     case let .orderCancelFinished(o, r):                  return .orderCanceled(o, r)
     case let .orderCompleteFinished(o, r):                return .orderCompleted(o, r)
-//    case let .tripsUpdated(os):                           return .tripsUpdated(os)
     case let .tripUpdated(t):                            return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
@@ -148,7 +147,6 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getHistory:             e.api.getHistory,
       getIntegrationEntities: e.api.getIntegrationEntities,
       getTrip:               e.api.getTrip,
-//      getOrders:              e.api.getOrders,
       getPlaces:              e.api.getPlaces,
       getProfile:             e.api.getProfile,
       getToken:               e.api.getToken,
