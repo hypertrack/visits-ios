@@ -8,14 +8,13 @@ import Utility
 import IdentifiedCollections
 
 
-public struct OrdersListScreen: View {
-  
-  public enum Action: Equatable {
-    case clockOutButtonTapped
-    case refreshButtonTapped
-    case orderTapped(Order.ID?)
-  }
-  
+public enum OrdersListScreenAction: Equatable {
+  case clockOutButtonTapped
+  case refreshButtonTapped
+  case orderTapped(Order.ID?)
+}
+
+public struct OrdersListScreen<Content: View>: View {
   public struct State {
     public let orders: IdentifiedArrayOf<Order>
     public let selected: Order.ID?
@@ -27,15 +26,20 @@ public struct OrdersListScreen: View {
   }
     
   let state: State
-  let send: (Action) -> Void
+  let send: (OrdersListScreenAction) -> Void
   let sendOrderAction: (OrderScreen.Action) -> Void
+  let content: () -> Content
   
-  public init(state: State,
-              send: @escaping (Action) -> Void,
-              sendOrderAction: @escaping (OrderScreen.Action) -> Void) {
+  public init(
+    state: State,
+    send: @escaping (OrdersListScreenAction) -> Void,
+    sendOrderAction: @escaping (OrderScreen.Action) -> Void,
+    @ViewBuilder content: @escaping () -> Content
+  ) {
     self.state = state
     self.send = send
     self.sendOrderAction = sendOrderAction
+    self.content = content
   }
   
   var navigationLink: NavigationLink<EmptyView, OrderScreen>? {
@@ -58,19 +62,21 @@ public struct OrdersListScreen: View {
   }
   
   public var body: some View {
-      ZStack {
-        navigationLink
-        List(state.orders.elements) { order in
+    ZStack {
+      navigationLink
+      List {
+        content()
+        ForEach(state.orders.elements) { order in
           Button {
             send(.orderTapped(order.id))
           } label: {
             OrderCell(order: order)
           }
         }
-        .listStyle(PlainListStyle())
       }
+      .listStyle(PlainListStyle())
+    }
   }
-  
 }
 
 private extension Order {

@@ -20,11 +20,11 @@ public struct TripScreen: View {
   }
   
   public var state: State
-  public let send: (OrdersListScreen.Action) -> Void
+  public let send: (OrdersListScreenAction) -> Void
   public let sendOrderAction: (OrderScreen.Action) -> Void
 
   public init(state: State,
-              send: @escaping (OrdersListScreen.Action) -> Void,
+              send: @escaping (OrdersListScreenAction) -> Void,
               sendOrderAction: @escaping (OrderScreen.Action) -> Void) {
     self.state = state
     self.send = send
@@ -35,24 +35,30 @@ public struct TripScreen: View {
     NavigationView {
       VStack {
         if let trip = state.trip {
-          ContentCell(title: "ID",
-                      subTitle: trip.id.string,
-                      leadingPadding: 24,
-                      copyTextPressed)
-          ForEach(metadata.sorted(by:>), id: \.key) { key, value in
+          OrdersListScreen(
+            state: .init(
+              orders: trip.orders,
+              selected: state.selectedOrderId
+            ),
+            send: send,
+            sendOrderAction: sendOrderAction
+          ) {
             ContentCell(
-              title: key,
-              subTitle: value,
+              title: "ID",
+              subTitle: trip.id.string,
               leadingPadding: 24,
               copyTextPressed
             )
+            ForEach(metadata.sorted(by:>), id: \.key) { key, value in
+              ContentCell(
+                title: key,
+                subTitle: value,
+                leadingPadding: 24,
+                copyTextPressed
+              )
+            }
+            .padding(.top, 8)
           }
-          .padding(.top, 8)
-          
-          OrdersListScreen(state: .init(orders: trip.orders,
-                                        selected: state.selectedOrderId),
-                           send: send,
-                           sendOrderAction: sendOrderAction)
         } else {
           Text("No orders yet")
             .font(.title)
@@ -73,7 +79,6 @@ public struct TripScreen: View {
           }
         }
       }
-
     }
     .navigationViewStyle(StackNavigationViewStyle())
   }

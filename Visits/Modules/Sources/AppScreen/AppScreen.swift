@@ -45,7 +45,7 @@ public struct AppScreen: View {
     case addPlace(AddPlaceView.Action)
     case signIn(SignInScreenAction)
     case blocker(Blocker.Action)
-    case orders(OrdersListScreen.Action)
+    case orders(OrdersListScreenAction)
     case order(OrderScreen.Action)
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
@@ -159,7 +159,7 @@ struct MainBlock: View {
   let state: MainBlockState
   let sendMap: (MapView.Action) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
-  let sendOrders: (OrdersListScreen.Action) -> Void
+  let sendOrders: (OrdersListScreenAction) -> Void
   let sendPlaces: (PlacesScreen.Action) -> Void
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
