@@ -38,7 +38,7 @@ public struct TripScreen: View {
           ContentCell(title: "ID",
                       subTitle: trip.id.string,
                       leadingPadding: 24,
-                      isCopyButtonEnabled: true)
+                      copyTextPressed)
           ForEach(metadata.sorted(by:>), id: \.key) { key, value in
             ContentCell(
               title: key,
