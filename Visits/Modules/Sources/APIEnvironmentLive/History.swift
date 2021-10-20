@@ -23,7 +23,8 @@ func getHistory(
 }
 
 func historyRequest(auth token: Token.Value, deviceID: DeviceID, date: Date) -> URLRequest {
-  let url = URL(string: "\(clientURL)/devices/\(deviceID)/history/\(historyDate(from: date))?timezone=\(TimeZone.current.identifier)")!
+  let timezone = TimeZone.current
+  let url = URL(string: "\(clientURL)/devices/\(deviceID)/history/\(historyDate(from: date, timezone: timezone))?timezone=\(timezone.identifier)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
   request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
@@ -32,11 +33,11 @@ func historyRequest(auth token: Token.Value, deviceID: DeviceID, date: Date) -> 
   return request
 }
 
-func historyDate(from date: Date) -> String {
+func historyDate(from date: Date, timezone: TimeZone) -> String {
   let formatter = DateFormatter()
   formatter.calendar = .init(identifier: .gregorian)
   formatter.locale = .init(identifier: "en_US_POSIX")
-  formatter.timeZone = .init(secondsFromGMT: 0)
+  formatter.timeZone = timezone
   formatter.dateFormat = "yyyy-MM-dd"
   return formatter.string(from: date)
 }
