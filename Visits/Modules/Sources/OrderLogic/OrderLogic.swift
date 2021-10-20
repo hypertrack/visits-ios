@@ -8,10 +8,12 @@ import Types
 public enum OrderAction: Equatable {
   case focusNote
   case dismissFocus
-  case cancelSelectedOrder
-  case cancelOrder(Order)
-  case completeSelectedOrder
-  case completeOrder(Order)
+  case cancelOrder
+  case requestOrderCancel(Order)
+  case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
+  case completeOrder
+  case requestOrderComplete(Order)
+  case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
   case noteChanged(Order.Note?)
 }
 
@@ -32,28 +34,56 @@ public let orderReducer = Reducer<Order, OrderAction, SystemEnvironment<OrderEnv
   
   switch action {
   case .focusNote:
-    guard case let .ongoing(noteFocus) = state.status else { return environment.capture("Can't focus order note when it's not ongoing").fireAndForget() }
+    guard case let .ongoing(noteFocus) = state.status
+    else { return environment.capture("Can't focus order note when it's not ongoing").fireAndForget() }
     
     state.status = .ongoing(.focused)
     
     return .none
   case .dismissFocus:
-    guard case let .ongoing(noteFocus) = state.status else { return environment.capture("Can't dismiss order note focus when it's not ongoing").fireAndForget() }
+    guard case let .ongoing(noteFocus) = state.status
+    else { return environment.capture("Can't dismiss order note focus when it's not ongoing").fireAndForget() }
     
     state.status = .ongoing(.unfocused)
     
     return .none
-  case .cancelSelectedOrder:
-    guard case .ongoing = state.status else { return environment.capture("Can't cancel order when it's not ongoing").fireAndForget() }
-    
-    return .init(value: .cancelOrder(state))
   case .cancelOrder:
+    guard case .ongoing = state.status
+    else { return environment.capture("Can't cancel order when it's not ongoing").fireAndForget() }
+
+    state.status = .cancelling
+
+    return .init(value: .requestOrderCancel(state))
+  case .requestOrderCancel:
     return .none
-  case .completeSelectedOrder:
-    guard case .ongoing = state.status else { return environment.capture("Can't complete order when it's not ongoing").fireAndForget() }
-    
-    return .init(value: .completeOrder(state))
+  case let .orderCanceled(_, r):
+    guard state.status == .cancelling
+    else { return environment.capture("Can't process order cancellation because its status is not .cancelling").fireAndForget() }
+
+    switch r {
+    case .success: state.status = .cancelled
+    case .failure: state.status = .ongoing(.unfocused)
+    }
+
+    return .none
   case .completeOrder:
+    guard case .ongoing = state.status
+    else { return environment.capture("Can't complete order when it's not ongoing").fireAndForget() }
+
+    state.status = .completing
+
+    return .init(value: .requestOrderComplete(state))
+  case .requestOrderComplete:
+    return .none
+  case let .orderCompleted(_, r):
+    guard state.status == .cancelling
+    else { return environment.capture("Can't process order completion because its status is not .completing").fireAndForget() }
+
+    switch r {
+    case .success: state.status = .completed(environment.date())
+    case .failure: state.status = .ongoing(.unfocused)
+    }
+
     return .none
   case let .noteChanged(n):
     state.note = n

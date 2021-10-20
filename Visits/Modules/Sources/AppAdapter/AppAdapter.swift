@@ -162,8 +162,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders
   case let .orders(.orderTapped(o)): return .selectOrder(o)
-  case let .order(.cancelButtonTapped(oid)): return .cancelSelectedOrder(oid)
-  case let .order(.checkOutButtonTapped(oid)): return .completeSelectedOrder(oid)
+  case let .order(.cancelButtonTapped(oid)): return .cancelOrder(oid)
+  case let .order(.checkOutButtonTapped(oid)): return .completeOrder(oid)
   case let .order(.copyTextPressed(t)): return .copyToPasteboard(t)
   case let .order(.mapTapped(c, a)), let .places(.mapTapped(c, a)): return .openInMaps(c, a)
   case .order(.noteEnterKeyboardButtonTapped): return .dismissFocus

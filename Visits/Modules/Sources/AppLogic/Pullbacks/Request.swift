@@ -71,8 +71,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     switch a {
     case let .appVisibilityChanged(v):                    return .appVisibilityChanged(v)
     case     .cancelAllRequests:                          return .cancelAllRequests
-    case let .cancelOrder(o):                             return .cancelOrder(o)
-    case let .checkOutOrder(o):                           return .completeOrder(o)
+    case let .requestOrderCancel(o):                      return .requestOrderCancel(o)
+    case let .requestOrderComplete(o):                    return .requestOrderComplete(o)
     case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
     case let .historyUpdated(r):                          return .historyUpdated(r)
     case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
@@ -80,12 +80,13 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .generated(.entered(.mainUnlocked)):         return .mainUnlocked
     case let .orderCancelFinished(o, r):                  return .orderCanceled(o, r)
     case let .orderCompleteFinished(o, r):                return .orderCompleted(o, r)
-    case let .tripUpdated(t):                            return .tripUpdated(t)
+    case let .tripUpdated(t):                             return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
     case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
+    case     .resetInProgressOrders:                      return .resetInProgressOrders
     case     .startTracking:                              return .startTracking
     case     .stopTracking:                               return .stopTracking
     case     .switchToMap:                                return .switchToMap
@@ -105,8 +106,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     switch a {
     case let .appVisibilityChanged(v):                    return .appVisibilityChanged(v)
     case     .cancelAllRequests:                          return .cancelAllRequests
-    case let .cancelOrder(o):                             return .cancelOrder(o)
-    case let .completeOrder(o):                           return .checkOutOrder(o)
+    case let .requestOrderCancel(o):                             return .requestOrderCancel(o)
+    case let .requestOrderComplete(o):                           return .requestOrderComplete(o)
     case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
     case let .historyUpdated(r):                          return .historyUpdated(r)
     case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
@@ -120,6 +121,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .receivedCurrentLocation(c):                 return .receivedCurrentLocation(c)
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
+    case     .resetInProgressOrders:                      return .resetInProgressOrders
     case     .startTracking:                              return .startTracking
     case     .stopTracking:                               return .stopTracking
     case     .switchToMap:                                return .switchToMap

@@ -206,7 +206,7 @@ struct MainBlock: View {
       
       TripScreen(state: .init(trip: state.trip,
                               selected: state.selectedOrderId,
-                              refreshing: state.requests.contains(Request.trip)),
+                              refreshing: state.requests.contains(Request.oldestActiveTrip)),
                        send: sendOrders,
                        sendOrderAction: sendOrder)
         .tabItem {
@@ -220,7 +220,7 @@ struct MainBlock: View {
           places: state.placesSummary,
           selected: state.selectedPlace,
           presentation: state.placesPresentation,
-          refreshing: state.requests.contains(Request.places),
+          refreshing: state.requests.contains(Request.placesAndVisits),
           integrationStatus: state.integrationStatus,
           coordinates: state.history?.coordinates ?? []
         ),

@@ -1,6 +1,6 @@
 public enum Request: Equatable, Hashable, CaseIterable {
-  case history
-  case trip
-  case places
-  case profile
+  case deviceHistory
+  case oldestActiveTrip
+  case placesAndVisits
+  case deviceMetadata
 }

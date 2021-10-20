@@ -26,6 +26,7 @@ public enum TripAction: Equatable {
   case order(id: Order.ID, action: OrderAction)
   case selectOrder(Order.ID?)
   case tripUpdated(Trip?)
+  case resetInProgressOrders
 }
 
 // MARK: - Reducer
@@ -49,6 +50,18 @@ public let tripReducer = Reducer<TripState, TripAction, SystemEnvironment<OrderE
       state.trip = trip
     case .selectOrder(let selectedOrderId):
       state.selectedOrderId = selectedOrderId
+    case .resetInProgressOrders:
+      guard let trip = state.trip else { return .none }
+
+      state.trip = trip |> \.orders *<
+        IdentifiedArrayOf<Order>(uniqueElements: trip.orders.map { o in
+          switch o.status {
+          case .cancelling,
+               .completing: return o |> \.status *< .ongoing(.unfocused)
+          default:          return o
+          }
+        }
+      )
     case .order(let id, let action):
       break
     }

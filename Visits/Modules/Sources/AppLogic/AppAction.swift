@@ -37,11 +37,12 @@ public enum AppAction: Equatable {
   // Orders
   case selectOrder(Order.ID?)
   case updateOrders
+  case resetInProgressOrders
   // Order
-  case cancelSelectedOrder(Order.ID)
-  case cancelOrder(Order)
-  case completeSelectedOrder(Order.ID)
-  case checkOutOrder(Order)
+  case cancelOrder(Order.ID)
+  case requestOrderCancel(Order)
+  case completeOrder(Order.ID)
+  case requestOrderComplete(Order)
   case orderNoteChanged(Order.ID, NonEmptyString?)
   case focusOrderNote(Order.ID)
   case orderDismissFocus(Order.ID)
