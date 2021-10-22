@@ -88,6 +88,8 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
            let .profileUpdated(.failure(e)),
            let .historyUpdated(.failure(e)),
            let .orderCancelFinished(_, .failure(e)),
+           let .orderSnoozeFinished(_, .failure(e)),
+           let .orderUnsnoozeFinished(_, .failure(e)),
            let .orderCompleteFinished(_, .failure(e)): error = toNever(e)
       default:                                         error = nil
       }

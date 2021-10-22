@@ -6,6 +6,8 @@ public extension APIEnvironment {
   static let live = Self(
     cancelOrder: cancelOrder(_:_:_:_:),
     completeOrder: completeOrder(_:_:_:_:),
+    snoozeOrder: snoozeOrder(_:_:_:_:),
+    unsnoozeOrder: unsnoozeOrder(_:_:_:_:),
     createPlace: createPlace(_:_:_:_:_:_:_:),
     getHistory: getHistory(_:_:_:),
     getIntegrationEntities: getIntegrationEntities(_:_:_:),

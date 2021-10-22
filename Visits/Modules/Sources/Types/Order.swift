@@ -20,7 +20,9 @@ public struct Order {
     case completed(Date)
     case cancelling
     case cancelled
+    case snoozing
     case snoozed
+    case unsnoozing
     
     public enum NoteFocus { case focused, unfocused }
   }

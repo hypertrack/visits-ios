@@ -182,7 +182,7 @@ struct MainBlock: View {
           send: sendMap
         )
         .edgesIgnoringSafeArea(.top)
-        .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 78 : 0 : 0)
+        .padding([.bottom], state.history?.driveDistance != nil ? state.history?.driveDistance != 0 ? 40 : 0 : 0)
         if let distance = state.history?.driveDistance, distance != 0 {
           VStack {
             Spacer()

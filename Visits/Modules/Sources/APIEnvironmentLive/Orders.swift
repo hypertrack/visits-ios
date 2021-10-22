@@ -9,35 +9,41 @@ import Types
 // MARK: - Cancel
 
 func cancelOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
-  logEffect("cancelOrder \(o.id)")
-  
-  return callAPI(
-    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, tripID: tripID, status: .cancelled),
-    success: Terminal.self,
-    failure: Token.Expired.self
-  )
-  .catch { (e: APIError<Token.Expired>) -> AnyPublisher<Terminal, APIError<Token.Expired>> in
-    switch e {
-    case let .unknown(p, _, _) where p == "Received unexpected status code 409":
-      return Just(unit)
-        .setFailureType(to: APIError<Token.Expired>.self)
-        .eraseToAnyPublisher()
-    default:
-      return Fail(error: e)
-        .eraseToAnyPublisher()
-    }
-  }
-    .catchToEffect()
-    .map { (o, $0) }
+  changeOrderStatus(token, deID, o, tripID, status: .cancelled)
 }
 
 // MARK: - Complete
 
 func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
-  logEffect("completeOrder \(o.id)")
-  
+  changeOrderStatus(token, deID, o, tripID, status: .completed)
+}
+
+// MARK: - Snooze
+
+func snoozeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+  changeOrderStatus(token, deID, o, tripID, status: .snooze)
+}
+
+// MARK: - Unsnooze
+
+func unsnoozeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+  changeOrderStatus(token, deID, o, tripID, status: .unsnooze)
+}
+
+// MARK: - Change Order Status
+
+private enum APIOrderStatus: String {
+  case completed = "complete"
+  case cancelled = "cancel"
+  case snooze = "disable"
+  case unsnooze = "enable"
+}
+
+private func changeOrderStatus(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID, status: APIOrderStatus) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never> {
+  logEffect("\(status.rawValue)Order \(o.id)")
+
   return callAPI(
-    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, tripID: tripID, status: .completed),
+    request: changeOrderStatusRequest(auth: token, deviceID: deID, order: o, tripID: tripID, status: status),
     success: Terminal.self,
     failure: Token.Expired.self
   )
@@ -56,12 +62,7 @@ func completeOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID:
     .map { (o, $0) }
 }
 
-enum APIOrderStatus: String {
-  case completed = "complete"
-  case cancelled = "cancel"
-}
-
-func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, status: APIOrderStatus) -> URLRequest {
+private func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, status: APIOrderStatus) -> URLRequest {
   let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)/\(status.rawValue)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -85,7 +86,7 @@ func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripI
     .map { (o, $0.map(constant(unit))) }
 }
 
-func updateOrderNoteRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, note: Order.Note) -> URLRequest {
+private func updateOrderNoteRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, note: Order.Note) -> URLRequest {
   let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)")!
   var request = URLRequest(url: url)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

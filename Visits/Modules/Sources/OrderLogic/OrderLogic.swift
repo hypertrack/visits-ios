@@ -14,6 +14,12 @@ public enum OrderAction: Equatable {
   case completeOrder
   case requestOrderComplete(Order)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
+  case snoozeOrder
+  case requestOrderSnooze(Order)
+  case orderSnoozed(Order, Result<Terminal, APIError<Token.Expired>>)
+  case unsnoozeOrder
+  case requestOrderUnsnooze(Order)
+  case orderUnsnoozed(Order, Result<Terminal, APIError<Token.Expired>>)
   case noteChanged(Order.Note?)
 }
 
@@ -82,6 +88,44 @@ public let orderReducer = Reducer<Order, OrderAction, SystemEnvironment<OrderEnv
     switch r {
     case .success: state.status = .completed(environment.date())
     case .failure: state.status = .ongoing(.unfocused)
+    }
+
+    return .none
+  case .snoozeOrder:
+    guard case .ongoing = state.status
+    else { return environment.capture("Can't snooze order when it's not ongoing").fireAndForget() }
+
+    state.status = .snoozing
+
+    return .init(value: .requestOrderSnooze(state))
+  case .requestOrderSnooze:
+    return .none
+  case let .orderSnoozed(_, r):
+    guard state.status == .snoozing
+    else { return environment.capture("Can't process order snooze because its status is not .snoozing").fireAndForget() }
+
+    switch r {
+    case .success: state.status = .snoozed
+    case .failure: state.status = .ongoing(.unfocused)
+    }
+
+    return .none
+  case .unsnoozeOrder:
+    guard case .snoozed = state.status
+    else { return environment.capture("Can't unsnooze order when it's not snoozed").fireAndForget() }
+
+    state.status = .unsnoozing
+
+    return .init(value: .requestOrderUnsnooze(state))
+  case .requestOrderUnsnooze:
+    return .none
+  case let .orderUnsnoozed(_, r):
+    guard state.status == .unsnoozing
+    else { return environment.capture("Can't process order unsnooze because its status is not .unsnoozing").fireAndForget() }
+
+    switch r {
+    case .success: state.status = .ongoing(.unfocused)
+    case .failure: state.status = .snoozed
     }
 
     return .none

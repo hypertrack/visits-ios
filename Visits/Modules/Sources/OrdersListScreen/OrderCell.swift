@@ -55,13 +55,13 @@ struct OrderCell: View {
   
   private func orderIconStatus() -> OrderIconStatus {
     switch order.status {
-    case .ongoing:
+    case .ongoing, .unsnoozing:
       return order.visited != nil ? .visited : .ongoing
     case .completed, .completing:
       return .completed
     case .cancelled, .cancelling:
       return .canceled
-    case .snoozed:
+    case .snoozed, .snoozing:
       return .snoozed
     }
   }

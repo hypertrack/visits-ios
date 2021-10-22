@@ -33,6 +33,8 @@ public enum RequestAction: Equatable {
   case cancelAllRequests
   case requestOrderCancel(Order)
   case requestOrderComplete(Order)
+  case requestOrderSnooze(Order)
+  case requestOrderUnsnooze(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
   case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
   case placeCreatedWithSuccess(Place)
@@ -43,6 +45,8 @@ public enum RequestAction: Equatable {
   case mainUnlocked
   case orderCanceled(Order, Result<Terminal, APIError<Token.Expired>>)
   case orderCompleted(Order, Result<Terminal, APIError<Token.Expired>>)
+  case orderSnoozed(Order, Result<Terminal, APIError<Token.Expired>>)
+  case orderUnsnoozed(Order, Result<Terminal, APIError<Token.Expired>>)
   case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
@@ -67,6 +71,8 @@ public struct RequestEnvironment {
   public var cancelOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var capture: (CaptureMessage) -> Effect<Never, Never>
   public var completeOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var snoozeOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
+  public var unsnoozeOrder: (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   public var createPlace: (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>
   public var getCurrentLocation: () -> Effect<Coordinate?, Never>
   public var getHistory: (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>
@@ -82,6 +88,8 @@ public struct RequestEnvironment {
     cancelOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     capture: @escaping (CaptureMessage) -> Effect<Never, Never>,
     completeOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    snoozeOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+    unsnoozeOrder: @escaping (Token.Value, DeviceID, Order, Trip.ID) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
     createPlace: @escaping (Token.Value, DeviceID, PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?) -> Effect<Result<Place, APIError<Token.Expired>>, Never>,
     getCurrentLocation: @escaping () -> Effect<Coordinate?, Never>,
     getHistory: @escaping (Token.Value, DeviceID, Date) -> Effect<Result<History, APIError<Token.Expired>>, Never>,
@@ -96,6 +104,8 @@ public struct RequestEnvironment {
     self.cancelOrder = cancelOrder
     self.capture = capture
     self.completeOrder = completeOrder
+    self.snoozeOrder = snoozeOrder
+    self.unsnoozeOrder = unsnoozeOrder
     self.createPlace = createPlace
     self.getCurrentLocation = getCurrentLocation
     self.getHistory = getHistory
@@ -125,6 +135,12 @@ public let requestReducer = Reducer<
   }
   func completeOrder(_ o: Order, _ tripID: Trip.ID) -> (Token.Value) -> Effect<RequestAction, Never> {
     { t in completeOrderEffect(o, environment.completeOrder(t, deID, o, tripID), { note in environment.updateOrderNote(t, deID, o, tripID, note) }, environment.mainQueue) }
+  }
+  func snoozeOrder(_ o: Order, _ tripID: Trip.ID) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in snoozeOrderEffect(o, environment.snoozeOrder(t, deID, o, tripID), { note in environment.updateOrderNote(t, deID, o, tripID, note) }, environment.mainQueue) }
+  }
+  func unsnoozeOrder(_ o: Order, _ tripID: Trip.ID) -> (Token.Value) -> Effect<RequestAction, Never> {
+    { t in unsnoozeOrderEffect(o, environment.unsnoozeOrder(t, deID, o, tripID), { note in environment.updateOrderNote(t, deID, o, tripID, note) }, environment.mainQueue) }
   }
   func getTrip(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getTripEffect(environment.getTrip(t, deID), environment.mainQueue)
@@ -233,6 +249,8 @@ public let requestReducer = Reducer<
         [
           .cancel(id: RequestingCancelOrdersID()),
           .cancel(id: RequestingCompleteOrdersID()),
+          .cancel(id: RequestingSnoozeOrdersID()),
+          .cancel(id: RequestingUnsnoozeOrdersID())
         ]
       +
       (state.token == .refreshing ? [.cancel(id: RequestingTokenID())] : [])
@@ -287,11 +305,16 @@ public let requestReducer = Reducer<
        .integrationEntitiesUpdatedWithFailure(.error),
        .profileUpdated(.failure(.error)),
        .orderCompleted(_, .failure(.error)),
-       .orderCanceled(_, .failure(.error)):
+       .orderCanceled(_, .failure(.error)),
+       .orderSnoozed(_, .failure(.error)),
+       .orderUnsnoozed(_, .failure(.error)):
     state.token = .refreshing
     
     return getToken
-  case .orderCanceled(_, .success):
+  case .orderCanceled(_, .success),
+       .orderCompleted(_, .success),
+       .orderSnoozed(_, .success),
+       .orderUnsnoozed(_, .success):
     guard !state.requests.contains(.oldestActiveTrip) else { return .none }
 
     let (token, effects) = requestOrRefreshToken(state.token, request: .oldestActiveTrip |> flip(requestEffect))
@@ -299,17 +322,10 @@ public let requestReducer = Reducer<
     state.requests.insert(.oldestActiveTrip)
 
     return effects
-  case .orderCanceled:
-    return .none
-  case .orderCompleted(_, .success):
-    guard !state.requests.contains(.oldestActiveTrip) else { return .none }
-
-    let (token, effects) = requestOrRefreshToken(state.token, request: .oldestActiveTrip |> flip(requestEffect))
-    state.token = token
-    state.requests.insert(.oldestActiveTrip)
-
-    return effects
-  case .orderCompleted:
+  case .orderCanceled,
+       .orderCompleted,
+       .orderSnoozed,
+       .orderUnsnoozed:
     return .none
   case .tripUpdated:
     guard state.requests.contains(.oldestActiveTrip) else { return .none }
@@ -318,7 +334,9 @@ public let requestReducer = Reducer<
     
     return .merge(
       .cancel(id: RequestingCancelOrdersID()),
-      .cancel(id: RequestingCompleteOrdersID())
+      .cancel(id: RequestingCompleteOrdersID()),
+      .cancel(id: RequestingSnoozeOrdersID()),
+      .cancel(id: RequestingUnsnoozeOrdersID())
     )
   case .placesUpdated:
     guard state.requests.contains(.placesAndVisits) else { return .none }
@@ -370,6 +388,21 @@ public let requestReducer = Reducer<
     state.token = token
     
     return effects
+  case let .requestOrderSnooze(o):
+    guard let trip = state.trip else { return .none }
+
+    let (token, effects) = requestOrRefreshToken(state.token, request: snoozeOrder(o, trip.id))
+    state.token = token
+
+    return effects
+
+  case let .requestOrderUnsnooze(o):
+    guard let trip = state.trip else { return .none }
+
+    let (token, effects) = requestOrRefreshToken(state.token, request: unsnoozeOrder(o, trip.id))
+    state.token = token
+
+    return effects
   case let .tokenUpdated(.success(t)):
     guard state.token == .refreshing else { return .none }
     
@@ -388,6 +421,8 @@ public let requestReducer = Reducer<
         switch o.status {
         case .cancelling: return t |> cancelOrder(o, trip.id)
         case .completing: return t |> completeOrder(o, trip.id)
+        case .snoozing:   return t |> snoozeOrder(o, trip.id)
+        case .unsnoozing: return t |> unsnoozeOrder(o, trip.id)
         default:          return nil
         }
       }
@@ -417,6 +452,8 @@ public let requestReducer = Reducer<
         [
           .cancel(id: RequestingCancelOrdersID()),
           .cancel(id: RequestingCompleteOrdersID()),
+          .cancel(id: RequestingSnoozeOrdersID()),
+          .cancel(id: RequestingUnsnoozeOrdersID())
         ]
       +
         [cancelIntegrationRequest]
@@ -457,6 +494,8 @@ public let requestReducer = Reducer<
     return .merge(
       .cancel(id: RequestingCancelOrdersID()),
       .cancel(id: RequestingCompleteOrdersID()),
+      .cancel(id: RequestingSnoozeOrdersID()),
+      .cancel(id: RequestingUnsnoozeOrdersID()),
       .cancel(id: RequestingOrdersID()),
       .cancel(id: RequestingTripsID()),
       .cancel(id: RequestingHistoryID()),
@@ -484,6 +523,8 @@ extension Optional where Wrapped == History {
 
 struct RequestingCancelOrdersID: Hashable {}
 struct RequestingCompleteOrdersID: Hashable {}
+struct RequestingSnoozeOrdersID: Hashable {}
+struct RequestingUnsnoozeOrdersID: Hashable {}
 struct RequestingOrdersID: Hashable {}
 struct RequestingTripsID: Hashable {}
 struct RequestingHistoryID: Hashable {}
@@ -499,24 +540,7 @@ let cancelOrderEffect = { (
   updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) ->  Effect<RequestAction, Never> in
-  if let note = order.note {
-    return updateOrderNote(note)
-      .flatMap { (o: Order, r: Result<Terminal, APIError<Token.Expired>>) -> Effect<RequestAction, Never> in
-        switch r {
-        case     .success:    return cancelOrder.map(RequestAction.orderCanceled)
-        case let .failure(e): return .init(value: .orderCanceled(o, .failure(e)))
-        }
-      }
-      .receive(on: mainQueue)
-      .eraseToEffect()
-      .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
-  } else {
-    return cancelOrder
-      .receive(on: mainQueue)
-      .map(RequestAction.orderCanceled)
-      .eraseToEffect()
-      .cancellable(id: RequestingCancelOrdersID(), cancelInFlight: false)
-  }
+  changeOrderStatusEffect(.cancel, order, cancelOrder, updateOrderNote, mainQueue)
 }
 
 let completeOrderEffect = { (
@@ -525,23 +549,82 @@ let completeOrderEffect = { (
   updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) ->  Effect<RequestAction, Never> in
+  changeOrderStatusEffect(.complete, order, completeOrder, updateOrderNote, mainQueue)
+}
+
+let snoozeOrderEffect = { (
+  order: Order,
+  snoozeOrder: Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) ->  Effect<RequestAction, Never> in
+  changeOrderStatusEffect(.snooze, order, snoozeOrder, updateOrderNote, mainQueue)
+}
+
+let unsnoozeOrderEffect = { (
+  order: Order,
+  unsnoozeOrder: Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) ->  Effect<RequestAction, Never> in
+  changeOrderStatusEffect(.unsnooze, order, unsnoozeOrder, updateOrderNote, mainQueue)
+}
+
+private enum OrderStatus { case cancel, complete, snooze, unsnooze }
+
+extension OrderStatus {
+  func toFinishedAction(_ o: Order, _ r: Result<Terminal, APIError<Token.Expired>>) -> RequestAction {
+    switch self {
+    case .cancel:   return .orderCanceled(o, r)
+    case .complete: return .orderCompleted(o, r)
+    case .snooze:   return .orderSnoozed(o, r)
+    case .unsnooze: return .orderUnsnoozed(o, r)
+    }
+  }
+
+  func toFailedAction(_ o: Order, _ e: APIError<Token.Expired>) -> RequestAction {
+    switch self {
+    case .cancel:   return .orderCanceled(o, .failure(e))
+    case .complete: return .orderCompleted(o, .failure(e))
+    case .snooze:   return .orderSnoozed(o, .failure(e))
+    case .unsnooze: return .orderUnsnoozed(o, .failure(e))
+    }
+  }
+
+  var cancellableID: AnyHashable {
+    switch self {
+    case .cancel:   return RequestingCancelOrdersID()
+    case .complete: return RequestingCompleteOrdersID()
+    case .snooze:   return RequestingSnoozeOrdersID()
+    case .unsnooze: return RequestingUnsnoozeOrdersID()
+    }
+  }
+}
+
+private let changeOrderStatusEffect = { (
+  status: OrderStatus,
+  order: Order,
+  changeOrderStatus: Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  updateOrderNote: (Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) ->  Effect<RequestAction, Never> in
   if let note = order.note {
     return updateOrderNote(note)
       .flatMap { (o: Order, r: Result<Terminal, APIError<Token.Expired>>) -> Effect<RequestAction, Never> in
         switch r {
-        case     .success:    return completeOrder.map(RequestAction.orderCompleted)
-        case let .failure(e): return .init(value: .orderCompleted(o, .failure(e)))
+        case     .success:    return changeOrderStatus.map(status.toFinishedAction)
+        case let .failure(e): return .init(value: status.toFailedAction(o, e))
         }
       }
       .receive(on: mainQueue)
       .eraseToEffect()
-      .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
+      .cancellable(id: status.cancellableID, cancelInFlight: false)
   } else {
-    return completeOrder
+    return changeOrderStatus
       .receive(on: mainQueue)
-      .map(RequestAction.orderCompleted)
+      .map(status.toFinishedAction)
       .eraseToEffect()
-      .cancellable(id: RequestingCompleteOrdersID(), cancelInFlight: false)
+      .cancellable(id: status.cancellableID, cancelInFlight: false)
   }
 }
 

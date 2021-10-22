@@ -179,13 +179,16 @@ func drawOrder(status: Order.Status, visited: Order.Visited?) {
   let isVisited: Bool
   
   switch (status, visited) {
-  case (.ongoing, .none): emoji = "⏳"
-  case (.ongoing, .some): emoji = "📦"
+  case (.ongoing, .none),
+       (.unsnoozing, .none): emoji = "⏳"
+  case (.ongoing, .some),
+       (.unsnoozing, .some): emoji = "📦"
   case (.completing, _),
-       (.completed, _):   emoji = "🏁"
+       (.completed, _):      emoji = "🏁"
   case (.cancelling, _),
-       (.cancelled, _):   emoji = "❌"
-  case (.snoozed, _):    emoji = "⏸"
+       (.cancelled, _):      emoji = "❌"
+  case (.snoozed, _),
+       (.snoozing, _):       emoji = "⏸"
   }
   
   switch visited {
@@ -757,13 +760,16 @@ public func annotationViewForAnnotation(
   case let orderAnnotation as OrderAnnotation:
     let reuseIdentifier: String
     switch (orderAnnotation.order.status, orderAnnotation.order.visited) {
-    case (.ongoing, .none): reuseIdentifier = orderPendingAnnotationID
-    case (.ongoing, .some): reuseIdentifier = orderVisitedAnnotationID
+    case (.ongoing, .none),
+         (.unsnoozing, .none): reuseIdentifier = orderPendingAnnotationID
+    case (.ongoing, .some),
+         (.unsnoozing, .some): reuseIdentifier = orderVisitedAnnotationID
     case (.completing, _),
-         (.completed, _):   reuseIdentifier = orderCompletedAnnotationID
+         (.completed, _):      reuseIdentifier = orderCompletedAnnotationID
     case (.cancelling, _),
-         (.cancelled, _):   reuseIdentifier = orderCanceledAnnotationID
-    case (.snoozed, _):    reuseIdentifier = orderSnoozedAnnotationID
+         (.cancelled, _):      reuseIdentifier = orderCanceledAnnotationID
+    case (.snoozed, _),
+         (.snoozing, _):       reuseIdentifier = orderSnoozedAnnotationID
     }
     return mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier, for: orderAnnotation)
   case let placeAnnotation as PlaceAnnotation:

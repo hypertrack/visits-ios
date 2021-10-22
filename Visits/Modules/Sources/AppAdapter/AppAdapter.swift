@@ -214,6 +214,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .addPlace(.decreaseAddPlaceRadius): return .decreaseAddPlaceRadius
   case .addPlace(.increaseAddPlaceRadius): return .increaseAddPlaceRadius
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
+  case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
+  case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
   }
 }
 

@@ -29,6 +29,8 @@ public struct OrderScreen: View {
   public enum Action: Equatable {
     case cancelButtonTapped(Order.ID)
     case checkOutButtonTapped(Order.ID)
+    case snoozeButtonTapped(Order.ID)
+    case unsnoozeButtonTapped(Order.ID)
     case copyTextPressed(NonEmptyString)
     case mapTapped(Coordinate, Address)
     case noteEnterKeyboardButtonTapped
@@ -87,13 +89,6 @@ public struct OrderScreen: View {
   }
   
   public var body: some View {
-//    Navigation(
-//      title: title,
-//      leading: {
-//        EmptyView()
-//      },
-//      trailing: { EmptyView() }
-//    ) {
       ZStack {
         InformationView(
           order: state,
@@ -121,7 +116,9 @@ public struct OrderScreen: View {
         ButtonView(
           status: state.status,
           cancelButtonTapped: { send(.cancelButtonTapped(state.id)) },
-          checkOutButtonTapped: { send(.checkOutButtonTapped(state.id)) }
+          checkOutButtonTapped: { send(.checkOutButtonTapped(state.id)) },
+          snoozeButtonTapped: { send(.snoozeButtonTapped(state.id)) },
+          unsnoozeButtonTapped: { send(.unsnoozeButtonTapped(state.id)) }
         )
         .padding(.bottom, -10)
       }
@@ -132,7 +129,6 @@ public struct OrderScreen: View {
         }
       }
       .navigationBarTitle(Text(state.address.anyAddressStreetBias?.rawValue ?? "Order"), displayMode: .inline)
-//    }
   }
 }
 
@@ -151,13 +147,13 @@ struct StatusView: View {
     }
     
     switch status {
-    case .ongoing, .completing, .cancelling:
+    case .ongoing, .completing, .cancelling, .snoozing:
       EmptyView()
     case let .completed(time):
       VisitStatus(text: "Marked Complete at: \(DateFormatter.stringTime(time))", state: .completed)
     case .cancelled:
       VisitStatus(text: "Marked Canceled", state: .custom(color: .red))
-    case .snoozed:
+    case .snoozed, .unsnoozing:
       VisitStatus(text: "Snoozed", state: .custom(color: .gray))
     }
   }
@@ -244,6 +240,8 @@ struct ButtonView: View {
   let status: Order.Status
   let cancelButtonTapped: () -> Void
   let checkOutButtonTapped: () -> Void
+  let snoozeButtonTapped: () -> Void
+  let unsnoozeButtonTapped: () -> Void
   
   enum Status {
     init(status: Order.Status) {
@@ -253,37 +251,73 @@ struct ButtonView: View {
       case .completed:  self = .hidingButtons(.completed)
       case .cancelling: self = .showingButtons(.cancelling)
       case .cancelled:  self = .hidingButtons(.cancelled)
-      case .snoozed:   self = .hidingButtons(.snoozed)
+      case .snoozed:    self = .showingButtons(.snoozed)
+      case .snoozing:   self = .showingButtons(.snoozing)
+      case .unsnoozing: self = .showingButtons(.unsnoozing)
       }
     }
     
     case showingButtons(ShowingButtons)
     case hidingButtons(HidingButtons)
     
-    enum ShowingButtons { case ongoing, completing, cancelling }
-    enum HidingButtons { case completed, cancelled, snoozed }
+    enum ShowingButtons { case ongoing, completing, cancelling, snoozed, snoozing, unsnoozing }
+    enum HidingButtons { case completed, cancelled }
   }
   
   var body: some View {
     switch Status(status: status) {
+    case     .showingButtons(.snoozed):
+      RoundedStack {
+        VStack {
+          PrimaryButton(
+            variant: .normal(title: "Unsnooze"),
+            showActivityIndicator: false,
+            unsnoozeButtonTapped
+          )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2.5)
+        }
+        .padding(.vertical)
+      }
+    case     .showingButtons(.unsnoozing):
+      RoundedStack {
+        VStack {
+          PrimaryButton(
+            variant: .disabled(title: "Unsnooze"),
+            showActivityIndicator: true,
+            unsnoozeButtonTapped
+          )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2.5)
+        }
+        .padding(.vertical)
+      }
     case let .showingButtons(showing):
       RoundedStack {
-        HStack {
+        VStack {
           PrimaryButton(
             variant: showing == .ongoing ? .normal(title: "Complete") : .disabled(title: "Complete"),
             showActivityIndicator: showing == .completing,
             checkOutButtonTapped
           )
-            .padding([.leading], 16)
-            .padding([.trailing], 2.5)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2.5)
+          PrimaryButton(
+            variant: showing == .ongoing ? .normal(title: "Snooze") : .disabled(title: "Snooze"),
+            showActivityIndicator: showing == .snoozing,
+            snoozeButtonTapped
+          )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2.5)
           PrimaryButton(
             variant: showing == .ongoing ? .destructive() : .disabled(title: "Cancel"),
             showActivityIndicator: showing == .cancelling,
             cancelButtonTapped
           )
-            .padding([.leading], 2.5)
-            .padding([.trailing], 16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2.5)
         }
+        .padding(.vertical)
       }
     case .hidingButtons:
       EmptyView()

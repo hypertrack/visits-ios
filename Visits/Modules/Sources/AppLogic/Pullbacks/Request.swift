@@ -73,6 +73,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .cancelAllRequests:                          return .cancelAllRequests
     case let .requestOrderCancel(o):                      return .requestOrderCancel(o)
     case let .requestOrderComplete(o):                    return .requestOrderComplete(o)
+    case let .requestOrderSnooze(o):                      return .requestOrderSnooze(o)
+    case let .requestOrderUnsnooze(o):                    return .requestOrderUnsnooze(o)
     case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
     case let .historyUpdated(r):                          return .historyUpdated(r)
     case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
@@ -80,6 +82,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .generated(.entered(.mainUnlocked)):         return .mainUnlocked
     case let .orderCancelFinished(o, r):                  return .orderCanceled(o, r)
     case let .orderCompleteFinished(o, r):                return .orderCompleted(o, r)
+    case let .orderSnoozeFinished(o, r):                  return .orderSnoozed(o, r)
+    case let .orderUnsnoozeFinished(o, r):                return .orderUnsnoozed(o, r)
     case let .tripUpdated(t):                             return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
@@ -106,8 +110,10 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     switch a {
     case let .appVisibilityChanged(v):                    return .appVisibilityChanged(v)
     case     .cancelAllRequests:                          return .cancelAllRequests
-    case let .requestOrderCancel(o):                             return .requestOrderCancel(o)
-    case let .requestOrderComplete(o):                           return .requestOrderComplete(o)
+    case let .requestOrderCancel(o):                      return .requestOrderCancel(o)
+    case let .requestOrderComplete(o):                    return .requestOrderComplete(o)
+    case let .requestOrderSnooze(o):                      return .requestOrderSnooze(o)
+    case let .requestOrderUnsnooze(o):                    return .requestOrderUnsnooze(o)
     case let .createPlace(c, r, ie, a, d):                return .createPlace(c, r, ie, a, d)
     case let .historyUpdated(r):                          return .historyUpdated(r)
     case let .integrationEntitiesUpdatedWithFailure(e):   return .integrationEntitiesUpdatedWithFailure(e)
@@ -115,6 +121,8 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .mainUnlocked:                               return .generated(.entered(.mainUnlocked))
     case let .orderCanceled(o, r):                        return .orderCancelFinished(o, r)
     case let .orderCompleted(o, r):                       return .orderCompleteFinished(o, r)
+    case let .orderSnoozed(o, r):                         return .orderSnoozeFinished(o, r)
+    case let .orderUnsnoozed(o, r):                       return .orderUnsnoozeFinished(o, r)
     case let .tripUpdated(t):                             return .tripUpdated(t)
     case let .placesUpdated(ps):                          return .placesUpdated(ps)
     case let .profileUpdated(p):                          return .profileUpdated(p)
@@ -144,6 +152,8 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       cancelOrder:            e.api.cancelOrder,
       capture:                e.errorReporting.capture,
       completeOrder:          e.api.completeOrder,
+      snoozeOrder:            e.api.snoozeOrder,
+      unsnoozeOrder:          e.api.unsnoozeOrder,
       createPlace:            e.api.createPlace,
       getCurrentLocation:     e.hyperTrack.getCurrentLocation,
       getHistory:             e.api.getHistory,
