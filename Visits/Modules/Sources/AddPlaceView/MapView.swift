@@ -58,6 +58,11 @@ struct PlaceMapView: UIViewRepresentable {
     ).isActive = true
 
     registerAnnotations(for: mapView)
+
+    if let inputCoordinateForSearch = inputCoordinateForSearch {
+      mapView.centerCoordinate = inputCoordinateForSearch
+      zoomOn(mapView: mapView, coordinate: inputCoordinateForSearch)
+    }
     
     return mapView
   }
@@ -126,14 +131,17 @@ struct PlaceMapView: UIViewRepresentable {
     if userLocation.coordinate.latitude != -180,
       userLocation.coordinate.longitude != -180 {
       if isAutoZoomEnabled {
-        let span = MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
-        let region = MKCoordinateRegion(
-          center: userLocation.coordinate,
-          span: span
-        )
-        mapView.setRegion(region, animated: false)
+        zoomOn(mapView: mapView, coordinate: userLocation.coordinate)
       }
     }
   }
 }
 
+private func zoomOn(mapView: MKMapView, coordinate: CLLocationCoordinate2D) {
+  let span = MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+  let region = MKCoordinateRegion(
+    center: coordinate,
+    span: span
+  )
+  mapView.setRegion(region, animated: false)
+}
