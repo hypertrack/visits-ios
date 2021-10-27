@@ -17,6 +17,7 @@ extension AppState {
   static let orderScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
       main |> \.selectedOrderId *< .some(ongoing.id)
+           <> \.trip *< .some(trip)
            <> \.tab *< .orders
     )
   )
@@ -25,6 +26,13 @@ extension AppState {
     operational_ |> \.flow *< .main(
       main |> \.places *< .some(placesSummary)
            <> \.history *< history
+           <> \.tab *< .places
+    )
+  )
+
+  static let placeScreenshot = Self.operational(
+    operational_ |> \.flow *< .main(
+      main |> \.selectedPlace *< .some(cityHall)
            <> \.tab *< .places
     )
   )
@@ -209,16 +217,6 @@ private let cityHall = Place(
         duration: .init(rawValue: 1234),
         idleTime: .init(rawValue: 123)
       )
-    ),
-    .init(
-      id: "2",
-      entry: taggedDate(hour: 7, minute: 10, second: 50),
-      exit: taggedDate(hour: 7, minute: 15, second: 50),
-      route: .init(
-        distance: .init(rawValue: 1234),
-        duration: .init(rawValue: 1234),
-        idleTime: .init(rawValue: 123)
-      )
     )
   ]
 )
@@ -233,8 +231,8 @@ private let artsCenter = Place(
   visits: [
     .init(
       id: "123456",
-      entry: .init(rawValue: date(hour: 8, minute: 05, second: 30) - (24 * 60 * 60)),
-      exit: .init(rawValue: date(hour: 8, minute: 30, second: 30) - (24 * 60 * 60)),
+      entry: .init(rawValue: date(hour: 8, minute: 05, second: 30)),
+      exit: .init(rawValue: date(hour: 8, minute: 30, second: 30)),
       route: .init(
         distance: .init(rawValue: 1234),
         duration: .init(rawValue: 1234),
