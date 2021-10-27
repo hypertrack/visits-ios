@@ -37,6 +37,37 @@ extension AppState {
     )
   )
 
+  static let createPlaceChoosingCoordinateScreenshot = Self.operational(
+    operational_ |> \.flow *< .main(
+      main |> \.addPlace *< .init(
+        flow: .choosingCoordinate(
+          .init(
+            coordinate: artsCenterCoordinate,
+            address: artsCenterAddress
+          )
+        ),
+        entities: []
+      )
+    )
+  )
+
+  static let createPlaceEditingMetadataScreenshot = Self.operational(
+    operational_ |> \.flow *< .main(
+      main |> \.addPlace *< .init(
+        flow: .editingMetadata(
+          .init(
+            flow: .editing(.init(id: .init(rawValue: "1"), name: .init(rawValue: "Arts Center"))),
+            center: .init(rawValue: artsCenterCoordinate),
+            customAddress: nil,
+            radius: .hundred,
+            description: nil
+          )
+        ),
+        entities: []
+      )
+    )
+  )
+
   static let visitsScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
       main |> \.places *< .some(placesSummary)
@@ -223,11 +254,11 @@ private let cityHall = Place(
 
 private let artsCenter = Place(
   id: "2",
-  address: .init(street: "Yerba Buena Center for the Arts", fullAddress: "Yerba Buena Center for the Arts, 701 Mission St, San Francisco, CA  94103, United States"),
+  address: artsCenterAddress,
   createdAt: .init(rawValue: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!),
   currentlyInside: nil,
   metadata: ["name":"Arts Center"],
-  shape: .circle(.init(center: Coordinate(latitude: 37.785713, longitude: -122.402123)!, radius: 100)),
+  shape: .circle(.init(center: artsCenterCoordinate, radius: 100)),
   visits: [
     .init(
       id: "123456",
@@ -241,6 +272,9 @@ private let artsCenter = Place(
     )
   ]
 )
+
+private let artsCenterCoordinate = Coordinate(latitude: 37.785713, longitude: -122.402123)!
+private let artsCenterAddress = Address(street: "Yerba Buena Center for the Arts", fullAddress: "Yerba Buena Center for the Arts, 701 Mission St, San Francisco, CA  94103, United States")
 
 private let placesSummary = PlacesSummary(
   places: [cityHall, artsCenter],
