@@ -447,6 +447,15 @@ extension GeofenceMarker: Decodable {
     
     id = try values.decode(NonEmptyString.self, forKey: .id)
 
+    guard id.rawValue.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: #"Geofence ID can't contain whitespaces or new lines. Received ID: "\#(id.rawValue)""#
+        )
+      )
+    }
+
     let geofence = try values.nestedContainer(keyedBy: GeofenceCodingKeys.self, forKey: .geofence)
     geofenceID = try geofence.decode(NonEmptyString.self, forKey: .geofenceID)
 
