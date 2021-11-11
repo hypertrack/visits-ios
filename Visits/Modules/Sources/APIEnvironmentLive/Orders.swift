@@ -64,10 +64,26 @@ private func changeOrderStatus(_ token: Token.Value, _ deID: DeviceID, _ o: Orde
 
 private func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, status: APIOrderStatus) -> URLRequest {
   let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)/\(status.rawValue)")!
-  var request = URLRequest(url: url)
-  request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
+  var request = URLRequest.requestWithDefultHeaders(url: url, token: token)
+  request.httpMethod = "POST"
+  return request
+}
+
+// MARK: - Create Order
+
+func createOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<Result<Trip, APIError<Token.Expired>>, Never> {
+  logEffect("Create Order: \(o.id)")
+  return callAPI(
+    request: createOrderRequest(auth: token, deviceID: deID, order: o, tripID: tripID),
+    success: Trip.self,
+    failure: Token.Expired.self
+  )
+  .catchToEffect()
+}
+
+private func createOrderRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID) -> URLRequest {
+  let url = URL(string: "\(clientURL)/trips/\(tripID)/orders")!
+  var request = URLRequest.requestWithDefultHeaders(url: url, token: token)
   request.httpMethod = "POST"
   return request
 }
@@ -88,10 +104,7 @@ func updateOrderNote(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripI
 
 private func updateOrderNoteRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID, note: Order.Note) -> URLRequest {
   let url = URL(string: "\(clientURL)/trips/\(tripID)/orders/\(order.id)")!
-  var request = URLRequest(url: url)
-  request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-  request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
+  var request = URLRequest.requestWithDefultHeaders(url: url, token: token)
   request.httpBody = try! JSONSerialization.data(
     withJSONObject: [
       "metadata": [

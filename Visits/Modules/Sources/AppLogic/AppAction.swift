@@ -55,6 +55,8 @@ public enum AppAction: Equatable {
   case focusOrderNote(Order.ID)
   case orderDismissFocus(Order.ID)
   case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
+  //Add Order
+  case addOrderFlow
   // Places
   case selectPlace(Place?)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)

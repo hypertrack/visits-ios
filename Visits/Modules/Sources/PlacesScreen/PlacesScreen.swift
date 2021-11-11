@@ -82,7 +82,7 @@ public struct PlacesScreen: View {
             }
           }
         }
-        .if(integrated && !state.coordinates.isEmpty) { view in
+        .if(true) { view in
           view.toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
               Button(action: { send(.addPlace) }) {

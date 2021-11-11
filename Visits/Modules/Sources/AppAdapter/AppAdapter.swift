@@ -161,6 +161,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders
+  case .orders(.addOrderTapped): return .addOrderFlow
   case let .orders(.orderTapped(o)): return .selectOrder(o)
   case let .order(.cancelButtonTapped(oid)): return .cancelOrder(oid)
   case let .order(.checkOutButtonTapped(oid)): return .completeOrder(oid)

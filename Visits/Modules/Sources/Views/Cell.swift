@@ -118,3 +118,46 @@ struct ContentCell_Previews: PreviewProvider {
     .previewLayout(.sizeThatFits)
   }
 }
+
+public struct EditContentCell: View {
+  @Environment(\.colorScheme) var colorScheme
+  
+  private let title: String
+  @State private var subTitle: String
+  private let leadingPadding: CGFloat
+  private let onEditAction: (String) -> Void
+
+  public init(
+    title: String,
+    subTitle: String = "",
+    leadingPadding: CGFloat = 24.0,
+    _ onEditAction: @escaping (String) -> Void) {
+    self.title = title
+    self.subTitle = subTitle
+    self.leadingPadding = leadingPadding
+    self.onEditAction = onEditAction
+  }
+  
+  public var body: some View {
+    VStack {
+      Text(title)
+        .font(.headline)
+        .foregroundColor(Color(.label))
+      TextField(
+              title,
+              text: $subTitle
+          ) { isEditing in
+//              self.isEditing = isEditing
+          } onCommit: {
+            onEditAction(subTitle)
+          }
+      .padding(.top, 4)
+      .font(.subheadline)
+      .autocapitalization(.none)
+      .disableAutocorrection(true)
+    }
+    .padding(.leading, leadingPadding)
+    .padding(.top, 8)
+  }
+}
+

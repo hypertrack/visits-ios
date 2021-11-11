@@ -12,6 +12,7 @@ public enum OrdersListScreenAction: Equatable {
   case clockOutButtonTapped
   case refreshButtonTapped
   case orderTapped(Order.ID?)
+  case addOrderTapped
 }
 
 public struct OrdersListScreen<Content: View>: View {

@@ -73,6 +73,11 @@ public struct TripScreen: View {
             send(.refreshButtonTapped)
           }
         }
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button(action: { send(.addOrderTapped) }) {
+            Image(systemName: "plus")
+          }
+        }
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(action: { send(.clockOutButtonTapped) }) {
             Text("Clock Out")
