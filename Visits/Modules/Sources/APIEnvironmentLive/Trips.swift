@@ -75,6 +75,15 @@ extension Order: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
 
     let id = try values.decode(ID.self, forKey: .id)
+
+    guard id.string.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: #"Order ID can't contain whitespaces or new lines. Received ID: "\#(id.string)""#
+        )
+      )
+    }
     
     let createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
@@ -161,6 +170,15 @@ extension Trip: Decodable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     
     let id = (try? values.decode(ID.self, forKey: .id)) ?? unassignedTrip
+
+    guard id.string.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else {
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription: #"Trip ID can't contain whitespaces or new lines. Received ID: "\#(id.string)""#
+        )
+      )
+    }
     
     let createdAt = try decodeTimestamp(decoder: decoder, container: values, key: .createdAt)
     
