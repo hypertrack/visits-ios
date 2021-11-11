@@ -82,7 +82,7 @@ public let orderReducer = Reducer<Order, OrderAction, SystemEnvironment<OrderEnv
   case .requestOrderComplete:
     return .none
   case let .orderCompleted(_, r):
-    guard state.status == .cancelling
+    guard state.status == .completing
     else { return environment.capture("Can't process order completion because its status is not .completing").fireAndForget() }
 
     switch r {
