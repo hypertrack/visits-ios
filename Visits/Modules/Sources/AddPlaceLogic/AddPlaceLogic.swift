@@ -88,7 +88,35 @@ public let addPlaceReducer: Reducer<
   SystemEnvironment<AddPlaceEnvironment>
 > = .combine(
   choosingCoordinateP,
-  choosingAddressP,
+  destinationPickerPlaceP,
   editingMetadataP,
   flowSwitchingP
+)
+
+
+
+
+let addPlaceDestinationoPrism = Prism<AddPlaceAction, DestinationPickerAction>(
+  extract: { a in
+    switch a {
+    //adderess
+    case     .cancelConfirmingLocation:                 return .addressAction(.cancelConfirmingLocation)
+    case let .localSearchCompletionResultsUpdated(lss): return .addressAction(.localSearchCompletionResultsUpdated(lss))
+    case let .localSearchUpdatedWithResult(mp):         return .addressAction(.localSearchUpdatedWithResult(mp))
+    case let .localSearchUpdatedWithResults(mp, mps):   return .addressAction(.localSearchUpdatedWithResults(mp, mps))
+    case     .localSearchUpdatedWithEmptyResult:        return .addressAction(.localSearchUpdatedWithEmptyResult)
+    case let .localSearchUpdatedWithError(e):           return .addressAction(.localSearchUpdatedWithError(e))
+    case     .localSearchUpdatedWithFatalError:         return .addressAction(.localSearchUpdatedWithFatalError)
+    case let .selectAddress(ls):                        return .addressAction(.selectAddress(ls))
+    case let .updateAddressSearch(st):                  return .addressAction(.updateAddressSearch(st))
+    //coordinate
+    case     .liftedAddPlaceCoordinatePin:              return .liftedAddPlaceCoordinatePin
+    case let .reverseGeocoded(gr):                      return .reverseGeocoded(gr)
+    case let .updatedAddPlaceCoordinate(c):             return .updatedAddPlaceCoordinate(c)
+    default                                             return nil
+    }
+},
+  embed: { a in
+    return
+  }
 )

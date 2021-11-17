@@ -6,7 +6,6 @@ import Types
 import Utility
 import Views
 
-
 public struct DestinationPickerView: View {
   public struct State: Equatable {
     enum Flow {

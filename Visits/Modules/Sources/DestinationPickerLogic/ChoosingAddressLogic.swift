@@ -19,49 +19,31 @@ enum ChoosingAddressAction: Equatable {
   case updateAddressSearch(AddressSearch?)
 }
 
-let choosingAddressActionPrism = Prism<AddPlaceAction, ChoosingAddressAction>(
+let choosingAddressActionPrism = Prism<DestinationPickerAction, ChoosingAddressAction>(
   extract: { a in
     switch a {
-    case     .cancelConfirmingLocation:                 return .cancelConfirmingLocation
-    case let .localSearchCompletionResultsUpdated(lss): return .localSearchCompletionResultsUpdated(lss)
-    case let .localSearchUpdatedWithResult(mp):         return .localSearchUpdatedWithResult(mp)
-    case let .localSearchUpdatedWithResults(mp, mps):   return .localSearchUpdatedWithResults(mp, mps)
-    case     .localSearchUpdatedWithEmptyResult:        return .localSearchUpdatedWithEmptyResult
-    case let .localSearchUpdatedWithError(e):           return .localSearchUpdatedWithError(e)
-    case     .localSearchUpdatedWithFatalError:         return .localSearchUpdatedWithFatalError
-    case let .selectAddress(ls):                        return .selectAddress(ls)
-    case let .updateAddressSearch(st):                  return .updateAddressSearch(st)
-    default:                                            return nil
+    case let .addressAction(a):                 return a
+    default:                                    return nil
     }
   },
   embed: { a in
-    switch a {
-    case     .cancelConfirmingLocation:                 return .cancelConfirmingLocation
-    case let .localSearchCompletionResultsUpdated(lss): return .localSearchCompletionResultsUpdated(lss)
-    case let .localSearchUpdatedWithResult(mp):         return .localSearchUpdatedWithResult(mp)
-    case let .localSearchUpdatedWithResults(mp, mps):   return .localSearchUpdatedWithResults(mp, mps)
-    case     .localSearchUpdatedWithEmptyResult:        return .localSearchUpdatedWithEmptyResult
-    case let .localSearchUpdatedWithError(e):           return .localSearchUpdatedWithError(e)
-    case     .localSearchUpdatedWithFatalError:         return .localSearchUpdatedWithFatalError
-    case let .selectAddress(ls):                        return .selectAddress(ls)
-    case let .updateAddressSearch(st):                  return .updateAddressSearch(st)
-    }
+    return .addressAction(a)
   }
 )
 
 // MARK: - Reducer
 
 let choosingAddressP: Reducer<
-  AddPlaceState,
-  AddPlaceAction,
-  SystemEnvironment<AddPlaceEnvironment>
+  DestinationPickerState,
+  DestinationPickerAction,
+  SystemEnvironment<DestinationEnvironment>
 > = choosingAddressReducer.pullback(
   state: \.adding ** Optional.prism ** \.flow ** /AddPlaceFlow.choosingAddress,
   action: choosingAddressActionPrism,
   environment: identity
 )
 
-let choosingAddressReducer = Reducer<ChoosingAddress, ChoosingAddressAction, SystemEnvironment<AddPlaceEnvironment>> { state, action, environment in
+let choosingAddressReducer = Reducer<ChoosingAddress, ChoosingAddressAction, SystemEnvironment<DestinationEnvironment>> { state, action, environment in
 
   let autocompleteLocalSearch = autocompleteLocalSearch(
     als: environment.autocompleteLocalSearch,

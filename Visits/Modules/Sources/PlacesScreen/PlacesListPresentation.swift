@@ -1,6 +1,12 @@
 import Foundation
 import Types
 
+class Actin {
+  var a: Actin
+  init(a: Actin) {
+    self.a = a
+  }
+}
 
 extension PlacesScreen.State {
   var placesToDisplay: [PlacesSection] {

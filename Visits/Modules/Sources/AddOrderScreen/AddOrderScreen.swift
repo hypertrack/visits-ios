@@ -12,7 +12,6 @@ public struct AddOrderScreen: View {
     var destination: GeocodedResult?
     var name: String?
     
-  
     public init(orderID: Order.ID?
                 orderNote: Order.Note?
                 address: Address?
@@ -93,7 +92,6 @@ public struct AddOrderScreen: View {
       }
     }
   }
-  
 }
 
 // MARK: - Styles
@@ -107,4 +105,3 @@ fileprivate extension EditContentCell {
       .padding(.top, 8)
   }
 }
-

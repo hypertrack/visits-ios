@@ -12,37 +12,31 @@ enum ChoosingCoordinateAction: Equatable {
   case updatedAddPlaceCoordinate(Coordinate)
 }
 
-let choosingCoordinateActionPrism = Prism<AddPlaceAction, ChoosingCoordinateAction>(
+let choosingCoordinateActionPrism = Prism<DestinationPickerAction, ChoosingCoordinateAction>(
   extract: { a in
     switch a {
-    case     .liftedAddPlaceCoordinatePin:  return .liftedAddPlaceCoordinatePin
-    case let .reverseGeocoded(gr):          return .reverseGeocoded(gr)
-    case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
+    case let .coordinateAction(a):          return a
     default:                                return nil
     }
   },
   embed: { a in
-    switch a {
-    case     .liftedAddPlaceCoordinatePin: return  .liftedAddPlaceCoordinatePin
-    case let .reverseGeocoded(gr):         return  .reverseGeocoded(gr)
-    case let .updatedAddPlaceCoordinate(c): return .updatedAddPlaceCoordinate(c)
-    }
+    return  .coordinateAction(a)
   }
 )
 
 // MARK: - Reducer
 
 let choosingCoordinateP: Reducer<
-  AddPlaceState,
-  AddPlaceAction,
-  SystemEnvironment<AddPlaceEnvironment>
+  DestinationPickerState,
+  DestinationPickerAction,
+  SystemEnvironment<DestinationEnvironment>
 > = choosingCoordinateReducer.pullback(
   state: \.adding ** Optional.prism ** \.flow ** /AddPlaceFlow.choosingCoordinate,
   action: choosingCoordinateActionPrism,
   environment: identity
 )
 
-let choosingCoordinateReducer = Reducer<GeocodedResult?, ChoosingCoordinateAction, SystemEnvironment<AddPlaceEnvironment>> { state, action, environment in
+let choosingCoordinateReducer = Reducer<GeocodedResult?, ChoosingCoordinateAction, SystemEnvironment<DestinationEnvironment>> { state, action, environment in
   let reverseGeocode = reverseGeocode(
     rge: environment.reverseGeocode,
     toA: ChoosingCoordinateAction.reverseGeocoded,

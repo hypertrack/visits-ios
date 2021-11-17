@@ -9,7 +9,6 @@ import OrderedCollections
 import Utility
 import Types
 
-
 func reverseGeocode(_ coordinate: Coordinate) -> Effect<GeocodedResult, Never> {
   .future { callback in
     let locaiton = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
