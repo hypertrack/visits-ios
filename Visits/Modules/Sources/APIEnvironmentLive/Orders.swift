@@ -69,6 +69,25 @@ private func changeOrderStatusRequest(auth token: Token.Value, deviceID: DeviceI
   return request
 }
 
+// MARK: - Create Trip
+
+func createTrip(_ token: Token.Value, _ deID: DeviceID, _ tr: TripRequest) -> Effect<Result<Trip, APIError<Token.Expired>>, Never> {
+  logEffect("Create Trip: \(tr.id)")
+  return callAPI(
+    request: createTripRequest(auth: token, deviceID: deID, tripRequest: tr),
+    success: Trip.self,
+    failure: Token.Expired.self
+  )
+  .catchToEffect()
+}
+
+private func createTripRequest(auth token: Token.Value, deviceID: DeviceID, tripRequest: TripRequest) -> URLRequest {
+  let url = URL(string: "\(clientURL)/trips/")!
+  var request = URLRequest.requestWithDefultHeaders(url: url, token: token)
+  request.httpMethod = "POST"
+  return request
+}
+
 // MARK: - Create Order
 
 func createOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<Result<Trip, APIError<Token.Expired>>, Never> {
