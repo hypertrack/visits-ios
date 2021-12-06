@@ -3,6 +3,7 @@ import ComposableArchitecture
 import NonEmpty
 import Types
 import Utility
+import DestinationPicker
 
 
 // MARK: - State
@@ -87,14 +88,20 @@ public let addPlaceReducer: Reducer<
   AddPlaceAction,
   SystemEnvironment<AddPlaceEnvironment>
 > = .combine(
-  choosingCoordinateP,
   destinationPickerPlaceP,
   editingMetadataP,
   flowSwitchingP
 )
 
-
-
+public let destinationPickerPlaceP: Reducer<
+  AddPlaceState,
+  AddPlaceAction,
+  SystemEnvironment<DestinationEnvironment>
+> = destinationPickerReducer.pullback(
+  state: \.adding ** Optional.prism ** \.flow ** /AddPlaceFlow.editingMetadata,
+  action: addPlaceDestinationoPrism,
+  environment: identity
+)
 
 let addPlaceDestinationoPrism = Prism<AddPlaceAction, DestinationPickerAction>(
   extract: { a in
@@ -110,13 +117,37 @@ let addPlaceDestinationoPrism = Prism<AddPlaceAction, DestinationPickerAction>(
     case let .selectAddress(ls):                        return .addressAction(.selectAddress(ls))
     case let .updateAddressSearch(st):                  return .addressAction(.updateAddressSearch(st))
     //coordinate
-    case     .liftedAddPlaceCoordinatePin:              return .liftedAddPlaceCoordinatePin
-    case let .reverseGeocoded(gr):                      return .reverseGeocoded(gr)
-    case let .updatedAddPlaceCoordinate(c):             return .updatedAddPlaceCoordinate(c)
-    default                                             return nil
+    case     .liftedAddPlaceCoordinatePin:              return .coordinateAction(.liftedAddPlaceCoordinatePin)
+    case let .reverseGeocoded(gr):                      return .coordinateAction(.reverseGeocoded(gr))
+    case let .updatedAddPlaceCoordinate(c):             return .coordinateAction(.updatedAddPlaceCoordinate(c))
+    default:                                            return nil
     }
 },
   embed: { a in
-    return
+    switch a {
+    //adderess
+    case let .addressAction(aa):
+      switch aa {
+      case     .cancelConfirmingLocation:                 return .cancelConfirmingLocation
+      case let .localSearchCompletionResultsUpdated(lss): return .localSearchCompletionResultsUpdated(lss)
+      case let .localSearchUpdatedWithResult(mp):         return .localSearchUpdatedWithResult(mp)
+      case let .localSearchUpdatedWithResults(mp, mps):   return .localSearchUpdatedWithResults(mp, mps)
+      case     .localSearchUpdatedWithEmptyResult:        return .localSearchUpdatedWithEmptyResult
+      case let .localSearchUpdatedWithError(e):           return .localSearchUpdatedWithError(e)
+      case     .localSearchUpdatedWithFatalError:         return .localSearchUpdatedWithFatalError
+      case let .selectAddress(ls):                        return .selectAddress(ls)
+      case let .updateAddressSearch(st):                  return .updateAddressSearch(st)
+      default:                                            return nil
+      }
+    //coordinate
+    case let .coordinateAction(ca):
+      switch ca {
+      case     .liftedAddPlaceCoordinatePin:              return .liftedAddPlaceCoordinatePin
+      case let .reverseGeocoded(gr):                      return .reverseGeocoded(gr)
+      case let .updatedAddPlaceCoordinate(c):             return .updatedAddPlaceCoordinate(c)
+      default:                                            return nil
+      }
+    default:                                            return nil
+    }
   }
 )

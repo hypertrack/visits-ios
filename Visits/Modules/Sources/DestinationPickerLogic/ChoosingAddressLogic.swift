@@ -19,17 +19,7 @@ enum ChoosingAddressAction: Equatable {
   case updateAddressSearch(AddressSearch?)
 }
 
-let choosingAddressActionPrism = Prism<DestinationPickerAction, ChoosingAddressAction>(
-  extract: { a in
-    switch a {
-    case let .addressAction(a):                 return a
-    default:                                    return nil
-    }
-  },
-  embed: { a in
-    return .addressAction(a)
-  }
-)
+let choosingAddressActionPrism = /DestinationPickerAction.addressAction
 
 // MARK: - Reducer
 

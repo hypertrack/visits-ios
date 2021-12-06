@@ -13,8 +13,9 @@ let targets: [Target] = [
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
   .target(name: "Utility",                         dependencies: [architecture]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "TripScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
+  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", "AddOrderScreen", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "TripScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
   .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
+  .target(name: "AddOrderScreen",                  dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapDetailView",                   dependencies: ["MapDrawing", "Types"]),
@@ -28,6 +29,7 @@ let targets: [Target] = [
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
+  .target(name: "DestinationPickerLogic",          dependencies: [architecture, "Types", "Utility", nonEmpty]),
   
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapDependencyLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
@@ -53,8 +55,9 @@ let targets: [Target] = [
   .target(name: "StateRestorationEnvironment",     dependencies: [architecture, customDump, "Types"]),
   .target(name: "StateRestorationEnvironmentLive", dependencies: ["LogEnvironment", "Utility", "StateRestorationEnvironment", "Types"]),
   // Logic
-  .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", customDump, "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapDependency", "MapLogic", nonEmpty, "TripLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
-  .target(name: "AddPlaceLogic",                   dependencies: ["AppArchitecture", architecture, "Types", "Utility"]),
+  .target(name: "AppLogic",                        dependencies: ["AddPlaceLogic", "AddOrderLogic", "APIEnvironment", "AppArchitecture", "AppBundleDependency", "AppStartupLogic", customDump, "AppVisibilityLogic", "AppVisibilityStartupLogic", architecture, "AutoSavingLogic", "BlockerLogic", "BranchEnvironment", "ErrorReportingEnvironment", "DeepLinkLogic", "ErrorAlertLogic", "FirstRunLogic", "HapticFeedbackEnvironment", "HyperTrackEnvironment", "HistoryLogic", "IntegrationLogic", "ManualReportLogic", "MapDependency", "MapLogic", nonEmpty, "TripLogic", "PasteboardEnvironment", "PlacesLogic", "ProfileLogic", "Utility", "PushEnvironment", "RequestLogic", "SignInLogic", "SDKInitializationLogic", "SDKLaunchingLogic", "SDKStatusUpdateLogic", "StateRestorationEnvironment", "StateRestorationLogic", "TabLogic", tagged, "TrackingLogic", "Types"]),
+  .target(name: "AddPlaceLogic",                   dependencies: ["AppArchitecture", architecture, "Types", "Utility", "DestinationPickerLogic"]),
+  .target(name: "AddOrderLogic",                   dependencies: ["AppArchitecture", architecture, "Types", "Utility", "DestinationPickerLogic"]),
   .target(name: "AppStartupLogic",                 dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityLogic",              dependencies: [architecture, "Types"]),
   .target(name: "AppVisibilityStartupLogic",       dependencies: [architecture, "Types"]),

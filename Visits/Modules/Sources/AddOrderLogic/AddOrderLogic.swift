@@ -7,8 +7,9 @@ import Utility
 public struct AddOrderState: Equatable {
   public var id: ID? = nil
   public var createdAt: Date? = nil
-  public var location: Coordinate? = nil
-  public var address: Address? = nil
+//  public var location: Coordinate? = nil
+//  public var address: Address? = nil
+  public var destination: DestinationPickerState? = nil
   public var note: Note? = nil
   public var metadata: [Name: Contents] = []
 
@@ -28,7 +29,6 @@ public struct AddOrderState: Equatable {
   
   public init() {
   }
-
 }
 
 public enum AddOrderAction {
@@ -36,13 +36,11 @@ public enum AddOrderAction {
   case changeName(String)
   case changeNote(String)
   case changeOrderId(Order.ID)
-  case changeDestination(GeocodedResult?)
+  case destinationPickerAction(DestinationPickerAction)
 }
 
 public let addOrderReducer = Reducer<AddOrderState, OrderAction, Empty> { state, action, _ in
   switch action {
-  case let .changeDestination(destination):
-    state.coordinate = destination.coordinate
     state.address = destination.address
   case let .changeNote(note):
     state.note = note
@@ -52,5 +50,28 @@ public let addOrderReducer = Reducer<AddOrderState, OrderAction, Empty> { state,
     state.metadata["name"] = name
   case .cancelAddOrder:
     state = AddOrderState()
+  case .destinationPickerAction:
+    break
   }
 }
+
+let destinationPickerOrderP = Reducer<
+  AddOrderState,
+  AddOrderAction,
+  SystemEnvironment<DestinationEnvironment>
+> = destinationPickerReducer.pullback(
+  state: \.destination,
+  action: addOrderDestinationoPrism,
+  environment: identity
+)
+
+
+let addOrderDestinationoPrism = /AddOrderAction.destinationPickerAction
+
+public let addOrderReducerP: Reducer<
+  AddOrderState,
+  AddOrderAction,
+  SystemEnvironment<AddPlaceEnvironment>
+> = .combine(
+  destinationPickerPlaceP,
+  addOrderReducer)

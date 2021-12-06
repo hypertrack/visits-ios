@@ -12,17 +12,7 @@ enum ChoosingCoordinateAction: Equatable {
   case updatedAddPlaceCoordinate(Coordinate)
 }
 
-let choosingCoordinateActionPrism = Prism<DestinationPickerAction, ChoosingCoordinateAction>(
-  extract: { a in
-    switch a {
-    case let .coordinateAction(a):          return a
-    default:                                return nil
-    }
-  },
-  embed: { a in
-    return  .coordinateAction(a)
-  }
-)
+let choosingCoordinateActionPrism = /DestinationPickerAction.coordinateAction
 
 // MARK: - Reducer
 
