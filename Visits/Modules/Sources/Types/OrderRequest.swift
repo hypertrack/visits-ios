@@ -32,3 +32,25 @@ public struct OrderRequest {
 extension OrderRequest: Equatable {}
 extension OrderRequest: Hashable {}
 extension OrderRequest: Identifiable {}
+
+public struct TripRequest {
+  public var order: OrderRequest?
+  public var id: Trip.ID?
+  
+  public init(
+    id: Trip.ID? = nil,
+    order: OrderRequest?) {
+      self.id = id
+      self.order = order
+    }
+
+}
+
+extension TripRequest: Equatable {}
+extension TripRequest: Hashable {}
+extension TripRequest: Identifiable {}
+
+enum AddOrder {
+  case order(OrderRequest)
+  case trip(TripRequest)
+}

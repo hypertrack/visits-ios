@@ -2,6 +2,7 @@ import AppArchitecture
 import ComposableArchitecture
 import Utility
 import Types
+import AddOrderLogic
 
 
 public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnvironment>> = Reducer.combine(
@@ -19,6 +20,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   tripP,
   placesP,
   addPlaceP,
+  addOrderP,
   profileP,
   historyP,
   integrationP,

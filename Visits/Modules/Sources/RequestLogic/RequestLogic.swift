@@ -37,6 +37,7 @@ public enum RequestAction: Equatable {
   case requestOrderUnsnooze(Order)
   case historyUpdated(Result<History, APIError<Token.Expired>>)
   case createPlace(PlaceCenter, PlaceRadius, IntegrationEntity, CustomAddress?, PlaceDescription?)
+  case createOrder(OrderRequest)
   case placeCreatedWithSuccess(Place)
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case updateIntegrations(IntegrationSearch)
@@ -483,6 +484,18 @@ public let requestReducer = Reducer<
     }
     
     return .none
+  case let .createOrder(r):
+    guard case let .some(token) = state.token
+    else { return environment.capture("Trying to create a order without a token").fireAndForget() }
+    
+    if case let .valid(token) = token {
+      return createOrderEffect(
+        environment.createOrder(token, state.deviceID, r),
+        environment.mainQueue
+      )
+    }
+    
+    return .none
   case .placeCreatedWithFailure:
     return .none
   case .cancelAllRequests:
@@ -502,6 +515,7 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingIntegrationEntitiesID()),
       .cancel(id: RequestingPlacesID()),
       .cancel(id: RequestingCreatePlaceID()),
+      .cancel(id: RequestingCreateOrderID()),
       .cancel(id: RequestingProfileID()),
       .cancel(id: RequestingTokenID()),
       .init(value: .resetInProgressOrders)
@@ -531,6 +545,7 @@ struct RequestingHistoryID: Hashable {}
 struct RequestingIntegrationEntitiesID: Hashable {}
 struct RequestingPlacesID: Hashable {}
 struct RequestingCreatePlaceID: Hashable {}
+struct RequestingCreateOrderID: Hashable {}
 struct RequestingProfileID: Hashable {}
 struct RequestingTokenID: Hashable {}
 
@@ -659,6 +674,22 @@ func createPlaceEffect(
       switch r {
       case let .success(p): return .placeCreatedWithSuccess(p)
       case let .failure(e): return .placeCreatedWithFailure(e)
+      }
+    }
+    .eraseToEffect()
+}
+
+func createOrderEffect(
+  _ createOrder: Effect<Result<Trip, APIError<Token.Expired>>, Never>,
+  _ mainQueue: AnySchedulerOf<DispatchQueue>
+) -> Effect<RequestAction, Never> {
+  createPlace
+    .cancellable(id: RequestingCreateOrderID(), cancelInFlight: true)
+    .receive(on: mainQueue)
+    .map { r in
+      switch r {
+      case let .success(p): return .orderAddedWithSuccess(p)
+      case let .failure(e): return .orderAddedWithFailure(e)
       }
     }
     .eraseToEffect()

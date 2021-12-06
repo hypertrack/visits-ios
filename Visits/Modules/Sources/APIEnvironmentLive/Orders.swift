@@ -90,7 +90,7 @@ private func createTripRequest(auth token: Token.Value, deviceID: DeviceID, trip
 
 // MARK: - Create Order
 
-func createOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: Trip.ID) -> Effect<Result<Trip, APIError<Token.Expired>>, Never> {
+func createOrder(_ token: Token.Value, _ deID: DeviceID, _ o: OrderRequest, _ tripID: Trip.ID) -> Effect<Result<Trip, APIError<Token.Expired>>, Never> {
   logEffect("Create Order: \(o.id)")
   return callAPI(
     request: createOrderRequest(auth: token, deviceID: deID, order: o, tripID: tripID),
@@ -100,7 +100,7 @@ func createOrder(_ token: Token.Value, _ deID: DeviceID, _ o: Order, _ tripID: T
   .catchToEffect()
 }
 
-private func createOrderRequest(auth token: Token.Value, deviceID: DeviceID, order: Order, tripID: Trip.ID) -> URLRequest {
+private func createOrderRequest(auth token: Token.Value, deviceID: DeviceID, order: OrderRequest, tripID: Trip.ID) -> URLRequest {
   let url = URL(string: "\(clientURL)/trips/\(tripID)/orders")!
   var request = URLRequest.requestWithDefultHeaders(url: url, token: token)
   request.httpMethod = "POST"
