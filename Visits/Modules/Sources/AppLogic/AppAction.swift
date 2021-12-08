@@ -65,8 +65,7 @@ public enum AppAction: Equatable {
   case placeCreatedWithSuccess(Place)
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case changePlacesPresentation(PlacesPresentation)
-  // Adding Place
-  case addPlace
+  // Destination Picker
   //   Choosing Coordinate
   case cancelAddPlace
   case confirmAddPlaceCoordinate
@@ -84,6 +83,8 @@ public enum AppAction: Equatable {
   case searchPlaceOnMap
   case selectAddress(LocalSearchCompletion)
   case updateAddressSearch(AddressSearch?)
+  // Adding Place
+  case addPlace
   //   Confirming Location
   case cancelConfirmingLocation
   case confirmAddPlaceLocation(MapPlace)

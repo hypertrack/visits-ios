@@ -5,7 +5,7 @@ import SwiftUI
 import Types
 import Utility
 import Views
-
+import DestinationPickerScreen
 
 public struct AddPlaceView: View {
   public struct State: Equatable {
@@ -161,7 +161,7 @@ public struct AddPlaceView: View {
           VStack(spacing: 0) {
             MapDetailView(
               object: .place(
-                .init(
+                Place(
                   id: "Temp",
                   address: .none,
                   createdAt: .init(rawValue: Date()),

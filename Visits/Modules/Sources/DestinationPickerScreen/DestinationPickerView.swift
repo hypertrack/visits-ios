@@ -54,9 +54,9 @@ public struct DestinationPickerView: View {
           store: store.scope(
             state: constant(
               .init(
-                search: sfa.search,
+                search: ca.search,
                 searchResults: ca.results,
-                selectedResult: sfa.selected
+                selectedResult: ca.selected
               )
             ),
             action: { a in

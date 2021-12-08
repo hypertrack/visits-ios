@@ -14,8 +14,9 @@ let targets: [Target] = [
   .target(name: "Utility",                         dependencies: [architecture]),
   // Screen
   .target(name: "AppScreen",                       dependencies: ["AddPlaceView", "AddOrderScreen", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "TripScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views"]),
-  .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
-  .target(name: "AddOrderScreen",                  dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
+  .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views", "DestinationPickerScreen"]),
+  .target(name: "AddOrderScreen",                  dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views", "DestinationPickerScreen"]),
+  .target(name: "DestinationPickerScreen",         dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
   .target(name: "MapDetailView",                   dependencies: ["MapDrawing", "Types"]),

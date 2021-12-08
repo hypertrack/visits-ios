@@ -6,24 +6,23 @@ import Utility
 import DestinationPickerLogic
 
 public struct AddOrderState: Equatable {
-  public var id: Order.ID? = nil
+  public var orderId: Order.ID? = nil
+  public var tripId: Trip.ID? = nil
   public var createdAt: Date? = nil
-//  public var location: Coordinate? = nil
-//  public var address: Address? = nil
   public var destination: DestinationPickerState? = nil
   public var note: Order.Note? = nil
   public var metadata: [Name: Order.Contents] = [:]
 
-  public init(id: Order.ID?,
+  public init(orderId: Order.ID?,
+              tripId: Trip.ID? = nil,
               createdAt: Date?,
-              location: Coordinate?,
-              address: Address?,
+              destination: DestinationPickerState?,
               note: Order.Note?,
               metadata: [Name: Order.Contents]) {
-    self.id = id
+    self.orderId = orderId
+    self.tripId = tripId
     self.createdAt = createdAt
-    self.location = location
-    self.address = address
+    self.destination = destination
     self.note = note
     self.metadata = metadata
   }
@@ -43,7 +42,7 @@ public enum AddOrderAction {
 
 }
 
-public let addOrderReducer = Reducer<AddOrderState, OrderAction, Empty> { state, action, _ in
+public let addOrderReducer = Reducer<AddOrderState, AddOrderAction, Empty> { state, action, _ in
   switch action {
   case let .changeNote(note):
     state.note = note
@@ -76,7 +75,6 @@ let destinationPickerOrderP: Reducer<
   action: addOrderDestinationoPrism,
   environment: identity
 )
-
 
 let addOrderDestinationoPrism = /AddOrderAction.destinationPickerAction
 

@@ -2,14 +2,20 @@ import ComposableArchitecture
 import SwiftUI
 import Types
 import Views
+import MapKit
 
 
-struct ChoosingCoordinateView: View {
-  struct State: Equatable {
-    var geocoded: GeocodedResult?
-    var places: Set<Place>
+public struct ChoosingCoordinateView: View {
+  public struct State: Equatable {
+    public var geocoded: GeocodedResult?
+    public var places: Set<Place>
+    
+    public init(geocoded: GeocodedResult?, places: Set<Place>) {
+      self.geocoded = geocoded
+      self.places = places
+    }
   }
-  enum Action {
+  public enum Action {
     case cancelAddPlace
     case confirmAddPlaceCoordinate
     case liftedAddPlaceCoordinatePin
@@ -20,9 +26,9 @@ struct ChoosingCoordinateView: View {
   
   
   let store: Store<State, Action>
-  init(store: Store<State, Action>) { self.store = store }
+  public init(store: Store<State, Action>) { self.store = store }
   
-  var body: some View {
+  public var body: some View {
     GeometryReader { geometry in
       WithViewStore(store) { viewStore in
         ZStack {

@@ -5,13 +5,21 @@ import Types
 import Views
 
 
-struct ChoosingAddressView: View {
-  struct State: Equatable {
-    var search: AddressSearch?
-    var searchResults: [LocalSearchCompletion]
-    var selectedResult: LocalSearchCompletion?
+public struct ChoosingAddressView: View {
+  public struct State: Equatable {
+    public var search: AddressSearch?
+    public var searchResults: [LocalSearchCompletion]
+    public var selectedResult: LocalSearchCompletion?
+    
+    public init(search: AddressSearch?,
+                searchResults: [LocalSearchCompletion],
+                selectedResult: LocalSearchCompletion?) {
+      self.search = search
+      self.searchResults = searchResults
+      self.selectedResult = selectedResult
+    }
   }
-  enum Action {
+  public enum Action {
     case cancelChoosingAddress
     case searchPlaceOnMap
     case selectAddress(LocalSearchCompletion)
@@ -19,9 +27,9 @@ struct ChoosingAddressView: View {
   }
   
   let store: Store<State, Action>
-  init(store: Store<State, Action>) { self.store = store }
+  public init(store: Store<State, Action>) { self.store = store }
   
-  var body: some View {
+  public var body: some View {
     GeometryReader { geometry in
       WithViewStore(store) { viewStore in
         VStack(spacing: 0) {

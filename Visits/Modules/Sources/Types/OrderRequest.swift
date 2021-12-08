@@ -43,14 +43,8 @@ public struct TripRequest {
       self.id = id
       self.order = order
     }
-
 }
 
 extension TripRequest: Equatable {}
 extension TripRequest: Hashable {}
 extension TripRequest: Identifiable {}
-
-enum AddOrder {
-  case order(OrderRequest)
-  case trip(TripRequest)
-}

@@ -1,5 +1,6 @@
 import Utility
 import IdentifiedCollections
+import AddOrderLogic
 
 public struct MainState: Equatable {
   public var map: MapState

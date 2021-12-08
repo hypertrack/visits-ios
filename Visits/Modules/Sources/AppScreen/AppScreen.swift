@@ -14,6 +14,7 @@ import SummaryScreen
 import SwiftUI
 import Types
 import Views
+import AddOrderScreen
 
 public struct AppScreen: View {
   public struct State {
@@ -43,6 +44,7 @@ public struct AppScreen: View {
   
   public enum Action {
     case addPlace(AddPlaceView.Action)
+    case addOrder(AddOrderScreen.Action)
     case signIn(SignInScreenAction)
     case blocker(Blocker.Action)
     case orders(OrdersListScreenAction)
@@ -98,6 +100,16 @@ public struct AppScreen: View {
               action: (/Action.addPlace).embed
             )
           )
+        case let .addOrder(addOrder):
+          AddOrderScreen(
+            store: store.scope(
+              state: { state in
+                .init(adding: adding, places: places)
+              },
+              action: (/Action.addOrder).embed
+            )
+          )
+
         }
       }
       .modifier(let: viewStore.errorAlert) { view, _ in
