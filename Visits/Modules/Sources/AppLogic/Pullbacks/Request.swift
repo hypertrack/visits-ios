@@ -97,6 +97,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .switchToOrders:                             return .switchToOrders
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
+    case     .switchToSummary:                            return .switchToSummary
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
@@ -136,6 +137,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .switchToOrders:                             return .switchToOrders
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
+    case     .switchToSummary:                            return .switchToSummary
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
