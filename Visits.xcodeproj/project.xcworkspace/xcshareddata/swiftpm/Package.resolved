@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution",
         "state": {
           "branch": null,
-          "revision": "08cccfac98ca64b53a666fcf15a7313d66abb141",
-          "version": "1.39.4"
+          "revision": "8c9d7db8f4bb788b41a5143dba3addc52799a868",
+          "version": "1.40.2"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "26bafa8382ad9ec6ee9a66edc3fff0e5c457b7bc",
-          "version": "4.8.0"
+          "revision": "c5b89aca8e91b0512c34c47a068ee509389ec830",
+          "version": "4.9.0-rc.2"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
-          "version": "1.0.1"
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
         "state": {
           "branch": null,
-          "revision": "0a39f4c7a33eb71baef936fb5d6e249c49961eb8",
-          "version": "0.28.0"
+          "revision": "9c162f485bbd4cc09b86163d3c2901aeab6e6288",
+          "version": "0.31.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-custom-dump",
         "state": {
           "branch": null,
-          "revision": "1a2947d25d43e295c6f5e83f54696d590620b364",
-          "version": "0.1.3"
+          "revision": "51698ece74ecf31959d3fa81733f0a5363ef1b4e",
+          "version": "0.3.0"
         }
       },
       {
@@ -78,8 +78,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-identified-collections",
         "state": {
           "branch": null,
-          "revision": "c8e6a40209650ab619853cd4ce89a0aa51792754",
-          "version": "0.3.0"
+          "revision": "680bf440178a78a627b1c2c64c0855f6523ad5b9",
+          "version": "0.3.2"
         }
       },
       {
@@ -102,7 +102,7 @@
       },
       {
         "package": "Validated",
-        "repositoryURL": "https://github.com/pointfreeco/swift-validated.git",
+        "repositoryURL": "https://github.com/pointfreeco/swift-validated",
         "state": {
           "branch": null,
           "revision": "e9685ce68943c9e9d26f9f999c64823dea3ef0e7",
