@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "c5b89aca8e91b0512c34c47a068ee509389ec830",
-          "version": "4.9.0-rc.2"
+          "revision": "c160c50d3f9c3c9cf93bea40d741e40d6382ad80",
+          "version": "4.9.1"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
         "state": {
           "branch": null,
-          "revision": "9c162f485bbd4cc09b86163d3c2901aeab6e6288",
-          "version": "0.31.0"
+          "revision": "ba9c626ab1b2b6af8cf684eebb2ab472fa5b6753",
+          "version": "0.33.1"
         }
       },
       {
