@@ -20,7 +20,6 @@ public extension APIEnvironment {
   )
 }
 
-let accountURL: NonEmptyString = "https://live-account.htprod.hypertrack.com"
 let baseURL: NonEmptyString = "https://live-app-backend.htprod.hypertrack.com"
 let clientURL: NonEmptyString = baseURL + "/client"
 let internalAPIURL: NonEmptyString = "https://live-api.htprod.hypertrack.com"
