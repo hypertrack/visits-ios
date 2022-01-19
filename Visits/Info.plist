@@ -37,6 +37,27 @@
 	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>live-api.htprod.hypertrack.com</key>
+			<dict>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
+			</dict>
+			<key>live-app-backend.htprod.hypertrack.com</key>
+			<dict>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
+			</dict>
+			<key>s6a3q7vbqzfalfhqi2vr32ugee.appsync-api.us-west-2.amazonaws.com</key>
+			<dict>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Visits app uses your location to manage your work on the move</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
