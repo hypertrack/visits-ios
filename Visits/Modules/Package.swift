@@ -98,14 +98,14 @@ let package = Package(
     .library(name: $0.name, targets: [$0.name])
   },
   dependencies: [
-    .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.40.2")),
+    .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.41.0")),
     .package(                    url: "https://github.com/apple/swift-collections",                           .exact("1.0.2")),
-    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.33.1")),
+    .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.34.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-custom-dump",                     .exact("0.3.0")),
     .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("4.9.1")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.4.0")),
     .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
-    .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.6.0")),
+    .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.7.0")),
     .package(name: "Validated",  url: "https://github.com/pointfreeco/swift-validated",                       .exact("0.2.1"))
   ],
   targets: targets + testTargets

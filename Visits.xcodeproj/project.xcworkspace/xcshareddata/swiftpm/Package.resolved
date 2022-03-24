@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution",
         "state": {
           "branch": null,
-          "revision": "8c9d7db8f4bb788b41a5143dba3addc52799a868",
-          "version": "1.40.2"
+          "revision": "ac9422150d33839b19952111592085ea67b7a412",
+          "version": "1.41.0"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
         "state": {
           "branch": null,
-          "revision": "ba9c626ab1b2b6af8cf684eebb2ab472fa5b6753",
-          "version": "0.33.1"
+          "revision": "2828dc44f6e3f81d84bcaba72c1ab1c0121d66f6",
+          "version": "0.34.0"
         }
       },
       {
@@ -96,13 +96,13 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-tagged",
         "state": {
           "branch": null,
-          "revision": "6c36cf66f58553d0481a2628e3e27177f698a897",
-          "version": "0.6.0"
+          "revision": "f3f773a5e13f3c8f0ab1ce2ae6378058acefa87d",
+          "version": "0.7.0"
         }
       },
       {
         "package": "Validated",
-        "repositoryURL": "https://github.com/pointfreeco/swift-validated",
+        "repositoryURL": "https://github.com/pointfreeco/swift-validated.git",
         "state": {
           "branch": null,
           "revision": "e9685ce68943c9e9d26f9f999c64823dea3ef0e7",
