@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution",
         "state": {
           "branch": null,
-          "revision": "ac9422150d33839b19952111592085ea67b7a412",
-          "version": "1.41.0"
+          "revision": "723657c0c0f396e1255ee19568ad0cf0f6f60902",
+          "version": "1.42.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "c160c50d3f9c3c9cf93bea40d741e40d6382ad80",
-          "version": "4.9.1"
+          "revision": "cff330829a7d187978b9111902885d00a3b98208",
+          "version": "4.12.0"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
         "state": {
           "branch": null,
-          "revision": "d226d167bd4a68b51e352af5655c92bce8ee0463",
-          "version": "0.7.0"
+          "revision": "ce9c0d897db8a840c39de64caaa9b60119cf4be8",
+          "version": "0.8.1"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture",
         "state": {
           "branch": null,
-          "revision": "2828dc44f6e3f81d84bcaba72c1ab1c0121d66f6",
-          "version": "0.34.0"
+          "revision": "db890996189ca27da9e56f4cc82a70057819429a",
+          "version": "0.36.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-custom-dump",
         "state": {
           "branch": null,
-          "revision": "51698ece74ecf31959d3fa81733f0a5363ef1b4e",
-          "version": "0.3.0"
+          "revision": "21ec1d717c07cea5a026979cb0471dd95c7087e7",
+          "version": "0.5.0"
         }
       },
       {
