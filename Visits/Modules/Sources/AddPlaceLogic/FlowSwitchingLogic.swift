@@ -109,15 +109,15 @@ let flowSwitchingReducer = Reducer<AddPlaceState, FlowSwitchingAction, SystemEnv
      guard state.adding == nil
      else { return environment.capture("Can't add place when already adding place").fireAndForget() }
 
-     guard let currentLocation = state.history.coordinates.last else { return .none }
+     let currentLocation = state.history.coordinates.last
 
      state.adding = .init(
-       flow: .choosingCoordinate(.init(coordinate: currentLocation)),
+       flow: .choosingCoordinate(currentLocation <¡> GeocodedResult.init(coordinate:)),
        entities: []
      )
 
      return .merge(
-       reverseGeocode(currentLocation),
+       (currentLocation <¡> reverseGeocode) ?? .none,
        Effect(value: .updateIntegrations(""))
      )
    case .cancelAddPlace:
