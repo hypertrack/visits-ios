@@ -7,6 +7,7 @@ import HyperTrackEnvironment
 import LogEnvironment
 import NonEmpty
 import Types
+import Utility
 
 
 extension String: Error {}
@@ -110,10 +111,8 @@ public extension HyperTrackEnvironment {
     },
     setMetadata: { metadata in
       .fireAndForget {
-        let jsonString = String(data: try! JSONEncoder().encode(metadata), encoding: .utf8)!
-        logEffect("setMetadata: \(jsonString)")
-        
-        ht?.setDeviceMetadata(HyperTrack.Metadata(jsonString: jsonString)!)
+        logEffect("setMetadata: \(metadata)")
+        ht?.metadata = toHyperTrackMetadata(metadata)
       }
     },
     startTracking: {
@@ -172,6 +171,25 @@ public extension HyperTrackEnvironment {
       }
     }
   )
+}
+
+func toHyperTrackMetadata(_ json: JSON.Object) -> HyperTrack.JSON.Object {
+  var htJSON: HyperTrack.JSON.Object = [:]
+  for (key, value) in json {
+    htJSON[key] = toHyperTrackJSON(value)
+  }
+  return htJSON
+}
+
+func toHyperTrackJSON(_ json: JSON) -> HyperTrack.JSON {
+  switch json {
+  case let .object(o): return .object(toHyperTrackMetadata(o))
+  case let .array(a):  return .array(a.map(toHyperTrackJSON))
+  case let .string(s): return .string(s)
+  case let .number(n): return .number(n)
+  case let .bool(b):   return .bool(b)
+  case .null:          return .null
+  }
 }
 
 enum C: String {

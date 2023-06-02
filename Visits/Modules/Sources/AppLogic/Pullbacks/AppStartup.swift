@@ -26,7 +26,7 @@ func appStartedState(_ appState: AppState) -> Terminal? {
   }
 }
 
-private let appStartupStateAffine = appStartupStatePrism ** appStartupStateLens
+private let appStartupStateAffine: Affine<AppState, AppStartupState> = appStartupStatePrism ** appStartupStateLens
 
 private let appStartupActionPrism = Prism<AppAction, AppStartupAction>(
   extract: { appAction in
@@ -47,54 +47,56 @@ private enum AppStartupDomain {
   case operational(RestoredState, SDKStatusUpdate, AppVisibility)
 }
 
-private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
-  extract: { s in
-    switch s {
-    case let .launching(l):
-      switch (l.stateAndSDK, l.visibility) {
-      case let (.starting(rs, sdk), .some(v)): return .starting(rs, sdk, v)
-      default:                                 return .none
-      }
-    case let .operational(o) where o.alert == nil:
-      let flow: StorageState.Flow
-      switch o.flow {
-      case .firstRun: flow = .firstRun
-      case let .signIn(.entering(eg)) where eg.password == nil
-                                         && eg.focus    == nil
-                                         && eg.error    == nil:
-        flow = .signIn(eg.email)
-      case let .main(m) where m.map                == .initialState
-                           && m.trip               == nil
-                           && m.places             == nil
-                           && m.selectedPlace      == nil
-                           && m.placesPresentation == .byPlace
-                           && m.selectedOrderId    == nil
-                           && m.requests           == []
-                           && m.token              == nil
-                           && m.history            == nil
-                           && m.profile.metadata   == [:]
-                           && m.integrationStatus  == .unknown:
-        flow = .main(m.tab, m.publishableKey, m.profile.name)
-      default:
-        return nil
-      }
-      return .operational(
-        .init(
-          storage: .init(
-            experience: o.experience,
-            flow: flow,
-            locationAlways: o.locationAlways,
-            pushStatus: o.pushStatus
-          ),
-          version: o.version
-        ),
-        o.sdk,
-        o.visibility
-      )
+private func appStartupStatePrismExtract(_ s: AppState) -> AppStartupDomain? {
+  switch s {
+  case let .launching(l):
+    switch (l.stateAndSDK, l.visibility) {
+    case let (.starting(rs, sdk), .some(v)): return .starting(rs, sdk, v)
+    default:                                 return .none
+    }
+  case let .operational(o) where o.alert == nil:
+    let flow: StorageState.Flow
+    switch o.flow {
+    case .firstRun: flow = .firstRun
+    case let .signIn(.entering(eg)) where eg.password == nil
+                                       && eg.focus    == nil
+                                       && eg.error    == nil:
+      flow = .signIn(eg.email)
+    case let .main(m) where m.map                == .initialState
+                         && m.trip               == nil
+                         && m.places             == nil
+                         && m.selectedPlace      == nil
+                         && m.placesPresentation == .byPlace
+                         && m.selectedOrderId    == nil
+                         && m.requests           == []
+                         && m.token              == nil
+                         && m.history            == nil
+                         && m.profile.metadata   == [:]
+                         && m.integrationStatus  == .unknown:
+      flow = .main(m.tab, m.publishableKey, m.profile.name)
     default:
       return nil
     }
-  },
+    return .operational(
+      .init(
+        storage: .init(
+          experience: o.experience,
+          flow: flow,
+          locationAlways: o.locationAlways,
+          pushStatus: o.pushStatus
+        ),
+        version: o.version
+      ),
+      o.sdk,
+      o.visibility
+    )
+  default:
+    return nil
+  }
+}
+
+private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
+  extract: appStartupStatePrismExtract,
   embed: { d in
     switch d {
     case let .starting(rs, sdk, v):
