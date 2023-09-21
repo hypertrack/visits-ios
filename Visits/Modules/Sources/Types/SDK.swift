@@ -1,12 +1,7 @@
 public enum SDKUnlockedStatus: Equatable {
   case running
   case stopped
-  case deleted
-  case invalidPublishableKey
-}
-
-public enum UntrackableReason: Equatable {
-  case motionActivityServicesUnavalible
+  case outage(Outage)
 }
 
 public enum SDKStatus: Equatable {
@@ -15,14 +10,25 @@ public enum SDKStatus: Equatable {
 }
 
 public struct SDKStatusUpdate: Equatable {
-  public var permissions: Permissions
   public var status: SDKStatus
 
   public init(
-    permissions: Permissions,
     status: SDKStatus
   ) {
-    self.permissions = permissions
     self.status = status
   }
+}
+
+public enum Outage: Equatable {
+  case blockedFromRunning
+  case invalidPublishableKey
+  case locationMocked
+  case locationServicesDisabled
+  case locationSignalLost
+  case permissionLocationDenied
+  case permissionLocationInsufficientForBackground
+  case permissionLocationNotDetermined
+  case permissionLocationProvisional
+  case permissionLocationReducedAccuracy
+  case permissionLocationRestricted
 }

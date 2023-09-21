@@ -19,8 +19,8 @@ let requestP: Reducer<
 func mainUnlocked(_ a: AppState) -> Terminal? {
   a *^? /AppState.operational
     >>- { o in
-      switch (o.flow, o.pushStatus, o.sdk.permissions, o.sdk.status) {
-      case (.main, .dialogSplash(.shown), .granted, .unlocked(_, .running)):
+      switch (o.flow, o.pushStatus, o.sdk.status) {
+      case (.main, .dialogSplash(.shown), .unlocked(_, .running)):
         return unit
       default:
         return nil

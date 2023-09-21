@@ -71,30 +71,38 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
     case let .main(m):
       
       switch o.sdk.status {
-      case .locked: screen = .blocker(.noMotionServices)
+      case .locked: screen = .blocker(.waiting)
       case let .unlocked(deID, us):
         
-        switch (us, o.sdk.permissions.locationAccuracy, o.sdk.permissions.locationPermissions, o.sdk.permissions.motionPermissions, o.pushStatus) {
-        case (_, _, .disabled, _, _):                            screen = .blocker(.locationDisabled)
-        case (_, _, .denied, _, _):                              screen = .blocker(.locationDenied)
-        case (_, _, .restricted, _, _):                          screen = .blocker(.locationRestricted)
-        case (_, _, .notDetermined, _, _):                       screen = .blocker(.locationNotDetermined)
-        case (_, _, .authorizedWhenInUse, _, _):
-          if o.locationAlways == .notRequested {
-            screen = .blocker(.locationWhenInUseFirstRequest)
-          } else {
-            screen = .blocker(.locationWhenInUse)
-          }
-        case (_, .reduced, _, _, _):                             screen = .blocker(.locationReduced)
-        case (_, _, _, .disabled, _):                            screen = .blocker(.motionDisabled)
-        case (_, _, _, .denied, _):                              screen = .blocker(.motionDenied)
-        case (_, _, _, .notDetermined, _):                       screen = .blocker(.motionNotDetermined)
-        case (_, _, _, _, .dialogSplash(.notShown)),
-             (_, _, _, _, .dialogSplash(.waitingForUserAction)): screen = .blocker(.pushNotShown)
-        case (.deleted, _, _, _, _):                             screen = .blocker(.deleted(deID.string))
-        case (.invalidPublishableKey, _, _, _, _):               screen = .blocker(.invalidPublishableKey(deID.string))
-        case (.stopped, _, _, _, _):                             screen = .blocker(.stopped)
-        case (.running, .full, .authorizedAlways, .authorized, .dialogSplash(.shown)):
+        switch (us, o.pushStatus, o.locationAlways) {
+        case (.outage(.blockedFromRunning), _, _):
+          screen = .blocker(.deleted(deID.string))
+        case (.outage(.invalidPublishableKey), _, _):
+          screen = .blocker(.invalidPublishableKey(deID.string))
+        case (.outage(.locationServicesDisabled), _, _):
+          screen = .blocker(.locationDisabled)
+        case (.outage(.permissionLocationDenied), _, _):
+          screen = .blocker(.locationDenied)
+        case (.outage(.permissionLocationRestricted), _, _):
+          screen = .blocker(.locationRestricted)
+        case (.outage(.permissionLocationNotDetermined), _, _):
+          screen = .blocker(.locationNotDetermined)
+        case (.outage(.permissionLocationProvisional), _, _):
+          screen = .blocker(.locationProvisional)
+        case (.outage(.permissionLocationReducedAccuracy), _, _):
+          screen = .blocker(.locationReduced)
+        case (_, _, .notRequested):
+          screen = .blocker(.locationWhenInUseFirstRequest)
+        case (.outage(.permissionLocationInsufficientForBackground), _, .requestedAfterWhenInUse):
+          screen = .blocker(.locationWhenInUse)
+        case (_, .dialogSplash(.notShown), _),
+             (_, .dialogSplash(.waitingForUserAction), _):
+          screen = .blocker(.pushNotShown)
+        case (.stopped, _, _):
+          screen = .blocker(.stopped)
+        case (.running, .dialogSplash(.shown), .requestedAfterWhenInUse),
+          (.outage(.locationMocked), .dialogSplash(.shown), .requestedAfterWhenInUse),
+          (.outage(.locationSignalLost), .dialogSplash(.shown), .requestedAfterWhenInUse):
           if let flow = m.addPlace {
             screen = .addPlace(flow, m.places?.places ?? [])
             break
@@ -155,9 +163,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.locationNotDeterminedButtonTapped): return .requestWhenInUseLocationPermissions
   case .blocker(.locationRestrictedButtonTapped): return .openSettings
   case .blocker(.locationReducedButtonTapped): return .openSettings
-  case .blocker(.motionDeniedButtonTapped): return .openSettings
-  case .blocker(.motionDisabledButtonTapped): return .openSettings
-  case .blocker(.motionNotDeterminedButtonTapped): return .requestMotionPermissions
+  case .blocker(.locationProvisionalButtonTapped): return .openSettings
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
   case .orders(.clockOutButtonTapped): return .stopTracking
   case .orders(.refreshButtonTapped): return .updateOrders

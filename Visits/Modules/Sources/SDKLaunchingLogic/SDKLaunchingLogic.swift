@@ -39,7 +39,7 @@ public enum SDKLaunchingAction: Equatable {
 public struct SDKLaunchingEnvironment {
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
   public var subscribeToStatusUpdates: () -> Effect<SDKStatusUpdate, Never>
-  
+
   public init(
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
     subscribeToStatusUpdates: @escaping () -> Effect<SDKStatusUpdate, Never>
@@ -63,7 +63,7 @@ public let sdkLaunchingReducer: Reducer<SDKLaunchingState, SDKLaunchingAction, S
       .receive(on: environment.mainQueue)
       .map(SDKLaunchingAction.subscribed)
       .eraseToEffect()
-    
+
     if let pk = state.publishableKey {
       return .merge(
         subscribe,
@@ -73,13 +73,14 @@ public let sdkLaunchingReducer: Reducer<SDKLaunchingState, SDKLaunchingAction, S
           .eraseToEffect()
       )
     } else {
+      state.status = .launched(.init(status: .locked))
       return subscribe
     }
   case let .subscribed(sdk):
     guard state.status == .launching, state.publishableKey == nil else { return .none }
-    
+
     state.status = .launched(sdk)
-    
+
     return .none
   case let .initialized(sdk):
     guard state.status == .launching, state.publishableKey != nil else { return .none }

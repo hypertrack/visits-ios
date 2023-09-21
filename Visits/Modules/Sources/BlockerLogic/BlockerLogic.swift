@@ -21,7 +21,6 @@ public enum BlockerAction: Equatable {
   case openSettings
   case requestWhenInUseLocationPermissions
   case requestAlwaysLocationPermissions
-  case requestMotionPermissions
   case requestPushAuthorization
   case userHandledPushAuthorization
   case statusUpdated(SDKStatusUpdate)
@@ -34,20 +33,17 @@ public struct BlockerEnvironment {
   public var requestAlwaysLocationPermissions: () -> Effect<Never, Never>
   public var requestPushAuthorization: () -> Effect<Void, Never>
   public var requestWhenInUseLocationPermissions: () -> Effect<Never, Never>
-  public var requestMotionPermissions: () -> Effect<SDKStatusUpdate, Never>
   
   public init(
     openSettings: @escaping () -> Effect<Never, Never>,
     requestAlwaysLocationPermissions: @escaping () -> Effect<Never, Never>,
     requestPushAuthorization: @escaping () -> Effect<Void, Never>,
-    requestWhenInUseLocationPermissions: @escaping () -> Effect<Never, Never>,
-    requestMotionPermissions: @escaping () -> Effect<SDKStatusUpdate, Never>
+    requestWhenInUseLocationPermissions: @escaping () -> Effect<Never, Never>
   ) {
     self.openSettings = openSettings
     self.requestAlwaysLocationPermissions = requestAlwaysLocationPermissions
     self.requestPushAuthorization = requestPushAuthorization
     self.requestWhenInUseLocationPermissions = requestWhenInUseLocationPermissions
-    self.requestMotionPermissions = requestMotionPermissions
   }
 }
 
@@ -67,11 +63,6 @@ public let blockerReducer = Reducer<
     state.locationAlways = .requestedAfterWhenInUse
     
     return environment.requestAlwaysLocationPermissions().fireAndForget()
-  case .requestMotionPermissions:
-    return environment.requestMotionPermissions()
-      .receive(on: environment.mainQueue)
-      .eraseToEffect()
-      .map(BlockerAction.statusUpdated)
   case .requestPushAuthorization:
     state.pushStatus = .dialogSplash(.waitingForUserAction)
     

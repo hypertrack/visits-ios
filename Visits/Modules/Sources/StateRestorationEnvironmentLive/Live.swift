@@ -162,14 +162,14 @@ func restoredStateFrom(
 }
 
 enum RestorationKey: String, CaseIterable {
-  case name = "Hp6XdOsXsw"
-  case email = "sXwAlVbnPT"
-  case experience = "lQDSheJivt"
-  case locationAlways = "wpZz4e12Ro"
-  case publishableKey = "UeiDZRFEOd"
-  case pushStatus = "jC0FVlTWrC"
-  case screen = "ZJNLfS0Nhw"
-  case tabSelection = "8VGkczct6P"
+  case name = "1GO62fagRR"
+  case email = "XZ5TRYpn6b"
+  case experience = "79koMswApt"
+  case locationAlways = "BgEaxxcUEt"
+  case publishableKey = "83Hw5bQ7IC"
+  case pushStatus = "UucSji3z7h"
+  case screen = "mDz3JJ2ekk"
+  case tabSelection = "O0hNX6o1zP"
 }
 
 extension TabSelection {
@@ -229,7 +229,7 @@ extension PushStatus {
 extension Experience {
   private static let firstRunKey: NonEmptyString = "EMcvpiyTCY"
   private static let regularKey: NonEmptyString  = "wDvZjD44fJ"
-  
+
   static let prism: Prism<NonEmptyString, Self> = .init(
     extract: { key in
       switch key {
@@ -274,7 +274,7 @@ extension StoredScreen {
 extension LocationAlwaysPermissions {
   private static let requestedAfterWhenInUseKey: NonEmptyString = "3hcIg16dQu"
   private static let notRequestedKey: NonEmptyString  = "kWhjxi21lx"
-  
+
   static let prism: Prism<NonEmptyString, LocationAlwaysPermissions> = .init(
     extract: { key in
       switch key {

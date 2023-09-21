@@ -4,7 +4,7 @@ import Views
 
 public struct Blocker: View {
   public enum State: Equatable {
-    case noMotionServices
+    case waiting
     case deleted(String)
     case invalidPublishableKey(String)
     case stopped
@@ -13,11 +13,9 @@ public struct Blocker: View {
     case locationDenied
     case locationDisabled
     case locationNotDetermined
+    case locationProvisional
     case locationRestricted
     case locationReduced
-    case motionDenied
-    case motionDisabled
-    case motionNotDetermined
     case pushNotShown
   }
   
@@ -30,11 +28,9 @@ public struct Blocker: View {
     case locationDeniedButtonTapped
     case locationDisabledButtonTapped
     case locationNotDeterminedButtonTapped
+    case locationProvisionalButtonTapped
     case locationRestrictedButtonTapped
     case locationReducedButtonTapped
-    case motionDeniedButtonTapped
-    case motionDisabledButtonTapped
-    case motionNotDeterminedButtonTapped
     case pushNotShownButtonTapped
   }
   
@@ -81,34 +77,28 @@ public struct Blocker: View {
 
 func title(from s: Blocker.State) -> String {
   switch s {
-  case .noMotionServices:              return "No Motion Services"
   case .deleted:                       return "Device Blocked"
   case .invalidPublishableKey:         return "Internal Error"
-  case .stopped:                       return "Clock In"
-  case .locationWhenInUse:             return "Allow Always Access"
-  case .locationWhenInUseFirstRequest: return "Allow Always Access"
   case .locationDenied:                return "Allow Location Access"
   case .locationDisabled:              return "Enable Location"
   case .locationNotDetermined:         return "Allow Location Access"
-  case .locationRestricted:            return "Remove Restrictions"
+  case .locationProvisional:           return "Allow Always Access"
   case .locationReduced:               return "Allow Full Accuracy"
-  case .motionDenied:                  return "Allow Motion Access"
-  case .motionDisabled:                return "Enable Motion & Fitness"
-  case .motionNotDetermined:           return "Allow Motion Access"
+  case .locationRestricted:            return "Remove Restrictions"
+  case .locationWhenInUse:             return "Allow Always Access"
+  case .locationWhenInUseFirstRequest: return "Allow Always Access"
   case .pushNotShown:                  return "Push Notifications"
+  case .stopped:                       return "Clock In"
+  case .waiting:                       return "Waiting for HyperTrack"
   }
 }
 
 func message(from s: Blocker.State) -> String {
   switch s {
-  case .noMotionServices:
-    return "The app requires a device with an Apple M-series coprocessor. This includes all iPhones after iPhone 5S and iPads released after 2013. Please install the app on one of the supported devices."
   case let .deleted(id):
     return "Your company blocked your device. Please contact your manager with the screenshot of this screen if this was a mistake.\n\nDeviceID: \(id)"
   case let .invalidPublishableKey(id):
     return "Our server can't identify the company belonging to your deeplink/credentials. Please contact your manager with the screenshot of this screen.\n\nDeviceID: \(id)"
-  case .stopped:
-    return "You are currently clocked out. Clocking in starts location tracking and opens the orders for today.\n\nThe app does not track your location while you are clocked out."
   case .locationDenied:
     return """
            We need your permission to access your location. Visits app uses your location to manage your work on the move.
@@ -133,6 +123,12 @@ func message(from s: Blocker.State) -> String {
            """
   case .locationNotDetermined:
     return "We need your permission to access your location. Visits app uses your location to manage your work on the move."
+  case .locationProvisional:
+    return """
+           We need location permissions to be set to "Always". Visits app uses your location to manage your work on the move.
+
+           Please navigate to Settings > Visits > Location and set to Always.
+           """
   case .locationRestricted:
     return """
            We need your permission to access your location. Visits app uses your location to manage your work on the move.
@@ -145,33 +141,20 @@ func message(from s: Blocker.State) -> String {
            
            Please grant full accuracy in Settings > Visits > Location.
            """
-  case .motionDenied:
-    return """
-           We need your permission to access your motion.
-           
-           We use Motion & Fitness to efficiently use your battery.
-           
-           Please enable Motion & Fitness in Settings > Visits > Motion & Fitness.
-           """
-  case .motionDisabled:
-    return """
-           We use Motion & Fitness to efficiently use your battery.
-           
-           Please enable Fitness Tracking in Settings > Privacy > Motion & Fitness > Fitness Tracking.
-           """
-  case .motionNotDetermined:
-    return "We use Motion & Fitness to efficiently use your battery."
-    
   case .pushNotShown:
     return "We use push notifications to notify about new orders."
+  case .stopped:
+    return "You are currently clocked out. Clocking in starts location tracking and opens the orders for today.\n\nThe app does not track your location while you are clocked out."
+  case .waiting:
+    return "Waiting for HyperTrack services to initialize. This should take less than a second. If the app is stuck on this screen, please shake the phone to generate an error report."
   }
 }
 
 func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   switch s {
-  case .noMotionServices:              return nil
-  case .deleted:                       return ("Resolved?", .deletedButtonTapped)
-  case .invalidPublishableKey:         return ("Resolved?", .invalidPublishableKeyButtonTapped)
+  case .waiting:                       return nil
+  case .deleted:                       return nil
+  case .invalidPublishableKey:         return nil
   case .stopped:                       return ("Clock In", .stoppedButtonTapped)
   case .locationWhenInUse:             return ("Open Settings", .locationWhenInUseButtonTapped)
   case .locationWhenInUseFirstRequest: return ("Allow Always", .locationWhenInUseFirstRequestButtonTapped)
@@ -180,10 +163,8 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   case .locationNotDetermined:         return ("Allow Access", .locationNotDeterminedButtonTapped)
   case .locationRestricted:            return ("Open Settings", .locationRestrictedButtonTapped)
   case .locationReduced:               return ("Open Settings", .locationReducedButtonTapped)
-  case .motionDenied:                  return ("Open Settings", .motionDeniedButtonTapped)
-  case .motionDisabled:                return ("Open Settings", .motionDisabledButtonTapped)
-  case .motionNotDetermined:           return ("Allow Access", .motionNotDeterminedButtonTapped)
   case .pushNotShown:                  return ("Next", .pushNotShownButtonTapped)
+  case .locationProvisional:           return ("Open Settings", .locationProvisionalButtonTapped)
   }
 }
 
@@ -197,7 +178,7 @@ func buttonSubtitle(from s: Blocker.State) -> String? {
 struct BlockerScreen_Previews: PreviewProvider {
   static var previews: some View {
     Blocker(
-      state: .motionNotDetermined,
+      state: .locationNotDetermined,
       send: { _ in }
     )
   }
