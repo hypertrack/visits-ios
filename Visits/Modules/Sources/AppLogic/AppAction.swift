@@ -1,4 +1,5 @@
 import NonEmpty
+import Tagged
 import Types
 import UIKit
 import Utility

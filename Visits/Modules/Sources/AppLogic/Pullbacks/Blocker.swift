@@ -35,7 +35,6 @@ private let blockerActionPrism = Prism<AppAction, BlockerAction>(
     case     .openSettings:                        return .openSettings
     case     .requestWhenInUseLocationPermissions: return .requestWhenInUseLocationPermissions
     case     .requestAlwaysLocationPermissions:    return .requestAlwaysLocationPermissions
-    case     .requestMotionPermissions:            return .requestMotionPermissions
     case     .requestPushAuthorization:            return .requestPushAuthorization
     case     .userHandledPushAuthorization:        return .userHandledPushAuthorization
     case let .statusUpdated(s):                    return .statusUpdated(s)
@@ -47,7 +46,6 @@ private let blockerActionPrism = Prism<AppAction, BlockerAction>(
     case     .openSettings:                        return .openSettings
     case     .requestWhenInUseLocationPermissions: return .requestWhenInUseLocationPermissions
     case     .requestAlwaysLocationPermissions:    return .requestAlwaysLocationPermissions
-    case     .requestMotionPermissions:            return .requestMotionPermissions
     case     .requestPushAuthorization:            return .requestPushAuthorization
     case     .userHandledPushAuthorization:        return .userHandledPushAuthorization
     case let .statusUpdated(s):                    return .statusUpdated(s)
@@ -61,8 +59,7 @@ private func toBlockerEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       openSettings: e.hyperTrack.openSettings,
       requestAlwaysLocationPermissions: e.hyperTrack.requestAlwaysLocationPermissions,
       requestPushAuthorization: e.push.requestAuthorization,
-      requestWhenInUseLocationPermissions: e.hyperTrack.requestWhenInUseLocationPermissions,
-      requestMotionPermissions: e.hyperTrack.requestMotionPermissions
+      requestWhenInUseLocationPermissions: e.hyperTrack.requestWhenInUseLocationPermissions
     )
   }
 }

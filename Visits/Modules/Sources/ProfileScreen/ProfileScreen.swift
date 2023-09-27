@@ -154,8 +154,8 @@ struct Metadata: Identifiable {
 }
 
 func metadata(from dictionary: [NonEmptyString: NonEmptyString]) -> [Metadata] {
-  dictionary.reduce(into: []) { (metadata: inout [Metadata], value: (id: NonEmptyString, contents: NonEmptyString)) in
-    metadata.append(Metadata(id: value.id, contents: value.contents))
+  dictionary.reduce(into: []) { (metadata: inout [Metadata], value: (key: NonEmptyString, value: NonEmptyString)) in
+    metadata.append(Metadata(id: value.key, contents: value.value))
   }
   .sorted(by: \.id)
 }

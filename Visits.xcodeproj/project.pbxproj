@@ -22,19 +22,6 @@
 		31B9399B2649B895000F62E8 /* Types in Frameworks */ = {isa = PBXBuildFile; productRef = 31B9399A2649B895000F62E8 /* Types */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		3176B587254049B4002E41C2 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		31072BA52549F8F900ECBA34 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		31136FF726F3A2A800FFF4F2 /* UIAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAppearance.swift; sourceTree = "<group>"; };
@@ -127,7 +114,6 @@
 				3161D11D2512A2B500AAFCCD /* Sources */,
 				3161D11E2512A2B500AAFCCD /* Frameworks */,
 				3161D11F2512A2B500AAFCCD /* Resources */,
-				3176B587254049B4002E41C2 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -345,7 +331,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Visits/Visits.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 72;
+				CURRENT_PROJECT_VERSION = 76;
 				DEVELOPMENT_ASSET_PATHS = "\"Visits/Preview Content\"";
 				DEVELOPMENT_TEAM = H4925W78YQ;
 				ENABLE_PREVIEWS = YES;
@@ -356,7 +342,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.16.1;
+				MARKETING_VERSION = 2.16.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -371,7 +357,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Visits/Visits.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 72;
+				CURRENT_PROJECT_VERSION = 76;
 				DEVELOPMENT_ASSET_PATHS = "\"Visits/Preview Content\"";
 				DEVELOPMENT_TEAM = H4925W78YQ;
 				ENABLE_PREVIEWS = YES;
@@ -382,7 +368,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.16.1;
+				MARKETING_VERSION = 2.16.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -31,6 +33,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>HyperTrackPublishableKey</key>
+	<string>DynamicPublishableKey</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>
@@ -62,8 +66,6 @@
 	<string>Visits app uses your location to manage your work on the move</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Visits app uses your location to manage your work on the move</string>
-	<key>NSMotionUsageDescription</key>
-	<string>The Visits app uses your motion patterns to conserve battery life manage your work on the move.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

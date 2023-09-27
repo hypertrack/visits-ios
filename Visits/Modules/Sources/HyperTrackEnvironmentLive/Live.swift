@@ -7,6 +7,7 @@ import HyperTrackEnvironment
 import LogEnvironment
 import NonEmpty
 import Types
+import UIKit
 import Utility
 
 
@@ -14,69 +15,45 @@ extension String: Error {}
 
 public extension HyperTrackEnvironment {
   static let live = Self(
-    checkDeviceTrackability: {
-      .result {
-        logEffect("checkDeviceTrackability")
-        return .success(servicesAvailability())
-      }
-    },
-    didFailToRegisterForRemoteNotificationsWithError: { error in
-      .fireAndForget {
-        logEffect("didFailToRegisterForRemoteNotificationsWithError: \(error)")
-        HyperTrack.didFailToRegisterForRemoteNotificationsWithError(error)
-      }
-    },
-    didReceiveRemoteNotification: { userInfo, callback in
-      .fireAndForget {
-        logEffect("didReceiveRemoteNotification: \(userInfo)")
-        HyperTrack.didReceiveRemoteNotification(userInfo, fetchCompletionHandler: callback)
-      }
-    },
-    didRegisterForRemoteNotificationsWithDeviceToken: { deviceToken in
-      .fireAndForget {
-        logEffect("didRegisterForRemoteNotificationsWithDeviceToken")
-        HyperTrack.didRegisterForRemoteNotificationsWithDeviceToken(deviceToken)
-      }
-    },
     getCurrentLocation: {
-      .future { callback in
-        guard let lmd = lmd else { callback(.success(nil)); return }
-
-        lmd.didUpdateLocations = { locations in
-          callback(
-            .success(
-              locations.last
-                .map(\.coordinate)
-                .flatMap(Coordinate.init(coordinate2D:))
-            )
-          )
-        }
-
-        lmd.didFailWithError = {
-          callback(.success(nil))
-        }
-
-        lm.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-        lm.requestLocation()
+      .result {
+        let location = HyperTrack.location
+        logEffect("getCurrentLocation: \(location)")
+        return location
+          .flatMap { location in
+              .success(Coordinate(latitude: location.latitude, longitude: location.longitude))
+          }
+          .flatMapError { _ -> Result<_, Never> in
+              .success(.none)
+          }
       }
     },
     makeSDK: { pk in
       .result {
         logEffect("makeSDK: \(pk.string)")
-        ht = try! HyperTrack(publishableKey: HyperTrack.PublishableKey(pk.string)!)
-        return .success(statusUpdate())
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let hypertrackDirectory = documentsDirectory.appendingPathComponent("hypertrack")
+        let filePath = hypertrackDirectory.appendingPathComponent("publishable_key_dynamic")
+        do {
+            try FileManager.default.createDirectory(at: hypertrackDirectory, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            fatalError()
+        }
+        do {
+          try pk.string.write(to: filePath, atomically: true, encoding: .utf8)
+          logEffect("makeSDK: File saved successfully!")
+        } catch {
+          fatalError()
+        }
+        isUnlocked = true
+        subscribe()
+        return .success(statusUpdate(isTracking: HyperTrack.isTracking, isAvailable: HyperTrack.isAvailable, errors: HyperTrack.errors))
       }
     },
     openSettings: {
       .fireAndForget {
         logEffect("openSettings")
         UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-      }
-    },
-    registerForRemoteNotifications: {
-      .fireAndForget {
-        logEffect("registerForRemoteNotifications")
-        HyperTrack.registerForRemoteNotifications()
       }
     },
     requestAlwaysLocationPermissions: {
@@ -91,87 +68,71 @@ public extension HyperTrackEnvironment {
         lm.requestWhenInUseAuthorization()
       }
     },
-    requestMotionPermissions: {
-      .future { callback in
-        logEffect("requestMotionPermissions")
-        mm.queryActivityStarting(
-          from: Date(),
-          to: Date(),
-          to: .main) { _, _ in
-          callback(.success(statusUpdate()))
-        }
-      }
-    },
     setName: { name in
       .fireAndForget {
         logEffect("setName: \(name.string)")
-        
-        ht?.setDeviceName(name.string)
+        HyperTrack.name = name.string
       }
     },
     setMetadata: { metadata in
       .fireAndForget {
         logEffect("setMetadata: \(metadata)")
-        ht?.metadata = toHyperTrackMetadata(metadata)
+        HyperTrack.metadata = toHyperTrackMetadata(metadata)
       }
     },
     startTracking: {
       .fireAndForget {
         logEffect("startTracking")
-        ht?.start()
+        HyperTrack.isTracking = true
       }
     },
     stopTracking: {
       .fireAndForget {
         logEffect("stopTracking")
-        ht?.stop()
+        HyperTrack.isTracking = false
       }
     },
     subscribeToStatusUpdates: {
       .run { subscriber in
         logEffect("subscribeToStatusUpdates")
-        lmd = LocationManagerClientDelegate { subscriber.send(statusUpdate()) }
-        
-        NotificationCenter.default
-          .publisher(for: UIScene.willEnterForegroundNotification)
-          .merge(
-            with:
-              NotificationCenter.default
-              .publisher(for: HyperTrack.startedTrackingNotification),
-            NotificationCenter.default
-              .publisher(for: HyperTrack.stoppedTrackingNotification)
-          )
-          .sink { _ in subscriber.send(statusUpdate()) }
-          .store(in: &cancellables)
-        
-        NotificationCenter.default
-          .publisher(for: HyperTrack.didEncounterRestorableErrorNotification)
-          .compactMap { $0.hyperTrackRestorableError() }
-          .drop(while: { $0 != .trialEnded })
-          .sink { _ in subscriber.send(statusUpdate(.deleted)) }
-          .store(in: &cancellables)
-        
-        NotificationCenter.default
-          .publisher(for: HyperTrack.didEncounterUnrestorableErrorNotification)
-          .compactMap { $0.hyperTrackUnrestorableError() }
-          .drop(while: { $0 != .invalidPublishableKey })
-          .sink { _ in subscriber.send(statusUpdate(.invalidPublishableKey)) }
-          .store(in: &cancellables)
+        statusUpdatesSubscriber = subscriber
+
+        if isUnlocked {
+          subscribe()
+        }
         
         return AnyCancellable {
-          lmd = nil
           cancellables = []
         }
-      }
-    },
-    syncDeviceSettings: {
-      .fireAndForget {
-        logEffect("syncDeviceSettings")
-        ht?.syncDeviceSettings()
       }
     }
   )
 }
+
+func subscribe() {
+  if case let .some(subscriber) = statusUpdatesSubscriber {
+    var isTracking = HyperTrack.isTracking
+    var isAvailable = HyperTrack.isAvailable
+    var errors = HyperTrack.errors
+
+    cancellables.append(HyperTrack.subscribeToErrors({ newErrors in
+      errors = newErrors
+      subscriber.send(statusUpdate(isTracking: isTracking, isAvailable: isAvailable, errors: errors))
+    }))
+
+    cancellables.append(HyperTrack.subscribeToIsTracking({ newIsTracking in
+      isTracking = newIsTracking
+      subscriber.send(statusUpdate(isTracking: isTracking, isAvailable: isAvailable, errors: errors))
+    }))
+
+    cancellables.append(HyperTrack.subscribeToIsAvailable({ newIsAvailable in
+      isAvailable = newIsAvailable
+      subscriber.send(statusUpdate(isTracking: isTracking, isAvailable: isAvailable, errors: errors))
+    }))
+  }
+}
+
+var statusUpdatesSubscriber: Effect<SDKStatusUpdate, Never>.Subscriber? = nil
 
 func toHyperTrackMetadata(_ json: JSON.Object) -> HyperTrack.JSON.Object {
   var htJSON: HyperTrack.JSON.Object = [:]
@@ -192,108 +153,64 @@ func toHyperTrackJSON(_ json: JSON) -> HyperTrack.JSON {
   }
 }
 
-enum C: String {
-  case driverID = "driver_id"
-}
-
-var ht: HyperTrack?
+var isUnlocked = false
 
 let lm = CLLocationManager()
-var lmd: LocationManagerClientDelegate?
 
-let mm = CMMotionActivityManager()
+var cancellables: [HyperTrack.Cancellable] = []
 
-var cancellables: Set<AnyCancellable> = []
-
-class LocationManagerClientDelegate: NSObject, CLLocationManagerDelegate {
-  let didChangeAuthorization: () -> Void
-  var didUpdateLocations: (([CLLocation]) -> Void)?
-  var didFailWithError: (() -> Void)?
-  
-  init(didChangeAuthorization: @escaping () -> Void) {
-    self.didChangeAuthorization = didChangeAuthorization
-    super.init()
-    lm.delegate = self
-  }
-  
-  func locationManager(
-    _ manager: CLLocationManager,
-    didChangeAuthorization status: CLAuthorizationStatus
-  ) {
-    self.didChangeAuthorization()
-  }
-
-  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    if let didUpdateLocations = didUpdateLocations {
-      didUpdateLocations(locations)
-    }
-  }
-
-  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    if let didFailWithError = didFailWithError {
-      didFailWithError()
-    }
-  }
-}
-
-func locationAccuracy() -> LocationAccuracy {
-  switch lm.accuracyAuthorization {
-  case .fullAccuracy:    return .full
-  case .reducedAccuracy: return .reduced
-  @unknown default:      return .reduced
-  }
-}
-
-func locationPermissions() -> LocationPermissions {
-  let locationPermissions: LocationPermissions
-  
-  switch lm.authorizationStatus {
-  case .notDetermined:
-    locationPermissions = .notDetermined
-  case .restricted:
-    locationPermissions = .restricted
-  case .denied:
-    locationPermissions = .denied
-  case .authorizedAlways:
-    locationPermissions = .authorizedAlways
-  case .authorizedWhenInUse:
-    locationPermissions = .authorizedWhenInUse
-  @unknown default:
-    locationPermissions = .denied
-  }
-  return locationPermissions
-}
-
-func motionPermissions() -> MotionPermissions {
-  switch CMMotionActivityManager.authorizationStatus() {
-  case .notDetermined: return .notDetermined
-  case .restricted: return .disabled
-  case .denied: return.denied
-  case .authorized: return .authorized
-  @unknown default: return .denied
-  }
-}
-
-func statusUpdate(_ state: SDKUnlockedStatus? = nil) -> SDKStatusUpdate {
-  
+func statusUpdate(isTracking: Bool, isAvailable: Bool, errors: Set<HyperTrack.Error>) -> SDKStatusUpdate {
   let sdk: SDKStatus
-  switch ht {
-  case let .some(ht):
-    sdk = .unlocked(DeviceID(rawValue: NonEmptyString(rawValue: ht.deviceID)!), ht.isRunning ? .running : .stopped)
-  case .none:
+  if isUnlocked {
+    sdk = .unlocked(DeviceID(rawValue: NonEmptyString(rawValue: HyperTrack.deviceID)!), unlockedStatus(isTracking: isTracking, isAvailable: isAvailable, errors: errors))
+  } else {
     sdk = .locked
   }
   
   return .init(
-    permissions: Permissions(
-      locationAccuracy: locationAccuracy(),
-      locationPermissions: locationPermissions(),
-      motionPermissions: motionPermissions()
-    ),
     status: sdk
   )
 }
 
-func servicesAvailability() -> UntrackableReason? {
-  CMMotionActivityManager.isActivityAvailable() ? nil : .motionActivityServicesUnavalible
+func unlockedStatus(isTracking: Bool, isAvailable: Bool, errors: Set<HyperTrack.Error>) -> SDKUnlockedStatus {
+  guard !errors.contains(.invalidPublishableKey) else {
+    return .outage(.invalidPublishableKey)
+  }
+  guard !errors.contains(.blockedFromRunning) else {
+    return .outage(.blockedFromRunning)
+  }
+  guard !errors.contains(.location(.mocked)) else {
+    return .outage(.locationMocked)
+  }
+  guard !errors.contains(.location(.servicesDisabled)) else {
+    return .outage(.locationServicesDisabled)
+  }
+  guard !errors.contains(.location(.signalLost)) else {
+    return .outage(.locationSignalLost)
+  }
+  guard !errors.contains(.permissions(.location(.denied))) else {
+    return .outage(.permissionLocationDenied)
+  }
+  guard !errors.contains(.permissions(.location(.insufficientForBackground))) else {
+    return .outage(.permissionLocationInsufficientForBackground)
+  }
+  guard !errors.contains(.permissions(.location(.notDetermined))) else {
+    return .outage(.permissionLocationNotDetermined)
+  }
+  guard !errors.contains(.permissions(.location(.provisional))) else {
+    return .outage(.permissionLocationProvisional)
+  }
+  guard !errors.contains(.permissions(.location(.reducedAccuracy))) else {
+    return .outage(.permissionLocationReducedAccuracy)
+  }
+  guard !errors.contains(.permissions(.location(.restricted))) else {
+    return .outage(.permissionLocationRestricted)
+  }
+
+  if isTracking || isAvailable {
+    return .running
+  } else {
+    return .stopped
+  }
 }
+

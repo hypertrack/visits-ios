@@ -72,7 +72,7 @@ extension AppState {
     operational_ |> \.flow *< .main(
       main |> \.places *< .some(placesSummary)
            <> \.placesPresentation *< .byVisit
-           <> \.history *< history
+           <> \.history *< .some(history)
            <> \.tab *< .places
     )
   )
@@ -284,11 +284,6 @@ private let placesSummary = PlacesSummary(
 
 private let publishableKey = PublishableKey(rawValue: "Key")
 private let deviceID = DeviceID(rawValue: "UNIQUE-ID")
-private let permissions = Permissions(
-  locationAccuracy: .full,
-  locationPermissions: .authorizedAlways,
-  motionPermissions: .authorized
-)
 
 private func date(hour: Int, minute: Int, second: Int) -> Date {
   Calendar.current.date(bySettingHour: hour, minute: minute, second: second, of: Date())!
@@ -303,7 +298,7 @@ private let operational_ = OperationalState(
   flow: .firstRun,
   locationAlways: .requestedAfterWhenInUse,
   pushStatus: .dialogSplash(.shown),
-  sdk: .init(permissions: .granted, status: .unlocked(deviceID, .running)),
+  sdk: .init(status: .unlocked(deviceID, .running)),
   version: "1.2.3 (45)",
   visibility: .onScreen
 )

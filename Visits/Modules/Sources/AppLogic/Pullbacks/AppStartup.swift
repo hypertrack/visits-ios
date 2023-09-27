@@ -116,7 +116,7 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
           alert: nil,
           experience: rs.storage.experience,
           flow: flow,
-          locationAlways: sdk.permissions.locationPermissions == .notDetermined ? .notRequested : rs.storage.locationAlways,
+          locationAlways: rs.storage.locationAlways,
           pushStatus: rs.storage.pushStatus,
           sdk: sdk,
           version: rs.version,

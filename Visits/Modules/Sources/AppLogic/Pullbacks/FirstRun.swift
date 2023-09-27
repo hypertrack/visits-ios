@@ -61,8 +61,8 @@ private let firstRunOperationalStateAffine = Affine<OperationalState, Experience
 
 private extension OperationalState {
   var isFirstRunState: Bool {
-    switch (self.flow, self.sdk.status, self.sdk.permissions, self.pushStatus) {
-    case (.main, .unlocked(_, .stopped), .granted, .dialogSplash(.shown)):
+    switch (self.flow, self.sdk.status, self.pushStatus) {
+    case (.main, .unlocked(_, .stopped), .dialogSplash(.shown)):
       return true
     default:
       return false
