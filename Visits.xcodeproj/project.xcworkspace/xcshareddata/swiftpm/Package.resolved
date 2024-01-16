@@ -11,12 +11,12 @@
         }
       },
       {
-        "package": "Branch",
+        "package": "BranchSDK",
         "repositoryURL": "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution",
         "state": {
           "branch": null,
-          "revision": "723657c0c0f396e1255ee19568ad0cf0f6f60902",
-          "version": "1.42.0"
+          "revision": "40f6d5d179d60fd25888196dfa09b229de4521a9",
+          "version": "3.0.1"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "72797454627fac4f977fcd1f67052a3466c94993",
-          "version": "5.0.2"
+          "revision": "3d558fcc8a798ba15d61dbe9dc0911d8e4a519ba",
+          "version": "5.2.0"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/getsentry/sentry-cocoa",
         "state": {
           "branch": null,
-          "revision": "80928b7e19a713fea798ba45c8bfda38096d7f30",
-          "version": "5.2.2"
+          "revision": "3b9a8e69ca296bd8cd0e317ad7a448e5daf4a342",
+          "version": "8.18.0"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
-          "version": "1.0.2"
+          "revision": "d029d9d39c87bed85b1c50adee7c41795261a192",
+          "version": "1.0.6"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-tagged",
         "state": {
           "branch": null,
-          "revision": "f3f773a5e13f3c8f0ab1ce2ae6378058acefa87d",
-          "version": "0.7.0"
+          "revision": "3907a9438f5b57d317001dc99f3f11b46882272b",
+          "version": "0.10.0"
         }
       },
       {

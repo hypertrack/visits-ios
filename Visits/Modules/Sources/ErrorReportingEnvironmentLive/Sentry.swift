@@ -8,7 +8,7 @@ public extension ErrorReportingEnvironment {
     addBreadcrumb: { type, message in
       .fireAndForget {
         for breadcrumb in splitBreadcrumb(type, message) {
-          SentrySDK.addBreadcrumb(crumb: breadcrumb)
+          SentrySDK.addBreadcrumb(breadcrumb)
         }
       }
     },
@@ -16,7 +16,7 @@ public extension ErrorReportingEnvironment {
       .fireAndForget {
         if m.string.count > maxBreadcrumbLength {
           for breadcrumb in splitBreadcrumb(.error, .init(rawValue: m.rawValue)) {
-            SentrySDK.addBreadcrumb(crumb: breadcrumb)
+            SentrySDK.addBreadcrumb(breadcrumb)
           }
         }
         SentrySDK.capture(message: m.string)
@@ -25,8 +25,7 @@ public extension ErrorReportingEnvironment {
     startErrorMonitoring: {
       .fireAndForget {
         SentrySDK.start { options in
-          options.dsn = "https://b7c00b414cf14086b0bd873305058044@sentry.htprod.hypertrack.com/7"
-          options.attachStacktrace = false
+          options.dsn = "https://8f52171cebd9779c2970b4290033dac5@o4504966481051648.ingest.sentry.io/4506582033104896"
         }
       }
     },

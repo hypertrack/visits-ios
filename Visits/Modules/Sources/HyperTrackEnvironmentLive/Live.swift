@@ -31,20 +31,7 @@ public extension HyperTrackEnvironment {
     makeSDK: { pk in
       .result {
         logEffect("makeSDK: \(pk.string)")
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let hypertrackDirectory = documentsDirectory.appendingPathComponent("hypertrack")
-        let filePath = hypertrackDirectory.appendingPathComponent("publishable_key_dynamic")
-        do {
-            try FileManager.default.createDirectory(at: hypertrackDirectory, withIntermediateDirectories: true, attributes: nil)
-        } catch {
-            fatalError()
-        }
-        do {
-          try pk.string.write(to: filePath, atomically: true, encoding: .utf8)
-          logEffect("makeSDK: File saved successfully!")
-        } catch {
-          fatalError()
-        }
+        HyperTrack.dynamicPublishableKey = pk.string
         isUnlocked = true
         subscribe()
         return .success(statusUpdate(isTracking: HyperTrack.isTracking, isAvailable: HyperTrack.isAvailable, errors: HyperTrack.errors))

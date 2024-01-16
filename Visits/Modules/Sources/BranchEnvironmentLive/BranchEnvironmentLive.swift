@@ -1,4 +1,4 @@
-import Branch
+import BranchSDK
 import BranchEnvironment
 import Combine
 import ComposableArchitecture

@@ -36,7 +36,7 @@ let targets: [Target] = [
   .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types", "Validated"]),
-  .target(name: "BranchEnvironmentLive",           dependencies: ["Branch", "BranchEnvironment", "LogEnvironment", tagged, "Utility", "Validated"]),
+  .target(name: "BranchEnvironmentLive",           dependencies: ["BranchSDK", "BranchEnvironment", "LogEnvironment", tagged, "Utility", "Validated"]),
   .target(name: "PushEnvironmentLive",             dependencies: ["LogEnvironment", "PushEnvironment"]),
   .target(name: "ErrorReportingEnvironment",       dependencies: [architecture, nonEmpty, tagged, "Types"]),
   .target(name: "ErrorReportingEnvironmentLive",   dependencies: ["ErrorReportingEnvironment", "LogEnvironment", "Sentry"]),
@@ -98,14 +98,14 @@ let package = Package(
     .library(name: $0.name, targets: [$0.name])
   },
   dependencies: [
-    .package(name: "Branch",     url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("1.42.0")),
-    .package(                    url: "https://github.com/apple/swift-collections",                           .exact("1.0.2")),
+    .package(name: "BranchSDK",  url: "https://github.com/BranchMetrics/ios-branch-deep-linking-attribution", .exact("3.0.1")),
+    .package(                    url: "https://github.com/apple/swift-collections",                           .exact("1.0.6")),
     .package(                    url: "https://github.com/pointfreeco/swift-composable-architecture",         .exact("0.36.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-custom-dump",                     .exact("0.5.0")),
-    .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("5.0.2")),
+    .package(name: "HyperTrack", url: "https://github.com/hypertrack/sdk-ios",                                .exact("5.2.0")),
     .package(                    url: "https://github.com/pointfreeco/swift-nonempty",                        .exact("0.4.0")),
-    .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("5.2.2")),
-    .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.7.0")),
+    .package(name: "Sentry",     url: "https://github.com/getsentry/sentry-cocoa",                            .exact("8.18.0")),
+    .package(                    url: "https://github.com/pointfreeco/swift-tagged",                          .exact("0.10.0")),
     .package(name: "Validated",  url: "https://github.com/pointfreeco/swift-validated",                       .exact("0.2.1"))
   ],
   targets: targets + testTargets
