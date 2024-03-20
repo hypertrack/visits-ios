@@ -10,6 +10,7 @@ public struct DeepLink: Equatable {
   public enum Variant: Equatable {
     case old(DriverID)
     case new(These<Email, PhoneNumber>, JSON.Object)
+    case driverHandle(DriverHandle, JSON.Object)
   }
   
   public init(publishableKey: PublishableKey, variant: Variant, url: URL) { self.publishableKey = publishableKey; self.variant = variant; self.url = url }

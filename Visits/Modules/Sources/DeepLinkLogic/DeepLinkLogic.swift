@@ -137,16 +137,22 @@ extension DeepLink {
       return these(emailToName)(phoneNumberToName)(curry(emailAndPhoneNumberToName))(tEmailPhoneNumber)
     case let .old(driverID):
       return nonEmptyStringToName(driverID.rawValue)
+    case let .driverHandle(driverHandle, metadata):
+      return nonEmptyStringToName(driverHandle.rawValue)
     }
   }
   
   var metadata: JSON.Object {
     let inviteID = JSON.string(url.absoluteString)
     let emailKey = "email"
-    let phoneKey = "phone_number"
     let inviteIDKey = "invite_id"
+    let phoneKey = "phone_number"
+
 
     switch self.variant {
+    case .driverHandle(let driverHandle, var meta):
+        meta[inviteIDKey] = inviteID
+        return meta
     case .new(let tEmailPhoneNumber, var meta):
       switch tEmailPhoneNumber {
       case let .this(e):
