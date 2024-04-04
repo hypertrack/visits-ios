@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "3d558fcc8a798ba15d61dbe9dc0911d8e4a519ba",
-          "version": "5.2.0"
+          "revision": "ec0c6a5f53a36b402892f2b5ebad8e77ef7b67ea",
+          "version": "5.5.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-custom-dump",
         "state": {
           "branch": null,
-          "revision": "21ec1d717c07cea5a026979cb0471dd95c7087e7",
-          "version": "0.5.0"
+          "revision": "0a5bff05fe01dcd513932ed338a4efad8268b803",
+          "version": "0.11.2"
         }
       },
       {
