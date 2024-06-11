@@ -1,4 +1,3 @@
-alias ba := build-archive
 alias g := generate
 alias ogp := open-github-prs
 alias us := update-sdk
@@ -9,11 +8,6 @@ REPOSITORY_URL := "https://github.com/hypertrack/visits-ios"
 # Source: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
 # \ are escaped
 SEMVER_REGEX := "(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?"
-
-
-build-archive:
-  rm -rf Visits.xcarchive
-  xcodebuild archive -project Visits.xcodeproj -scheme Visits -configuration Release -archivePath ./Visits.xcarchive -destination 'generic/platform=iOS'
 
 generate:
   #sourcery --sources Visits --templates Templates/Prism.swifttemplate --output Visits/Logic/App/Sources/App
