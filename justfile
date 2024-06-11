@@ -1,5 +1,9 @@
+alias b := build
 alias g := generate
 alias us := update-sdk
+
+build:
+  xcodebuild archive -project Visits.xcodeproj -scheme Visits -configuration Release -archivePath ./Visits.xcarchive
 
 generate:
   #sourcery --sources Visits --templates Templates/Prism.swifttemplate --output Visits/Logic/App/Sources/App
