@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/hypertrack/sdk-ios",
         "state": {
           "branch": null,
-          "revision": "0d84adac9f636447265f315fab8b5ba4c8810f91",
-          "version": "5.5.4"
+          "revision": "d158e26be92521ebdcee8520b842adae25b827cb",
+          "version": "5.6.0"
         }
       },
       {
@@ -102,7 +102,7 @@
       },
       {
         "package": "Validated",
-        "repositoryURL": "https://github.com/pointfreeco/swift-validated.git",
+        "repositoryURL": "https://github.com/pointfreeco/swift-validated",
         "state": {
           "branch": null,
           "revision": "e9685ce68943c9e9d26f9f999c64823dea3ef0e7",
