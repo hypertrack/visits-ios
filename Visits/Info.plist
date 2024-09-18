@@ -66,6 +66,8 @@
 	<string>Visits app uses your location to manage your work on the move</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Visits app uses your location to manage your work on the move</string>
+	<key>NSMotionUsageDescription</key>
+	<string>The Visits app uses your motion patterns to conserve battery life and increase the accuracy of tracking your work.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
