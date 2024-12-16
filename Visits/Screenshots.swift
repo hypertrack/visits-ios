@@ -84,7 +84,7 @@ extension AppState {
            <> \.tab *< .map
     )
   )
-    
+
   static let profileScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
       main |> \.tab *< .profile

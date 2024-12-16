@@ -203,17 +203,6 @@ struct MainBlock: View {
         Text("Map")
       }
       .tag(TabSelection.map)
-      
-      TripScreen(state: .init(trip: state.trip,
-                              selected: state.selectedOrderId,
-                              refreshing: state.requests.contains(Request.oldestActiveTrip)),
-                       send: sendOrders,
-                       sendOrderAction: sendOrder)
-        .tabItem {
-          Image(systemName: "checkmark.square.fill")
-          Text("Orders")
-        }
-        .tag(TabSelection.orders)
 
       PlacesScreen(
         state: .init(
@@ -231,7 +220,7 @@ struct MainBlock: View {
           Text("Places")
         }
         .tag(TabSelection.places)
-        
+
         PlacesScreen(
           state: .init(
             places: state.placesSummary,
@@ -248,6 +237,17 @@ struct MainBlock: View {
             Text("Visits")
           }
           .tag(TabSelection.visits)
+
+      TripScreen(state: .init(trip: state.trip,
+                                    selected: state.selectedOrderId,
+                                    refreshing: state.requests.contains(Request.oldestActiveTrip)),
+                             send: sendOrders,
+                             sendOrderAction: sendOrder)
+              .tabItem {
+                Image(systemName: "checkmark.square.fill")
+                Text("Orders")
+              }
+              .tag(TabSelection.orders)
       
       ProfileScreen(
         state: .init(
