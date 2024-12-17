@@ -2,14 +2,28 @@ import NonEmpty
 import SwiftUI
 
 
-struct VisitView: View {
+public struct VisitView: View {
   let id: NonEmptyString
   let entry: Date
   let exit: Date?
   let duration: UInt
   let copy: (NonEmptyString) -> Void
+    
+    public init(
+        id: NonEmptyString,
+        entry: Date,
+        exit: Date?,
+        duration: UInt,
+        copy: @escaping (NonEmptyString) -> Void
+    ) {
+        self.id = id
+        self.entry = entry
+        self.exit = exit
+        self.duration = duration
+        self.copy = copy
+    }
   
-  var body: some View {
+  public var body: some View {
     TimelinePieceView {
       HStack {
         Image(systemName: "mappin")

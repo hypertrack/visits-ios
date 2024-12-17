@@ -2,9 +2,10 @@
 import NonEmpty
 import SwiftUI
 import Types
+import PlacesScreen
 
 struct VisitsList: View {
-    let visitsToDisplay: [NonEmptyString]
+    let visitsToDisplay: [Place.Visit]
     let selected: NonEmptyString?
     let select: (NonEmptyString?) -> Void
     let copy: (NonEmptyString) -> Void
@@ -30,23 +31,18 @@ struct VisitsList: View {
     var body: some View {
         ZStack {
             navigationLink
-//            List {
-//                ForEach(visitsToDisplay, id: \.header.date) { section in
-//                    Section(
-//                        header: HStack {
-//                            Text(Calendar.current.isDate(section.header.date, equalTo: Date(), toGranularity: .day) ? "TODAY" : DateFormatter.stringDate(section.header.date))
-//                        }
-//                    ) {
-//                        ForEach(section.visits, id: \.entryOrVisit.id) { visit in
-//                            Button {
-//                                select(visit)
-//                            } label: {
-//                                Text(visit)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            List {
+                ForEach(visitsToDisplay, id: \.id) { visit in
+                    VisitView.init(
+                      id: visit.id.rawValue,
+                      entry: visit.entry.rawValue,
+                      exit: visit.exit.rawValue,
+                      duration: safeAbsoluteDuration(from: visit.entry.rawValue, to: visit.exit.rawValue),
+                      copy: copy
+                    )
+                    .padding()
+                }
+            }
 //            .listStyle(GroupedListStyle())
             if visitsToDisplay.isEmpty {
                 Text("No visits yet")

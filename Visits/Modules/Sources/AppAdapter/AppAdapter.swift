@@ -121,7 +121,9 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            integrationStatus: m.integrationStatus,
                            deviceID: deID,
                            tabSelection: m.tab,
-                           version: o.version
+                           version: o.version,
+                           visitsSummary: m.visits,
+                            selectedVisit: m.selectedVisit
                           )
           )
         }
@@ -222,7 +224,9 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
-  case .visits(_): return .stubAction
+  case .visits(.refresh): return .updateVisits
+  case .visits(.copyToPasteboard(_)): return .stubAction
+  case .visits(.selectVisit(_)): return .stubAction
   }
 }
 

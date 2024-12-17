@@ -64,6 +64,8 @@ public enum RequestAction: Equatable {
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
+  case updateVisits
+  case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
 }
 
 // MARK: - Environment
@@ -82,6 +84,8 @@ public struct RequestEnvironment {
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
+  public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>
+    
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   public var updateOrderNote: (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
@@ -99,6 +103,7 @@ public struct RequestEnvironment {
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
+    getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
     updateOrderNote: @escaping (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
@@ -115,6 +120,7 @@ public struct RequestEnvironment {
     self.getPlaces = getPlaces
     self.getProfile = getProfile
     self.getToken = getToken
+    self.getVisits = getVisits
     self.reverseGeocode = reverseGeocode
     self.updateOrderNote = updateOrderNote
   }
@@ -146,7 +152,6 @@ public let requestReducer = Reducer<
   func getTrip(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getTripEffect(environment.getTrip(t, deID), environment.mainQueue)
   }
-  
   func getPlaces(_ t: Token.Value) -> Effect<RequestAction, Never> {
     getPlacesEffect(environment.getPlaces(t, deID, pk, environment.date(), environment.calendar()), environment.mainQueue)
   }
@@ -159,6 +164,10 @@ public let requestReducer = Reducer<
   func getIntegrationEntities(_ t: Token.Value, _ s: IntegrationSearch) -> Effect<RequestAction, Never> {
     getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 50, s), environment.mainQueue)
   }
+func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -> Effect<RequestAction, Never> {
+    getVisitsEffect(environment.getVisits(t, wh, from, to), environment.mainQueue)
+  }
+
   
   let getToken = getTokenEffect(environment.getToken(pk, deID), environment.mainQueue)
   
@@ -169,6 +178,7 @@ public let requestReducer = Reducer<
       case .oldestActiveTrip:    return getTrip(t)
       case .placesAndVisits:   return getPlaces(t)
       case .deviceMetadata:  return getProfile(t)
+      case .visits:          return getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), environment.date(), environment.date())
       }
     }
   }
@@ -180,6 +190,7 @@ public let requestReducer = Reducer<
     case .oldestActiveTrip:     id = RequestingTripsID()
     case .placesAndVisits:   id = RequestingPlacesID()
     case .deviceMetadata:  id = RequestingProfileID()
+    case .visits:          id = RequestingVisitsID()
     }
     return .cancel(id: id)
   }
@@ -290,6 +301,15 @@ public let requestReducer = Reducer<
     state.requests.insert(.placesAndVisits)
     
     return effects
+  case .updateVisits:
+    guard !state.requests.contains(.visits) else { return .none }
+    
+    let (token, effects) = requestOrRefreshToken(state.token, request: .visits |> flip(requestEffect))
+    
+    state.token = token
+    state.requests.insert(.visits)
+    
+    return effects
   case .switchToProfile:
     guard !state.requests.contains(.deviceMetadata) else { return .none }
     
@@ -308,7 +328,8 @@ public let requestReducer = Reducer<
        .orderCompleted(_, .failure(.error)),
        .orderCanceled(_, .failure(.error)),
        .orderSnoozed(_, .failure(.error)),
-       .orderUnsnoozed(_, .failure(.error)):
+       .orderUnsnoozed(_, .failure(.error)),
+       .visitsUpdated(.failure(.error)):
     state.token = .refreshing
     
     return getToken
@@ -343,6 +364,12 @@ public let requestReducer = Reducer<
     guard state.requests.contains(.placesAndVisits) else { return .none }
     
     state.requests.remove(.placesAndVisits)
+    
+    return .none
+  case .visitsUpdated:
+    guard state.requests.contains(.visits) else { return .none }
+    
+    state.requests.remove(.visits)
     
     return .none
   case .historyUpdated:
@@ -534,6 +561,8 @@ struct RequestingPlacesID: Hashable {}
 struct RequestingCreatePlaceID: Hashable {}
 struct RequestingProfileID: Hashable {}
 struct RequestingTokenID: Hashable {}
+struct RequestingVisitsID: Hashable {}
+
 
 let cancelOrderEffect = { (
   order: Order,
@@ -711,5 +740,16 @@ let getTokenEffect = { (
     .cancellable(id: RequestingTokenID())
     .receive(on: mainQueue)
     .map(RequestAction.tokenUpdated)
+    .eraseToEffect()
+}
+
+let getVisitsEffect = { (
+  getVisits: Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) in
+  getVisits
+    .cancellable(id: RequestingVisitsID())
+    .receive(on: mainQueue)
+    .map(RequestAction.visitsUpdated)
     .eraseToEffect()
 }

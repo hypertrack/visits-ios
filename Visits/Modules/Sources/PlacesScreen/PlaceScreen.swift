@@ -124,6 +124,6 @@ struct PlaceScreen_Previews: PreviewProvider {
 }
 
 
-func safeAbsoluteDuration(from: Date, to: Date) -> UInt {
+public func safeAbsoluteDuration(from: Date, to: Date) -> UInt {
   UInt(abs(from.timeIntervalSince(to)))
 }

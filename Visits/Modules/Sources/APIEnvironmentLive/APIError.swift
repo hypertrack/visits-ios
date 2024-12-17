@@ -74,6 +74,8 @@ func callAPI<Success: Decodable>(
       let response = response as! HTTPURLResponse
       
       let parsingError: ParsingError
+        let bodyString = String(data: data, encoding: .utf8)
+        let responseURL = response.url
       if (200..<300).contains(response.statusCode) {
         do {
           return Just(try decoder.decode(Success.self, from: data))

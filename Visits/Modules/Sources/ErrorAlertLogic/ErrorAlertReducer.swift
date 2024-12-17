@@ -39,6 +39,7 @@ public enum ErrorAlertLogicAction: Equatable {
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
+  case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
 }
 
 // MARK: - Reducer
@@ -84,7 +85,8 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .placesUpdated(.failure(.network(u))),
        let .profileUpdated(.failure(.network(u))),
        let .signedIn(.failure(.network(u))),
-       let .tokenUpdated(.failure(.network(u))):
+       let .tokenUpdated(.failure(.network(u))),
+      let .visitsUpdated(.failure(.network(u))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
@@ -107,7 +109,8 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .placesUpdated(.failure(.api(e, _, _))),
        let .profileUpdated(.failure(.api(e, _, _))),
        let .signedIn(.failure(.api(e, _, _))),
-       let .tokenUpdated(.failure(.api(e, _, _))):
+       let .tokenUpdated(.failure(.api(e, _, _))),
+         let .visitsUpdated(.failure(.api(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
@@ -130,7 +133,8 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .placesUpdated(.failure(.server(e, _, _))),
        let .profileUpdated(.failure(.server(e, _, _))),
        let .signedIn(.failure(.server(e, _, _))),
-       let .tokenUpdated(.failure(.server(e, _, _))):
+       let .tokenUpdated(.failure(.server(e, _, _))),
+      let .visitsUpdated(.failure(.server(e, _, _))):
     guard state.visibility == .onScreen else { return .none }
     
     state.status = .shown(
@@ -153,7 +157,8 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        let .placesUpdated(.failure(.unknown(p, _, _))),
        let .profileUpdated(.failure(.unknown(p, _, _))),
        let .signedIn(.failure(.unknown(p, _, _))),
-       let .tokenUpdated(.failure(.unknown(p, _, _))):
+      let .tokenUpdated(.failure(.unknown(p, _, _))),
+      let .visitsUpdated(.failure(.unknown(p, _, _))):
     guard state.visibility == .onScreen else { return .none }
 
     guard !p.string.hasPrefix("Received unexpected status code 404") else { return .none }
@@ -187,7 +192,9 @@ public let errorAlertReducer = Reducer<ErrorAlertState, ErrorAlertLogicAction, V
        .profileUpdated(.success),
        .signedIn(.failure(.error)),
        .signedIn(.success),
-       .tokenUpdated(.success):
+       .tokenUpdated(.success),
+       .visitsUpdated(.success),
+       .visitsUpdated(.failure(.error(_, _, _))):
     return .none
   }
 }

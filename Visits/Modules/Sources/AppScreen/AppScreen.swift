@@ -126,6 +126,9 @@ public struct MainBlockState: Equatable {
   public let deviceID: DeviceID
   public let tabSelection: TabSelection
   public let version: AppVersion
+  public let visitsSummary: PlacesVisitsSummary?
+  public let selectedVisit: Place.Visit?
+
 
   public init(mapState: MapState,
               placesSummary: PlacesSummary?,
@@ -139,7 +142,10 @@ public struct MainBlockState: Equatable {
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
               tabSelection: TabSelection,
-              version: AppVersion)
+              version: AppVersion,
+              visitsSummary: PlacesVisitsSummary?,
+              selectedVisit: Place.Visit?
+              )
   {
     self.mapState = mapState
     self.placesSummary = placesSummary
@@ -154,6 +160,8 @@ public struct MainBlockState: Equatable {
     self.deviceID = deviceID
     self.tabSelection = tabSelection
     self.version = version
+    self.visitsSummary = visitsSummary
+    self.selectedVisit = selectedVisit
   }
 }
 
@@ -209,7 +217,8 @@ struct MainBlock: View {
 
       VisitsScreen(
         state: .init(
-          refreshing: true
+          refreshing: state.requests.contains(Request.visits),
+            visits: state.visitsSummary?.visits ?? []
         ),
         send: sendVisits
       )

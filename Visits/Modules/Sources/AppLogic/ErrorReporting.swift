@@ -87,6 +87,7 @@ extension Reducer where State == AppState, Action == AppAction, Environment == S
            let .placeCreatedWithFailure(e),
            let .profileUpdated(.failure(e)),
            let .historyUpdated(.failure(e)),
+          let .visitsUpdated(.failure(e)),
            let .orderCancelFinished(_, .failure(e)),
            let .orderSnoozeFinished(_, .failure(e)),
            let .orderUnsnoozeFinished(_, .failure(e)),
