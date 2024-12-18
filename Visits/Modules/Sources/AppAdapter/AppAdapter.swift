@@ -107,7 +107,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
             screen = .addPlace(flow, m.places?.places ?? [])
             break
           }
-                    
+         
           screen = .main(
             MainBlockState(mapState: m.map,
                            placesSummary: m.places,
@@ -121,10 +121,13 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            integrationStatus: m.integrationStatus,
                            deviceID: deID,
                            tabSelection: m.tab,
+                           team: m.team,
                            version: o.version,
                            visitsSummary: m.visits,
-                            selectedVisit: m.selectedVisit
-                          )
+                           selectedTeamWorker: m.selectedTeamWorker,
+                           selectedVisit: m.selectedVisit,
+                           publishableKey: m.publishableKey
+                           )
           )
         }
       }
@@ -183,6 +186,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.orders): return .switchToOrders
   case .tab(.visits): return .switchToVisits
   case .tab(.profile): return .switchToProfile
+  case .tab(.team): return .switchToTeam
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
   case let .map(.selectedOrder(o)): return .selectOrder(o.id)
@@ -227,6 +231,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .visits(.refresh): return .updateVisits
   case .visits(.copyToPasteboard(_)): return .stubAction
   case .visits(.selectVisit(_)): return .stubAction
+  case .team(.refresh): return .updateTeam
+  case .team(.selectTeamWorker(_)): return .stubAction
   }
 }
 

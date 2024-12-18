@@ -4,4 +4,5 @@ public enum Request: Equatable, Hashable, CaseIterable {
   case placesAndVisits
   case deviceMetadata
   case visits
+  case team
 }

@@ -38,7 +38,8 @@ private let tabActionPrism = Prism<AppAction, TabAction>(
     case     .switchTo(.orders):  return .switchToOrders
     case     .switchTo(.places):  return .switchToPlaces
     case     .switchTo(.profile): return .switchToProfile
-    case     .switchTo(.visits): return .switchToVisits
+    case     .switchTo(.visits):  return .switchToVisits
+    case     .switchTo(.team):    return .switchToTeam
     }
   }
 )

@@ -98,9 +98,11 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
     case     .switchToVisits:                              return .switchToVisits
+    case let .teamUpdated(r):                             return .teamUpdated(r)
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
+    case     .updateTeam:                                 return .updateTeam
     case     .updateVisits:                               return .updateVisits
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
@@ -140,9 +142,11 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
     case     .switchToVisits:                             return .switchToVisits
+    case let .teamUpdated(r):                             return .teamUpdated(r)
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
+    case     .updateTeam:                                 return .updateTeam
     case     .updateVisits:                               return .updateVisits
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .visitsUpdated(v):                           return .visitsUpdated(v)
@@ -167,6 +171,7 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getTrip:                e.api.getTrip,
       getPlaces:              e.api.getPlaces,
       getProfile:             e.api.getProfile,
+      getTeam:                e.api.getTeam,
       getToken:               e.api.getToken,
       getVisits:              e.api.getVisits,
       reverseGeocode:         e.maps.reverseGeocode,

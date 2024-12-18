@@ -15,8 +15,10 @@ public struct MainState: Equatable {
   public var profile: Profile
   public var integrationStatus: IntegrationStatus
   public var requests: Set<Request>
+  public var team: TeamValue?
   public var token: Token?
   public var visits: PlacesVisitsSummary?
+  public var selectedTeamWorker: WorkerHandle?
   public var selectedVisit: Place.Visit?
 
   public init(
@@ -33,8 +35,10 @@ public struct MainState: Equatable {
     profile: Profile,
     integrationStatus: IntegrationStatus = .unknown,
     requests: Set<Request> = [],
+    team: TeamValue? = nil,
     token: Token? = nil,
     visits: PlacesVisitsSummary? = nil,
+    selectedTeamWorker: WorkerHandle? = nil,
     selectedVisit: Place.Visit? = nil
   ) {
     self.map = map
@@ -50,8 +54,10 @@ public struct MainState: Equatable {
     self.profile = profile
     self.integrationStatus = integrationStatus
     self.requests = requests
+    self.team = team
     self.token = token
     self.visits = visits
+    self.selectedTeamWorker = selectedTeamWorker
     self.selectedVisit = selectedVisit
   }
 }

@@ -15,6 +15,7 @@ import TripScreen
 import Types
 import Views
 import VisitsScreen
+import TeamScreen
 
 public struct AppScreen: View {
   public struct State {
@@ -52,6 +53,7 @@ public struct AppScreen: View {
     case tab(TabSelection)
     case visits(VisitsScreen.Action)
     case map(MapView.Action)
+    case team(TeamScreen.Action)
     case errorAlert(ErrorAlertAction)
     case errorReportingAlert(SendErrorReportAction)
   }
@@ -89,7 +91,8 @@ public struct AppScreen: View {
             sendPlaces: { viewStore.send(.places($0)) },
             sendProfile: { viewStore.send(.profile($0)) },
             sendTab: { viewStore.send(.tab($0)) },
-            sendVisits: { viewStore.send(.visits($0)) }
+            sendVisits: { viewStore.send(.visits($0)) },
+            sendTeam: { viewStore.send(.team($0)) }
           )
         case let .addPlace(adding, places):
           AddPlaceView(
@@ -125,9 +128,12 @@ public struct MainBlockState: Equatable {
   public let integrationStatus: IntegrationStatus
   public let deviceID: DeviceID
   public let tabSelection: TabSelection
+  public let team: TeamValue?
   public let version: AppVersion
   public let visitsSummary: PlacesVisitsSummary?
+  public let selectedTeamWorker: WorkerHandle?
   public let selectedVisit: Place.Visit?
+public let publishableKey: PublishableKey
 
 
   public init(mapState: MapState,
@@ -142,9 +148,12 @@ public struct MainBlockState: Equatable {
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
               tabSelection: TabSelection,
+              team: TeamValue?,
               version: AppVersion,
               visitsSummary: PlacesVisitsSummary?,
-              selectedVisit: Place.Visit?
+              selectedTeamWorker: WorkerHandle?,
+              selectedVisit: Place.Visit?,
+              publishableKey: PublishableKey
               )
   {
     self.mapState = mapState
@@ -159,9 +168,12 @@ public struct MainBlockState: Equatable {
     self.integrationStatus = integrationStatus
     self.deviceID = deviceID
     self.tabSelection = tabSelection
+    self.team = team
     self.version = version
     self.visitsSummary = visitsSummary
+    self.selectedTeamWorker = selectedTeamWorker
     self.selectedVisit = selectedVisit
+    self.publishableKey = publishableKey
   }
 }
 
@@ -174,6 +186,7 @@ struct MainBlock: View {
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
   let sendVisits: (VisitsScreen.Action) -> Void
+  let sendTeam: (TeamScreen.Action) -> Void
 
   var body: some View {
     TabView(
@@ -245,6 +258,19 @@ struct MainBlock: View {
       }
       .tag(TabSelection.places)
 
+        TeamScreen(
+          state: .init(
+            refreshing: state.requests.contains(Request.team),
+            team: state.team
+          ),
+          send: sendTeam
+        )
+        .tabItem {
+          Image(systemName: "person.2.circle.fill")
+          Text("Team")
+        }
+        .tag(TabSelection.team)
+
       TripScreen(state: .init(trip: state.trip,
                               selected: state.selectedOrderId,
                               refreshing: state.requests.contains(Request.oldestActiveTrip)),
@@ -255,6 +281,8 @@ struct MainBlock: View {
           Text("Orders")
         }
         .tag(TabSelection.orders)
+
+
       ProfileScreen(
         state: .init(
           profile: state.profile,

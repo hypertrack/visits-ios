@@ -178,7 +178,8 @@ extension TabSelection {
   private static let placesKey: NonEmptyString = "places"
   private static let visitsKey: NonEmptyString = "visits"
   private static let profileKey: NonEmptyString = "profile"
-  
+  private static let teamKey: NonEmptyString = "team"
+
   static let prism: Prism<NonEmptyString, Self> = .init(
     extract: { key in
       switch key {
@@ -197,6 +198,7 @@ extension TabSelection {
       case .places:  return placesKey
       case .profile: return profileKey
       case .visits:  return visitsKey
+      case .team: return teamKey
       }
     }
   )

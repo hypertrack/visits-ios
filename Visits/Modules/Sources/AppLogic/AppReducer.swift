@@ -30,6 +30,7 @@ public let appReducer: Reducer<AppState, AppAction, SystemEnvironment<AppEnviron
   firstRunP,
   manualReportP,
   visitsP,
+  teamP,
   Reducer { _, action, environment in
     guard case let .copyToPasteboard(s) = action else { return .none }
     

@@ -71,6 +71,10 @@ public enum AppAction: Equatable {
   case updateVisits
   case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
   case stubAction
+  // Team
+  case selectTeamWorker(WorkerHandle)
+  case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
+  case updateTeam
   //   Choosing Coordinate
   case cancelAddPlace
   case confirmAddPlaceCoordinate
@@ -116,6 +120,7 @@ public enum AppAction: Equatable {
   case switchToOrders
   case switchToPlaces
   case switchToProfile
+  case switchToTeam
   //   History
   case historyUpdated(Result<History, APIError<Token.Expired>>)
   //   Generic UI

@@ -61,10 +61,12 @@ public enum RequestAction: Equatable {
   case switchToPlaces
   case switchToProfile
   case switchToVisits
+  case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
   case updateVisits
+  case updateTeam
   case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
 }
 
@@ -83,6 +85,7 @@ public struct RequestEnvironment {
   public var getTrip: (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
+  public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>
     
@@ -102,6 +105,7 @@ public struct RequestEnvironment {
     getTrip: @escaping (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
+    getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
@@ -119,6 +123,7 @@ public struct RequestEnvironment {
     self.getTrip = getTrip
     self.getPlaces = getPlaces
     self.getProfile = getProfile
+    self.getTeam = getTeam
     self.getToken = getToken
     self.getVisits = getVisits
     self.reverseGeocode = reverseGeocode
@@ -164,7 +169,10 @@ public let requestReducer = Reducer<
   func getIntegrationEntities(_ t: Token.Value, _ s: IntegrationSearch) -> Effect<RequestAction, Never> {
     getIntegrationEntitiesEffect(environment.getIntegrationEntities(t, 50, s), environment.mainQueue)
   }
-func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -> Effect<RequestAction, Never> {
+  func getTeam(_ t: Token.Value, _ wh: WorkerHandle) -> Effect<RequestAction, Never> {
+    getTeamEffect(environment.getTeam(t, wh), environment.mainQueue)
+  }
+  func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -> Effect<RequestAction, Never> {
     getVisitsEffect(environment.getVisits(t, wh, from, to), environment.mainQueue)
   }
 
@@ -179,6 +187,7 @@ func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -
       case .placesAndVisits:   return getPlaces(t)
       case .deviceMetadata:  return getProfile(t)
       case .visits:          return getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), environment.date(), environment.date())
+      case .team:            return getTeam(t, WorkerHandle.init("ram@hypertrack.io"))
       }
     }
   }
@@ -191,6 +200,7 @@ func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -
     case .placesAndVisits:   id = RequestingPlacesID()
     case .deviceMetadata:  id = RequestingProfileID()
     case .visits:          id = RequestingVisitsID()
+    case .team:            id = RequestingTeamID()
     }
     return .cancel(id: id)
   }
@@ -310,6 +320,15 @@ func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -
     state.requests.insert(.visits)
     
     return effects
+  case .updateTeam:
+    guard !state.requests.contains(.team) else { return .none }
+
+    let (token, effects) = requestOrRefreshToken(state.token, request: .team |> flip(requestEffect))
+
+    state.token = token
+    state.requests.insert(.team)
+
+    return effects
   case .switchToProfile:
     guard !state.requests.contains(.deviceMetadata) else { return .none }
     
@@ -329,6 +348,7 @@ func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -
        .orderCanceled(_, .failure(.error)),
        .orderSnoozed(_, .failure(.error)),
        .orderUnsnoozed(_, .failure(.error)),
+       .teamUpdated(.failure(.error)),
        .visitsUpdated(.failure(.error)):
     state.token = .refreshing
     
@@ -371,6 +391,12 @@ func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -
     
     state.requests.remove(.visits)
     
+    return .none
+  case .teamUpdated:
+    guard state.requests.contains(.team) else { return .none }
+
+    state.requests.remove(.team)
+
     return .none
   case .historyUpdated:
     guard state.requests.contains(.deviceHistory) else { return .none }
@@ -560,6 +586,7 @@ struct RequestingIntegrationEntitiesID: Hashable {}
 struct RequestingPlacesID: Hashable {}
 struct RequestingCreatePlaceID: Hashable {}
 struct RequestingProfileID: Hashable {}
+struct RequestingTeamID: Hashable {}
 struct RequestingTokenID: Hashable {}
 struct RequestingVisitsID: Hashable {}
 
@@ -629,6 +656,12 @@ extension OrderStatus {
     case .unsnooze: return RequestingUnsnoozeOrdersID()
     }
   }
+}
+
+func getTeam(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<String, APIError<Token.Expired>>, Never> {
+    return Effect(value: .success("")).flatMap { (result: Result<String, APIError<Token.Expired>>) -> Effect<Result<String, APIError<Token.Expired>>, Never> in
+            .init(value: .success(""))
+    }.eraseToEffect()
 }
 
 private let changeOrderStatusEffect = { (
@@ -732,6 +765,17 @@ let getProfileEffect = { (
     .eraseToEffect()
 }
 
+let getTeamEffect = { (
+  getTeam: Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
+  mainQueue: AnySchedulerOf<DispatchQueue>
+) in
+  getTeam
+    .cancellable(id: RequestingTeamID())
+    .receive(on: mainQueue)
+    .map(RequestAction.teamUpdated)
+    .eraseToEffect()
+}
+
 let getTokenEffect = { (
   getToken: Effect<Result<Token.Value, APIError<Never>>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
@@ -753,3 +797,4 @@ let getVisitsEffect = { (
     .map(RequestAction.visitsUpdated)
     .eraseToEffect()
 }
+

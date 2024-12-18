@@ -1,5 +1,5 @@
 public enum TabSelection: Equatable {
-  case map, orders, places, profile, visits
+  case map, visits, places, orders, profile, team
   
   public static let defaultTab = Self.map
 }
