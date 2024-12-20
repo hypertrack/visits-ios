@@ -130,7 +130,9 @@ public struct MainBlockState: Equatable {
   public let tabSelection: TabSelection
   public let team: TeamValue?
   public let version: AppVersion
-  public let visitsSummary: PlacesVisitsSummary?
+  public let visits: [Place.Visit]?
+  public let visitsDateFrom: Date
+  public let visitsDateTo: Date
   public let selectedTeamWorker: WorkerHandle?
   public let selectedVisit: Place.Visit?
 public let publishableKey: PublishableKey
@@ -150,7 +152,9 @@ public let publishableKey: PublishableKey
               tabSelection: TabSelection,
               team: TeamValue?,
               version: AppVersion,
-              visitsSummary: PlacesVisitsSummary?,
+              visits: [Place.Visit]?,
+              visitsDateFrom: Date,
+              visitsDateTo: Date,
               selectedTeamWorker: WorkerHandle?,
               selectedVisit: Place.Visit?,
               publishableKey: PublishableKey
@@ -170,7 +174,9 @@ public let publishableKey: PublishableKey
     self.tabSelection = tabSelection
     self.team = team
     self.version = version
-    self.visitsSummary = visitsSummary
+    self.visits = visits
+    self.visitsDateFrom = visitsDateFrom
+    self.visitsDateTo = visitsDateTo
     self.selectedTeamWorker = selectedTeamWorker
     self.selectedVisit = selectedVisit
     self.publishableKey = publishableKey
@@ -230,8 +236,10 @@ struct MainBlock: View {
 
       VisitsScreen(
         state: .init(
-          refreshing: state.requests.contains(Request.visits),
-            visits: state.visitsSummary?.visits ?? []
+          refreshing: state.visits == nil,
+            visits: state.visits ?? [],
+            from: state.visitsDateFrom,
+            to: state.visitsDateTo
         ),
         send: sendVisits
       )
@@ -260,7 +268,7 @@ struct MainBlock: View {
 
         TeamScreen(
           state: .init(
-            refreshing: state.requests.contains(Request.team),
+            refreshing: false,
             team: state.team
           ),
           send: sendTeam

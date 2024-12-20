@@ -40,7 +40,7 @@ public enum ErrorAlertLogicAction: Equatable {
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
   case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
-  case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
+  case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
 }
 
 // MARK: - Reducer

@@ -16,7 +16,7 @@ public extension APIEnvironment {
     getProfile: getProfile(_:_:),
     getTeam: getTeam(_:_:),
     getToken: getToken(_:_:),
-    getVisits: getVisits(_:_:_:_:),
+    getVisits: getVisits(_:_:from:to:),
     signIn: signIn(_:_:),
     updateOrderNote: updateOrderNote(_:_:_:_:_:)
   )

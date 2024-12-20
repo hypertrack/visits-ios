@@ -68,8 +68,8 @@ public enum AppAction: Equatable {
   case addPlace
   //   Visits
   case selectVisit(Place.Visit?)
-  case updateVisits
-  case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
+  case updateVisits(from: Date, to: Date)
+  case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
   case stubAction
   // Team
   case selectTeamWorker(WorkerHandle)

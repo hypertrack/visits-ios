@@ -51,7 +51,6 @@ struct VisitsList: View {
                     .fontWeight(.bold)
             }
         }
-        .navigationBarTitle(Text("Visits"), displayMode: .automatic)
     }
 }
 

@@ -2,7 +2,7 @@
 import NonEmpty
 import SwiftUI
 import Types
-import PlacesScreen
+//import PlacesScreen
 
 struct TeamList: View {
     let teamWorkers: [WorkerHandle]

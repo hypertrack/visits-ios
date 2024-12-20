@@ -103,11 +103,11 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
     case     .updateTeam:                                 return .updateTeam
-    case     .updateVisits:                               return .updateVisits
+    case let .updateVisits(from: from, to: to):           return .updateVisits(from: from, to: to)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
     case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
-    case let .visitsUpdated(vs):                          return .visitsUpdated(vs)
+    case let .visitsUpdated(vd):                          return .visitsUpdated(vd)
     default:                                              return nil
     }
   },
@@ -147,7 +147,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
     case     .updateTeam:                                 return .updateTeam
-    case     .updateVisits:                               return .updateVisits
+    case let .updateVisits(from: from, to: to):           return .updateVisits(from: from, to: to)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .visitsUpdated(v):                           return .visitsUpdated(v)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)

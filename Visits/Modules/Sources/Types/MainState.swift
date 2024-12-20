@@ -1,5 +1,6 @@
 import IdentifiedCollections
 import Utility
+import Foundation
 
 public struct MainState: Equatable {
   public var map: MapState
@@ -17,7 +18,9 @@ public struct MainState: Equatable {
   public var requests: Set<Request>
   public var team: TeamValue?
   public var token: Token?
-  public var visits: PlacesVisitsSummary?
+  public var visits: [Place.Visit]?
+  public var visitsDateFrom: Date
+  public var visitsDateTo: Date
   public var selectedTeamWorker: WorkerHandle?
   public var selectedVisit: Place.Visit?
 
@@ -37,7 +40,9 @@ public struct MainState: Equatable {
     requests: Set<Request> = [],
     team: TeamValue? = nil,
     token: Token? = nil,
-    visits: PlacesVisitsSummary? = nil,
+    visits: [Place.Visit]? = nil,
+    visitsDateFrom: Date = Date(),
+    visitsDateTo: Date = Date(),
     selectedTeamWorker: WorkerHandle? = nil,
     selectedVisit: Place.Visit? = nil
   ) {
@@ -57,6 +62,8 @@ public struct MainState: Equatable {
     self.team = team
     self.token = token
     self.visits = visits
+    self.visitsDateFrom = visitsDateFrom
+    self.visitsDateTo = visitsDateTo
     self.selectedTeamWorker = selectedTeamWorker
     self.selectedVisit = selectedVisit
   }

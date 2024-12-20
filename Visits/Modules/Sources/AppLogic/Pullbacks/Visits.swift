@@ -20,13 +20,17 @@ private let visitsStateAffine = /AppState.operational ** \.flow ** /AppFlow.main
 
 private let visitsStateLens = Lens<MainState, VisitsState>(
   get: { s in
-    .init(
-      visits: s.visits,
-      selected: s.selectedVisit
-    )
-  },
+      .init(
+        visits: s.visits,
+        selected: s.selectedVisit,
+        from: s.visitsDateFrom,
+        to: s.visitsDateTo
+      )  },
   set: { d in
-    \.visits *< d.visits <> \.selectedVisit *< d.selected
+      \.visits *< d.visits
+        <> \.selectedVisit *< d.selected
+        <> \.visitsDateFrom *< d.from
+        <> \.visitsDateTo *< d.to
   }
 )
 
@@ -34,15 +38,17 @@ private let visitsStateLens = Lens<MainState, VisitsState>(
 private let visitsActionPrism = Prism<AppAction, VisitsAction>(
   extract: { a in
     switch a {
-    case let .visitsUpdated(.success(ps)):  return .visitsUpdated(ps)
+    case let .updateVisits(from: f, to: t): return .updateVisits(from: f, to: t)
+    case let .visitsUpdated(.success(vd)):  return .visitsUpdated(vd)
     case let .selectVisit(p):               return .selectVisit(p)
     default:                                return nil
     }
   },
   embed: { a in
     switch a {
-    case let .visitsUpdated(ps):    return .visitsUpdated(.success(ps))
-    case let .selectVisit(p):       return .selectVisit(p)
+    case let .updateVisits(from: f, to: t): return .updateVisits(from: f, to: t)
+    case let .visitsUpdated(vd):            return .visitsUpdated(.success(vd))
+    case let .selectVisit(p):               return .selectVisit(p)
     }
   }
 )

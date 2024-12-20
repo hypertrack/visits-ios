@@ -38,7 +38,7 @@ public struct TeamScreen: View {
           TeamList(teamWorkers: getSubordinates(team: manager.subordinates))
         case let .l1Manager(manager):
           TeamList(teamWorkers: getSubordinates(team: manager.subordinates))
-        case let .l0Worker(worker):
+        case .l0Worker(_):
           Text("You don't have any subordinates")
         case .none:
           Text("No team data available")

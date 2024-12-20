@@ -123,7 +123,9 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            tabSelection: m.tab,
                            team: m.team,
                            version: o.version,
-                           visitsSummary: m.visits,
+                           visits: m.visits,
+                           visitsDateFrom: m.visitsDateFrom,
+                           visitsDateTo: m.visitsDateTo,
                            selectedTeamWorker: m.selectedTeamWorker,
                            selectedVisit: m.selectedVisit,
                            publishableKey: m.publishableKey
@@ -228,7 +230,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
-  case .visits(.refresh): return .updateVisits
+  case let .visits(.loadVisits(from: from, to: to)): return .updateVisits(from: from, to: to)
   case .visits(.copyToPasteboard(_)): return .stubAction
   case .visits(.selectVisit(_)): return .stubAction
   case .team(.refresh): return .updateTeam

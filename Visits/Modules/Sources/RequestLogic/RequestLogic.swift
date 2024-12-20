@@ -65,9 +65,9 @@ public enum RequestAction: Equatable {
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
-  case updateVisits
+  case updateVisits(from: Date, to: Date)
   case updateTeam
-  case visitsUpdated(Result<PlacesVisitsSummary, APIError<Token.Expired>>)
+  case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
 }
 
 // MARK: - Environment
@@ -87,7 +87,7 @@ public struct RequestEnvironment {
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
-  public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>
+  public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>
     
   public var reverseGeocode: (Coordinate) -> Effect<GeocodedResult, Never>
   public var updateOrderNote: (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
@@ -107,7 +107,7 @@ public struct RequestEnvironment {
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
-    getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
+    getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
     updateOrderNote: @escaping (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
@@ -172,7 +172,7 @@ public let requestReducer = Reducer<
   func getTeam(_ t: Token.Value, _ wh: WorkerHandle) -> Effect<RequestAction, Never> {
     getTeamEffect(environment.getTeam(t, wh), environment.mainQueue)
   }
-  func getVisits(_ t: Token.Value, _ wh: WorkerHandle, _ from: Date, _ to: Date) -> Effect<RequestAction, Never> {
+  func getVisits(_ t: Token.Value, _ wh: WorkerHandle, from: Date, to: Date) -> Effect<RequestAction, Never> {
     getVisitsEffect(environment.getVisits(t, wh, from, to), environment.mainQueue)
   }
 
@@ -186,8 +186,6 @@ public let requestReducer = Reducer<
       case .oldestActiveTrip:    return getTrip(t)
       case .placesAndVisits:   return getPlaces(t)
       case .deviceMetadata:  return getProfile(t)
-      case .visits:          return getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), environment.date(), environment.date())
-      case .team:            return getTeam(t, WorkerHandle.init("ram@hypertrack.io"))
       }
     }
   }
@@ -195,12 +193,10 @@ public let requestReducer = Reducer<
   func cancelRequest(request r: Request) -> Effect<RequestAction, Never> {
     let id: AnyHashable
     switch r {
-    case .deviceHistory:  id = RequestingHistoryID()
-    case .oldestActiveTrip:     id = RequestingTripsID()
-    case .placesAndVisits:   id = RequestingPlacesID()
-    case .deviceMetadata:  id = RequestingProfileID()
-    case .visits:          id = RequestingVisitsID()
-    case .team:            id = RequestingTeamID()
+    case .deviceHistory:            id = RequestingHistoryID()
+    case .oldestActiveTrip:         id = RequestingTripsID()
+    case .placesAndVisits:          id = RequestingPlacesID()
+    case .deviceMetadata:           id = RequestingProfileID()
     }
     return .cancel(id: id)
   }
@@ -223,9 +219,11 @@ public let requestReducer = Reducer<
     
     let (token, effects) = requestOrRefreshToken(state.token) { t in
       .merge(
+        // get all requests that are not already in progress
         state.requests.symmetricDifference(Request.allCases)
           .map(requestEffect(t))
           + [(isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none)]
+          + [ getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: environment.date(), to: environment.date()) ]
       )
     }
     
@@ -293,6 +291,16 @@ public let requestReducer = Reducer<
     state.requests.insert(.deviceHistory)
     
     return effects
+  case let .updateIntegrations(s):
+    guard case .integrated = state.integrationStatus
+    else { return environment.capture("Trying to search for integrations without an integrated status").fireAndForget() }
+
+    let (token, effects) = requestOrRefreshToken(state.token) { t in getIntegrationEntities(t, s) }
+
+    state.token = token
+    state.integrationStatus = .integrated(.refreshing(s))
+
+    return effects
   case .updateOrders:
     guard !state.requests.contains(.oldestActiveTrip) else { return .none }
     
@@ -311,22 +319,16 @@ public let requestReducer = Reducer<
     state.requests.insert(.placesAndVisits)
     
     return effects
-  case .updateVisits:
-    guard !state.requests.contains(.visits) else { return .none }
-    
-    let (token, effects) = requestOrRefreshToken(state.token, request: .visits |> flip(requestEffect))
+  case let .updateVisits(from: from, to: to):
+    let (token, effects) = requestOrRefreshToken(state.token) { t in getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: from, to: to) }
     
     state.token = token
-    state.requests.insert(.visits)
-    
+
     return effects
   case .updateTeam:
-    guard !state.requests.contains(.team) else { return .none }
-
-    let (token, effects) = requestOrRefreshToken(state.token, request: .team |> flip(requestEffect))
+      let (token, effects) = requestOrRefreshToken(state.token) { t in getTeam(t, WorkerHandle.init("ram@hypertrack.io")) }
 
     state.token = token
-    state.requests.insert(.team)
 
     return effects
   case .switchToProfile:
@@ -387,16 +389,8 @@ public let requestReducer = Reducer<
     
     return .none
   case .visitsUpdated:
-    guard state.requests.contains(.visits) else { return .none }
-    
-    state.requests.remove(.visits)
-    
     return .none
   case .teamUpdated:
-    guard state.requests.contains(.team) else { return .none }
-
-    state.requests.remove(.team)
-
     return .none
   case .historyUpdated:
     guard state.requests.contains(.deviceHistory) else { return .none }
@@ -410,16 +404,6 @@ public let requestReducer = Reducer<
     state.requests.remove(.deviceMetadata)
     
     return .none
-  case let .updateIntegrations(s):
-    guard case .integrated = state.integrationStatus
-    else { return environment.capture("Trying to search for integrations without an integrated status").fireAndForget() }
-    
-    let (token, effects) = requestOrRefreshToken(state.token) { t in getIntegrationEntities(t, s) }
-    
-    state.token = token
-    state.integrationStatus = .integrated(.refreshing(s))
-    
-    return effects
   case .integrationEntitiesUpdatedWithFailure,
        .integrationEntitiesUpdatedWithSuccess:
     
@@ -490,6 +474,8 @@ public let requestReducer = Reducer<
       resumeOrderCancellationAndCompletion
       +
       [requestIntegration]
+      +
+      [getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: environment.date(), to: environment.date())]
     )
   case .tokenUpdated(.failure):
     guard state.token == .refreshing else { return .none }
@@ -557,7 +543,9 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingPlacesID()),
       .cancel(id: RequestingCreatePlaceID()),
       .cancel(id: RequestingProfileID()),
+      .cancel(id: RequestingTeamID()),
       .cancel(id: RequestingTokenID()),
+      .cancel(id: RequestingVisitsID()),
       .init(value: .resetInProgressOrders)
     )
   case .switchToOrders, .switchToVisits, .resetInProgressOrders:
@@ -788,7 +776,7 @@ let getTokenEffect = { (
 }
 
 let getVisitsEffect = { (
-  getVisits: Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
+  getVisits: Effect<Result<VisitsData, APIError<Token.Expired>>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getVisits
