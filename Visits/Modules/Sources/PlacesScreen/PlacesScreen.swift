@@ -54,18 +54,6 @@ public struct PlacesScreen: View {
   public var body: some View {
     NavigationView {
       VStack {
-        Picker(
-          "",
-          selection: .init(
-            get: { state.presentation },
-            set: { send(.changePlacesPresentation($0)) }
-          )
-        ) {
-          Text("By Place").tag(PlacesPresentation.byPlace)
-          Text("By Visit").tag(PlacesPresentation.byVisit)
-        }
-        .pickerStyle(SegmentedPickerStyle())
-        .padding(.horizontal)
         PlacesList(
           placesToDisplay: state.placesToDisplay,
           visitsToDisplay: state.visitsToDisplay,
