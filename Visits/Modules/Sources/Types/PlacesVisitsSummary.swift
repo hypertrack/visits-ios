@@ -3,9 +3,9 @@ import NonEmpty
 
 
 public struct PlacesVisitsSummary: Equatable {
-    public var visits: [Place.Visit]
+    public var visits: [PlaceVisit]
 
-    public init(visits: [Place.Visit]) {
+    public init(visits: [PlaceVisit]) {
         self.visits = visits
     }
 }

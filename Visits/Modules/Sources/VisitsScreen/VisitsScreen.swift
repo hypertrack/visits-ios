@@ -6,13 +6,13 @@ import Views
 public struct VisitsScreen: View {
   public struct ScreenState {
     let refreshing: Bool
-    let visits: [Place.Visit]
+    let visits: [PlaceVisit]
     let from: Date
     let to: Date
 
     public init(
       refreshing: Bool,
-      visits: [Place.Visit],
+      visits: [PlaceVisit],
       from: Date,
       to: Date
     ) {

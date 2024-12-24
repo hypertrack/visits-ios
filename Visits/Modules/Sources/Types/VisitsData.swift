@@ -3,12 +3,12 @@ import Foundation
 public struct VisitsData: Equatable {
     public let from: Date
     public let to: Date
-    public let visits: [Place.Visit]
+    public let visits: [PlaceVisit]
 
     public init(
         from: Date,
         to: Date,
-        visits: [Place.Visit]
+        visits: [PlaceVisit]
     ) {
         self.from = from
         self.to = to

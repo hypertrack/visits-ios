@@ -73,7 +73,7 @@ func entryExitTime(entry: Date, exit: Date?) -> String {
   }
 }
 
-func today(_ date: Date) -> Bool {
+public func today(_ date: Date) -> Bool {
   Calendar.current.isDate(date, equalTo: Date(), toGranularity: .day)
 }
 

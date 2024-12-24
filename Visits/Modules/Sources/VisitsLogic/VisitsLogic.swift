@@ -6,14 +6,14 @@ import Utility
 // MARK: - State
 
 public struct VisitsState: Equatable {
-  public var visits: [Place.Visit]?
-  public var selected: Place.Visit?
+  public var visits: [PlaceVisit]?
+  public var selected: PlaceVisit?
   public var from: Date
   public var to: Date
   
   public init(
-    visits: [Place.Visit]?,
-    selected: Place.Visit?,
+    visits: [PlaceVisit]?,
+    selected: PlaceVisit?,
     from: Date,
     to: Date
   ) {
@@ -30,7 +30,7 @@ public struct VisitsState: Equatable {
 public enum VisitsAction: Equatable {
     case updateVisits(from: Date, to: Date)
     case visitsUpdated(VisitsData)
-    case selectVisit(Place.Visit?)
+    case selectVisit(PlaceVisit?)
 }
 
 // MARK: - Reducer

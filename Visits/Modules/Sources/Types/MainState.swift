@@ -18,11 +18,11 @@ public struct MainState: Equatable {
   public var requests: Set<Request>
   public var team: TeamValue?
   public var token: Token?
-  public var visits: [Place.Visit]?
+  public var visits: [PlaceVisit]?
   public var visitsDateFrom: Date
   public var visitsDateTo: Date
   public var selectedTeamWorker: WorkerHandle?
-  public var selectedVisit: Place.Visit?
+  public var selectedVisit: PlaceVisit?
 
   public init(
     map: MapState,
@@ -40,11 +40,11 @@ public struct MainState: Equatable {
     requests: Set<Request> = [],
     team: TeamValue? = nil,
     token: Token? = nil,
-    visits: [Place.Visit]? = nil,
+    visits: [PlaceVisit]? = nil,
     visitsDateFrom: Date = Date(),
     visitsDateTo: Date = Date(),
     selectedTeamWorker: WorkerHandle? = nil,
-    selectedVisit: Place.Visit? = nil
+    selectedVisit: PlaceVisit? = nil
   ) {
     self.map = map
     self.trip = trip

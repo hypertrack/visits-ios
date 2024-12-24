@@ -130,13 +130,12 @@ public struct MainBlockState: Equatable {
   public let tabSelection: TabSelection
   public let team: TeamValue?
   public let version: AppVersion
-  public let visits: [Place.Visit]?
+  public let visits: [PlaceVisit]?
   public let visitsDateFrom: Date
   public let visitsDateTo: Date
   public let selectedTeamWorker: WorkerHandle?
-  public let selectedVisit: Place.Visit?
-public let publishableKey: PublishableKey
-
+  public let selectedVisit: PlaceVisit?
+  public let publishableKey: PublishableKey
 
   public init(mapState: MapState,
               placesSummary: PlacesSummary?,
@@ -152,11 +151,11 @@ public let publishableKey: PublishableKey
               tabSelection: TabSelection,
               team: TeamValue?,
               version: AppVersion,
-              visits: [Place.Visit]?,
+              visits: [PlaceVisit]?,
               visitsDateFrom: Date,
               visitsDateTo: Date,
               selectedTeamWorker: WorkerHandle?,
-              selectedVisit: Place.Visit?,
+              selectedVisit: PlaceVisit?,
               publishableKey: PublishableKey
               )
   {
