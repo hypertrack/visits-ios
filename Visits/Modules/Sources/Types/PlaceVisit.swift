@@ -3,12 +3,16 @@ import NonEmpty
 import Tagged
 import Utility
 
-public struct PlaceVisit: Equatable {
+public struct PlaceVisit: Equatable, Hashable {
   public var address: NonEmptyString?
   public var duration: UInt
   public var entry: EntryTimestamp
   public var exit: ExitTimestamp?
   public var id: ID
+  public var integration: IntegrationEntity?
+  public var name: NonEmptyString? {
+    address
+  }
   public var route: Place.Route?
 
   public init(
@@ -17,6 +21,7 @@ public struct PlaceVisit: Equatable {
     entry: EntryTimestamp,
     exit: ExitTimestamp?,
     id: ID,
+    integration: IntegrationEntity? = nil,
     route: Place.Route? = nil
   ) {
     self.address = address
@@ -24,6 +29,7 @@ public struct PlaceVisit: Equatable {
     self.entry = entry
     self.exit = exit
     self.id = id
+    self.integration = integration
     self.route = route
   }
 

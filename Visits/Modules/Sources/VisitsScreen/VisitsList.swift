@@ -6,8 +6,8 @@ import Types
 
 struct VisitsList: View {
     let visitsToDisplay: [PlaceVisit]
-    let selected: NonEmptyString?
-    let select: (NonEmptyString?) -> Void
+    let selected: PlaceVisit?
+    let select: (PlaceVisit?) -> Void
     let copy: (NonEmptyString) -> Void
 
     var navigationLink: NavigationLink<EmptyView, VisitScreen>? {
@@ -33,7 +33,12 @@ struct VisitsList: View {
             navigationLink
             List {
                 ForEach(visitsToDisplay, id: \.id) { visit in
-                    VisitView.init(visit: visit)
+                    VisitView.init(
+                        onClick: {
+                            select(visit)
+                        },
+                        visit: visit
+                    )
                     .padding()
                 }
             }

@@ -231,8 +231,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
   case let .visits(.loadVisits(from: from, to: to)): return .updateVisits(from: from, to: to)
+  case let .visits(.selectVisit(v)): return .selectVisit(v)
   case .visits(.copyToPasteboard(_)): return .stubAction
-  case .visits(.selectVisit(_)): return .stubAction
   case .team(.refresh): return .updateTeam
   case .team(.selectTeamWorker(_)): return .stubAction
   }

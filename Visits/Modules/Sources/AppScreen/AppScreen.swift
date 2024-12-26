@@ -11,11 +11,11 @@ import ProfileScreen
 import SignInScreen
 import SummaryScreen
 import SwiftUI
+import TeamScreen
 import TripScreen
 import Types
 import Views
 import VisitsScreen
-import TeamScreen
 
 public struct AppScreen: View {
   public struct State {
@@ -156,8 +156,7 @@ public struct MainBlockState: Equatable {
               visitsDateTo: Date,
               selectedTeamWorker: WorkerHandle?,
               selectedVisit: PlaceVisit?,
-              publishableKey: PublishableKey
-              )
+              publishableKey: PublishableKey)
   {
     self.mapState = mapState
     self.placesSummary = placesSummary
@@ -235,10 +234,11 @@ struct MainBlock: View {
 
       VisitsScreen(
         state: .init(
+          from: state.visitsDateFrom,
           refreshing: state.visits == nil,
-            visits: state.visits ?? [],
-            from: state.visitsDateFrom,
-            to: state.visitsDateTo
+          selected: state.selectedVisit,
+          to: state.visitsDateTo,
+          visits: state.visits ?? []
         ),
         send: sendVisits
       )
@@ -265,18 +265,18 @@ struct MainBlock: View {
       }
       .tag(TabSelection.places)
 
-        TeamScreen(
-          state: .init(
-            refreshing: false,
-            team: state.team
-          ),
-          send: sendTeam
-        )
-        .tabItem {
-          Image(systemName: "person.2.circle.fill")
-          Text("Team")
-        }
-        .tag(TabSelection.team)
+      TeamScreen(
+        state: .init(
+          refreshing: false,
+          team: state.team
+        ),
+        send: sendTeam
+      )
+      .tabItem {
+        Image(systemName: "person.2.circle.fill")
+        Text("Team")
+      }
+      .tag(TabSelection.team)
 
       TripScreen(state: .init(trip: state.trip,
                               selected: state.selectedOrderId,
@@ -288,7 +288,6 @@ struct MainBlock: View {
           Text("Orders")
         }
         .tag(TabSelection.orders)
-
 
       ProfileScreen(
         state: .init(

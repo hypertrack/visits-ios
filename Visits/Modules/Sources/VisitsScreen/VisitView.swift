@@ -1,26 +1,34 @@
 import NonEmpty
-import SwiftUI
 import PlacesScreen
+import SwiftUI
 import Types
 
 public struct VisitView: View {
-    let visit: PlaceVisit
-    
-    public init(visit: PlaceVisit) {
-        self.visit = visit
-    }
-  
+  let visit: PlaceVisit
+  let onClick: () -> Void
+
+  public init(
+    onClick: @escaping () -> Void,
+    visit: PlaceVisit
+    ) {
+    self.onClick = onClick
+    self.visit = visit
+  }
+
   public var body: some View {
+    Button(action: {
+      onClick()
+    }) {
       VStack {
-          let address = visit.address?.rawValue
-        if (address != nil) {
-            Text(address!)
-          .font(.headline)
-          .foregroundColor(Color(.label))
-          .padding(.leading, 8)
+        let address = visit.address?.rawValue
+        if address != nil {
+          Text(address!)
+            .font(.headline)
+            .foregroundColor(Color(.label))
+            .padding(.leading, 8)
         }
         HStack {
-            Text(entryExitTime(entry: visit.entry.rawValue, exit: visit.exit?.rawValue))
+          Text(entryExitTime(entry: visit.entry.rawValue, exit: visit.exit?.rawValue))
             .font(.callout)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundColor(Color(.label))
@@ -33,13 +41,14 @@ public struct VisitView: View {
             Spacer()
           }
           if visit.route != nil {
-              Text("\(localizedDistance(visit.route!.distance.rawValue)), \(localizedTime(visit.route!.duration.rawValue, style: .full))")
+            Text("\(localizedDistance(visit.route!.distance.rawValue)), \(localizedTime(visit.route!.duration.rawValue, style: .full))")
               .font(.subheadline)
               .fixedSize(horizontal: false, vertical: true)
               .foregroundColor(Color(.secondaryLabel))
           }
         }
       }.clipShape(RoundedRectangle(cornerRadius: 8))
+    }
   }
 }
 

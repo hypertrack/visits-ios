@@ -5,27 +5,30 @@ import Views
 
 public struct VisitsScreen: View {
   public struct ScreenState {
-    let refreshing: Bool
-    let visits: [PlaceVisit]
     let from: Date
+    let refreshing: Bool
+    let selected: PlaceVisit?
     let to: Date
+    let visits: [PlaceVisit]
 
     public init(
-      refreshing: Bool,
-      visits: [PlaceVisit],
       from: Date,
-      to: Date
+      refreshing: Bool,
+      selected: PlaceVisit?,
+      to: Date,
+      visits: [PlaceVisit]
     ) {
-      self.refreshing = refreshing
-      self.visits = visits
       self.from = from
+      self.refreshing = refreshing
+      self.selected = selected
       self.to = to
+      self.visits = visits
     }
   }
 
   public enum Action: Equatable {
     case copyToPasteboard(NonEmptyString)
-    case selectVisit(NonEmptyString)
+    case selectVisit(PlaceVisit?)
     case loadVisits(from: Date, to: Date)
   }
 
@@ -67,8 +70,9 @@ public struct VisitsScreen: View {
                         Text("From")
                             .font(.normalHighBold)
                         Text("\(self.validationError == nil ? self.state.from : self.fromDate, formatter: dateFormatter)")
-                    }.padding()
-                }
+                        .foregroundColor(.primary)
+                    }
+                }.padding(.horizontal, 16)
                 
                 Spacer()
                 
@@ -82,12 +86,19 @@ public struct VisitsScreen: View {
                         Text("To")
                             .font(.normalHighBold)
                         Text("\(self.validationError == nil ? self.state.to : self.toDate, formatter: dateFormatter)")
-                    }.padding()
-                }
+                        .foregroundColor(.primary)
+                    }
+                }.padding(.horizontal, 16)
             }
             VStack {
                 if(validationError == nil) {
-                    VisitsList(visitsToDisplay: state.visits, selected: nil, select: { _ in }, copy: { _ in })
+                    VisitsList(
+                        visitsToDisplay: state.visits, selected: state.selected, 
+                      select: { visit in
+                        send(.selectVisit(visit))
+                      }, 
+                      copy: { _ in }
+                    )
                 } else {
                     Spacer()
                     Text(getErrorText())
