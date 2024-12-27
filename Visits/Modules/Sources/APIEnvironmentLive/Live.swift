@@ -15,6 +15,7 @@ public extension APIEnvironment {
     getPlaces: getPlaces(_:_:_:_:_:),
     getProfile: getProfile(_:_:),
     getToken: getToken(_:_:),
+    getVisits: getVisits(_:_:_:_:),
     signIn: signIn(_:_:),
     updateOrderNote: updateOrderNote(_:_:_:_:_:)
   )

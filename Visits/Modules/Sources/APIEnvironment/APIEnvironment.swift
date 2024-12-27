@@ -18,6 +18,7 @@ public struct APIEnvironment {
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
+    public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
   public var updateOrderNote: (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   
@@ -33,6 +34,7 @@ public struct APIEnvironment {
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
+    getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<PlacesVisitsSummary, APIError<Token.Expired>>, Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>,
     updateOrderNote: @escaping (Token.Value, DeviceID, Order, Trip.ID, Order.Note) -> Effect<(Order, Result<Terminal, APIError<Token.Expired>>), Never>
   ) {
@@ -47,6 +49,7 @@ public struct APIEnvironment {
     self.getPlaces = getPlaces
     self.getProfile = getProfile
     self.getToken = getToken
+    self.getVisits = getVisits
     self.signIn = signIn
     self.updateOrderNote = updateOrderNote
   }

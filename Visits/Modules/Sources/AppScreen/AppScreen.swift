@@ -6,22 +6,22 @@ import MapKit
 import MapScreen
 import OrderScreen
 import OrdersListScreen
-import TripScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
 import SummaryScreen
 import SwiftUI
+import TripScreen
 import Types
 import Views
+import VisitsScreen
 
 public struct AppScreen: View {
   public struct State {
     public var screen: Screen
     public var errorAlert: AlertState<ErrorAlertAction>?
     public var errorReportingAlert: AlertState<SendErrorReportAction>?
-    
-    
+
     public init(
       screen: AppScreen.Screen,
       errorAlert: AlertState<ErrorAlertAction>? = nil,
@@ -32,7 +32,7 @@ public struct AppScreen: View {
       self.errorReportingAlert = errorReportingAlert
     }
   }
-  
+
   public enum Screen {
     case loading
     case signIn(SignInState)
@@ -40,7 +40,7 @@ public struct AppScreen: View {
     case main(MainBlockState)
     case addPlace(AddPlace, Set<Place>)
   }
-  
+
   public enum Action {
     case addPlace(AddPlaceView.Action)
     case signIn(SignInScreenAction)
@@ -50,15 +50,16 @@ public struct AppScreen: View {
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
     case tab(TabSelection)
+    case visits(VisitsScreen.Action)
     case map(MapView.Action)
     case errorAlert(ErrorAlertAction)
     case errorReportingAlert(SendErrorReportAction)
   }
-  
+
   let store: Store<State, Action>
-  
+
   public init(store: Store<State, Action>) { self.store = store }
-  
+
   public var body: some View {
     WithViewStore(store) { viewStore in
       Group {
@@ -87,7 +88,8 @@ public struct AppScreen: View {
             sendOrders: { viewStore.send(.orders($0)) },
             sendPlaces: { viewStore.send(.places($0)) },
             sendProfile: { viewStore.send(.profile($0)) },
-            sendTab: { viewStore.send(.tab($0)) }
+            sendTab: { viewStore.send(.tab($0)) },
+            sendVisits: { viewStore.send(.visits($0)) }
           )
         case let .addPlace(adding, places):
           AddPlaceView(
@@ -124,7 +126,7 @@ public struct MainBlockState: Equatable {
   public let deviceID: DeviceID
   public let tabSelection: TabSelection
   public let version: AppVersion
-  
+
   public init(mapState: MapState,
               placesSummary: PlacesSummary?,
               selectedPlace: Place?,
@@ -137,7 +139,8 @@ public struct MainBlockState: Equatable {
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
               tabSelection: TabSelection,
-              version: AppVersion) {
+              version: AppVersion)
+  {
     self.mapState = mapState
     self.placesSummary = placesSummary
     self.selectedPlace = selectedPlace
@@ -155,7 +158,6 @@ public struct MainBlockState: Equatable {
 }
 
 struct MainBlock: View {
-  
   let state: MainBlockState
   let sendMap: (MapView.Action) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
@@ -163,7 +165,8 @@ struct MainBlock: View {
   let sendPlaces: (PlacesScreen.Action) -> Void
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
-  
+  let sendVisits: (VisitsScreen.Action) -> Void
+
   var body: some View {
     TabView(
       selection: Binding(
@@ -171,7 +174,7 @@ struct MainBlock: View {
         set: { sendTab($0) }
       )
     ) {
-      ZStack() {
+      ZStack {
         MapView(
           state: .init(
             autoZoom: state.mapState.autoZoom,
@@ -204,6 +207,18 @@ struct MainBlock: View {
       }
       .tag(TabSelection.map)
 
+      VisitsScreen(
+        state: .init(
+          refreshing: true
+        ),
+        send: sendVisits
+      )
+      .tabItem {
+        Image(systemName: "location.circle.fill")
+        Text("Visits")
+      }
+      .tag(TabSelection.visits)
+
       PlacesScreen(
         state: .init(
           places: state.placesSummary,
@@ -215,40 +230,22 @@ struct MainBlock: View {
         ),
         send: sendPlaces
       )
-        .tabItem {
-          Image(systemName: "mappin.circle.fill")
-          Text("Places")
-        }
-        .tag(TabSelection.places)
-
-        PlacesScreen(
-          state: .init(
-            places: state.placesSummary,
-            selected: state.selectedPlace,
-            presentation: state.placesPresentation,
-            refreshing: state.requests.contains(Request.placesAndVisits),
-            integrationStatus: state.integrationStatus,
-            coordinates: state.history?.coordinates ?? []
-          ),
-          send: sendPlaces
-        )
-          .tabItem {
-            Image(systemName: "mappin.circle.fill")
-            Text("Visits")
-          }
-          .tag(TabSelection.visits)
+      .tabItem {
+        Image(systemName: "mappin.circle.fill")
+        Text("Places")
+      }
+      .tag(TabSelection.places)
 
       TripScreen(state: .init(trip: state.trip,
-                                    selected: state.selectedOrderId,
-                                    refreshing: state.requests.contains(Request.oldestActiveTrip)),
-                             send: sendOrders,
-                             sendOrderAction: sendOrder)
-              .tabItem {
-                Image(systemName: "checkmark.square.fill")
-                Text("Orders")
-              }
-              .tag(TabSelection.orders)
-      
+                              selected: state.selectedOrderId,
+                              refreshing: state.requests.contains(Request.oldestActiveTrip)),
+                 send: sendOrders,
+                 sendOrderAction: sendOrder)
+        .tabItem {
+          Image(systemName: "checkmark.square.fill")
+          Text("Orders")
+        }
+        .tag(TabSelection.orders)
       ProfileScreen(
         state: .init(
           profile: state.profile,

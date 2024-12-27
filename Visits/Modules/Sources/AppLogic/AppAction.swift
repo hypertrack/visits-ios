@@ -30,6 +30,8 @@ public enum AppAction: Equatable {
   case mapEnableAutoZoom
   case openInMaps(Coordinate, Address)
   case reverseGeocoded(GeocodedResult)
+    // Visits
+    case stubAction
   // Requests
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case cancelAllRequests

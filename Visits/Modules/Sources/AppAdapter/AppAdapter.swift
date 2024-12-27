@@ -222,6 +222,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
+  case .visits(_): return .stubAction
   }
 }
 
