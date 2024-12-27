@@ -179,7 +179,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .order(.tappedOutsideFocusedTextField(oid)): return .orderDismissFocus(oid)
   case .tab(.map): return .switchToMap
   case .tab(.orders): return .switchToOrders
-  case .tab(.summary): return .switchToSummary
+  case .tab(.visits): return .switchToVisits
   case .tab(.profile): return .switchToProfile
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange

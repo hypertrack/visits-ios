@@ -60,7 +60,7 @@ public enum RequestAction: Equatable {
   case switchToOrders
   case switchToPlaces
   case switchToProfile
-  case switchToSummary
+  case switchToVisits
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
@@ -290,7 +290,7 @@ public let requestReducer = Reducer<
     state.requests.insert(.placesAndVisits)
     
     return effects
-  case .switchToProfile, .switchToSummary:
+  case .switchToProfile:
     guard !state.requests.contains(.deviceMetadata) else { return .none }
     
     let (token, effects) = requestOrRefreshToken(state.token, request: .deviceMetadata |> flip(requestEffect))
@@ -507,7 +507,7 @@ public let requestReducer = Reducer<
       .cancel(id: RequestingTokenID()),
       .init(value: .resetInProgressOrders)
     )
-  case .switchToOrders, .resetInProgressOrders:
+  case .switchToOrders, .switchToVisits, .resetInProgressOrders:
     return .none
   }
 }

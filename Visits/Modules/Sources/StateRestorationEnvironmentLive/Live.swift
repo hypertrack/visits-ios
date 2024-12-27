@@ -176,7 +176,7 @@ extension TabSelection {
   private static let mapKey: NonEmptyString = "map"
   private static let ordersKey: NonEmptyString = "orders"
   private static let placesKey: NonEmptyString = "places"
-  private static let summaryKey: NonEmptyString = "summary"
+  private static let visitsKey: NonEmptyString = "visits"
   private static let profileKey: NonEmptyString = "profile"
   
   static let prism: Prism<NonEmptyString, Self> = .init(
@@ -185,8 +185,8 @@ extension TabSelection {
       case mapKey:     return .map
       case ordersKey:  return .orders
       case placesKey:  return .places
-      case summaryKey: return .summary
       case profileKey: return .profile
+      case visitsKey:  return .visits
       default:         return nil
       }
     },
@@ -195,8 +195,8 @@ extension TabSelection {
       case .map:     return mapKey
       case .orders:  return ordersKey
       case .places:  return placesKey
-      case .summary: return summaryKey
       case .profile: return profileKey
+      case .visits:  return visitsKey
       }
     }
   )

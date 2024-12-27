@@ -109,7 +109,7 @@ public enum AppAction: Equatable {
   case switchToOrders
   case switchToPlaces
   case switchToMap
-  case switchToSummary
+  case switchToVisits
   case switchToProfile
   // History
   case historyUpdated(Result<History, APIError<Token.Expired>>)

@@ -84,24 +84,7 @@ extension AppState {
            <> \.tab *< .map
     )
   )
-  
-  static let summaryScreenshot = Self.operational(
-    operational_ |> \.flow *< .main(
-      main |> \.history *< .some(
-                             History(
-                               coordinates: [],
-                               trackedDuration: 20100,
-                               driveDistance: 16898,
-                               driveDuration: 11100,
-                               walkSteps: 2345,
-                               walkDuration: 2100,
-                               stopDuration: 6900
-                             )
-                           )
-           <> \.tab *< .summary
-    )
-  )
-  
+    
   static let profileScreenshot = Self.operational(
     operational_ |> \.flow *< .main(
       main |> \.tab *< .profile

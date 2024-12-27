@@ -25,8 +25,8 @@ private let tabActionPrism = Prism<AppAction, TabAction>(
     case     .switchToMap:           return .switchTo(.map)
     case     .switchToOrders:        return .switchTo(.orders)
     case     .switchToPlaces:        return .switchTo(.places)
-    case     .switchToSummary:       return .switchTo(.summary)
     case     .switchToProfile:       return .switchTo(.profile)
+    case     .switchToVisits:       return .switchTo(.visits)
     default:                         return nil
     }
   },
@@ -37,8 +37,8 @@ private let tabActionPrism = Prism<AppAction, TabAction>(
     case     .switchTo(.map):     return .switchToMap
     case     .switchTo(.orders):  return .switchToOrders
     case     .switchTo(.places):  return .switchToPlaces
-    case     .switchTo(.summary): return .switchToSummary
     case     .switchTo(.profile): return .switchToProfile
+    case     .switchTo(.visits): return .switchToVisits
     }
   }
 )

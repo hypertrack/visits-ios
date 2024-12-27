@@ -231,22 +231,23 @@ struct MainBlock: View {
           Text("Places")
         }
         .tag(TabSelection.places)
-      
-      SummaryScreen(
-        state: .init(
-          trackedDuration: state.history?.trackedDuration ?? 0,
-          driveDistance: state.history?.driveDistance ?? 0,
-          driveDuration: state.history?.driveDuration ?? 0,
-          walkSteps: state.history?.walkSteps ?? 0,
-          walkDuration: state.history?.walkDuration ?? 0,
-          stopDuration: state.history?.stopDuration ?? 0
+        
+        PlacesScreen(
+          state: .init(
+            places: state.placesSummary,
+            selected: state.selectedPlace,
+            presentation: state.placesPresentation,
+            refreshing: state.requests.contains(Request.placesAndVisits),
+            integrationStatus: state.integrationStatus,
+            coordinates: state.history?.coordinates ?? []
+          ),
+          send: sendPlaces
         )
-      )
-      .tabItem {
-        Image(systemName: "clock.fill")
-        Text("Summary")
-      }
-      .tag(TabSelection.summary)
+          .tabItem {
+            Image(systemName: "mappin.circle.fill")
+            Text("Visits")
+          }
+          .tag(TabSelection.visits)
       
       ProfileScreen(
         state: .init(
