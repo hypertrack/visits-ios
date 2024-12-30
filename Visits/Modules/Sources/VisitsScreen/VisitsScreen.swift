@@ -9,14 +9,14 @@ public struct VisitsScreen: View {
     let refreshing: Bool
     let selected: PlaceVisit?
     let to: Date
-    let visits: [PlaceVisit]
+    let visits: VisitsData?
 
     public init(
       from: Date,
       refreshing: Bool,
       selected: PlaceVisit?,
       to: Date,
-      visits: [PlaceVisit]
+      visits: VisitsData?
     ) {
       self.from = from
       self.refreshing = refreshing
@@ -40,7 +40,7 @@ public struct VisitsScreen: View {
   @State private var showFromDatePicker: Bool = false
   @State private var showToDatePicker: Bool = false
   @State private var validationError: DatesValidationError? = nil
-    
+
   let calendar = Calendar.current
 
   private var dateFormatter: DateFormatter {
@@ -59,62 +59,97 @@ public struct VisitsScreen: View {
 
   public var body: some View {
     NavigationView {
-        VStack {
-            HStack {
-                Button(action: {
-                    if !self.state.refreshing {
-                        showFromDatePicker.toggle()
-                    }
-                }) {
-                    VStack {
-                        Text("From")
-                            .font(.normalHighBold)
-                        Text("\(self.validationError == nil ? self.state.from : self.fromDate, formatter: dateFormatter)")
-                        .foregroundColor(.primary)
-                    }
-                }.padding(.horizontal, 16)
-                
-                Spacer()
-                
-                Button(action: {
-                    if !self.state.refreshing {
-                        showToDatePicker.toggle()
-                    }
-                }
-                ) {
-                    VStack {
-                        Text("To")
-                            .font(.normalHighBold)
-                        Text("\(self.validationError == nil ? self.state.to : self.toDate, formatter: dateFormatter)")
-                        .foregroundColor(.primary)
-                    }
-                }.padding(.horizontal, 16)
+      VStack {
+        HStack {
+          Button(action: {
+            if !self.state.refreshing {
+              showFromDatePicker.toggle()
             }
+          }) {
             VStack {
-                if(validationError == nil) {
-                    VisitsList(
-                        visitsToDisplay: state.visits, selected: state.selected, 
-                      select: { visit in
-                        send(.selectVisit(visit))
-                      }, 
-                      copy: { _ in }
-                    )
-                } else {
-                    Spacer()
-                    Text(getErrorText())
-                    Spacer()
-                }
+              Text("From")
+                .font(.normalHighBold)
+              Text("\(self.validationError == nil ? self.state.from : self.fromDate, formatter: dateFormatter)")
+                .foregroundColor(.primary)
             }
-            .navigationBarTitle(Text("Visits"), displayMode: .automatic)
-        
-      }
-    .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-            RefreshButton(state: self.state.refreshing ? .refreshing : .enabled) {
-                send(.loadVisits(from: self.state.from, to: self.state.to))
+          }.padding(.horizontal, 16)
+
+          Spacer()
+
+          Button(action: {
+            if !self.state.refreshing {
+              showToDatePicker.toggle()
             }
+          }
+          ) {
+            VStack {
+              Text("To")
+                .font(.normalHighBold)
+              Text("\(self.validationError == nil ? self.state.to : self.toDate, formatter: dateFormatter)")
+                .foregroundColor(.primary)
+            }
+          }.padding(.horizontal, 16)
         }
-    }
+        VStack {
+            if let visits = state.visits, validationError == nil {
+              HStack {
+              VStack {
+                  Text("\(visits.summary.visitsNumber)")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                Text("Visits")
+                      .font(.tinyMedium)
+              }
+              Spacer()
+              VStack {
+                Text("\(visits.summary.visitedPlacesNumber)")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                Text("Places")
+                  .font(.tinyMedium)
+              }
+              Spacer()
+              VStack {
+                Text("\(visits.summary.timeSpentInsideGeofences)")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                Text("Spent")
+                  .font(.tinyMedium)
+              }
+              Spacer()
+              VStack {
+                Text("\(visits.summary.totalDriveDistance)")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                Text("Traveled")
+                  .font(.tinyMedium)
+              }
+            }
+              .padding(.top, 8)
+              .padding(.horizontal, 16)
+            VisitsList(
+              visitsToDisplay: state.visits?.visits ?? [],
+              selected: state.selected,
+              select: { visit in
+                send(.selectVisit(visit))
+              },
+              copy: { _ in }
+            )
+          } else {
+            Spacer()
+            Text(getErrorText())
+            Spacer()
+          }
+        }
+        .navigationBarTitle(Text("Visits"), displayMode: .automatic)
+      }
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          RefreshButton(state: self.state.refreshing ? .refreshing : .enabled) {
+            send(.loadVisits(from: self.state.from, to: self.state.to))
+          }
+        }
+      }
       .sheet(isPresented: $showFromDatePicker, onDismiss: {
         onFromChanged()
       }) {
@@ -132,7 +167,7 @@ public struct VisitsScreen: View {
       }
       .sheet(isPresented: $showToDatePicker, onDismiss: {
         onToChanged()
-        }) {
+      }) {
         VStack {
           Text("To date:")
             .font(.title)
@@ -153,10 +188,10 @@ public struct VisitsScreen: View {
     let result = validate(settingFrom: true, from: fromDate, to: toDate)
     switch result {
     case .success:
-        validationError = nil
+      validationError = nil
       send(.loadVisits(from: fromDate, to: toDate))
     case let .failure(error):
-        validationError = error
+      validationError = error
     }
   }
 
@@ -164,10 +199,10 @@ public struct VisitsScreen: View {
     let result = validate(settingFrom: false, from: fromDate, to: toDate)
     switch result {
     case .success:
-        validationError = nil
+      validationError = nil
       send(.loadVisits(from: fromDate, to: toDate))
     case let .failure(error):
-        validationError = error
+      validationError = error
     }
   }
 

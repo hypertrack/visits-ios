@@ -130,7 +130,7 @@ public struct MainBlockState: Equatable {
   public let tabSelection: TabSelection
   public let team: TeamValue?
   public let version: AppVersion
-  public let visits: [PlaceVisit]?
+  public let visits: VisitsData?
   public let visitsDateFrom: Date
   public let visitsDateTo: Date
   public let selectedTeamWorker: WorkerHandle?
@@ -151,7 +151,7 @@ public struct MainBlockState: Equatable {
               tabSelection: TabSelection,
               team: TeamValue?,
               version: AppVersion,
-              visits: [PlaceVisit]?,
+              visits: VisitsData?,
               visitsDateFrom: Date,
               visitsDateTo: Date,
               selectedTeamWorker: WorkerHandle?,
@@ -238,7 +238,7 @@ struct MainBlock: View {
           refreshing: state.visits == nil,
           selected: state.selectedVisit,
           to: state.visitsDateTo,
-          visits: state.visits ?? []
+          visits: state.visits
         ),
         send: sendVisits
       )

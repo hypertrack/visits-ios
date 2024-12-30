@@ -18,7 +18,7 @@ public struct MainState: Equatable {
   public var requests: Set<Request>
   public var team: TeamValue?
   public var token: Token?
-  public var visits: [PlaceVisit]?
+  public var visits: VisitsData?
   public var visitsDateFrom: Date
   public var visitsDateTo: Date
   public var selectedTeamWorker: WorkerHandle?
@@ -40,7 +40,7 @@ public struct MainState: Equatable {
     requests: Set<Request> = [],
     team: TeamValue? = nil,
     token: Token? = nil,
-    visits: [PlaceVisit]? = nil,
+    visits: VisitsData? = nil,
     visitsDateFrom: Date = Date(),
     visitsDateTo: Date = Date(),
     selectedTeamWorker: WorkerHandle? = nil,

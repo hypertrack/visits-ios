@@ -12,12 +12,20 @@ import PlacesScreen
 func getVisits(_ token: Token.Value, _ wh: WorkerHandle, from: Date, to: Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never> {
   logEffect("getVisits")
 
-  return callAPI(
-    request: placesVisitsRequest(auth: token, workerHandle: wh, from: from, to: to, paginationToken: nil),
-    success: VisitsResponse.self
+  return Publishers.Zip(
+    callAPI(
+      request: placesVisitsRequest(auth: token, workerHandle: wh, from: from, to: to, paginationToken: nil),
+      success: VisitsResponse.self
+    ).mapError(fromNever)
+        .eraseToAnyPublisher(),
+    callAPI(
+      request: workerSummaryRequest(auth: token, workerHandle: wh, from: from, to: to),
+      success: RemoteWorker.self
+    ).mapError(fromNever)
+        .eraseToAnyPublisher()
   )
-  .mapError(fromNever)
   .map(toPlacesVisitsSummary(from: from, to: to))
+  .mapError(fromNever)
   .eraseToAnyPublisher()
   .catchToEffect()
 }
@@ -30,12 +38,20 @@ private func date(hour: Int, minute: Int, second: Int) -> Date {
   Calendar.current.date(bySettingHour: hour, minute: minute, second: second, of: Date())!
 }
 
-func toPlacesVisitsSummary(from: Date, to: Date) -> (VisitsResponse) -> VisitsData {
-  { response in
-    let visits: [RemoteVisit] = response.orders?.compactMap { $0.visits }.flatMap { $0 } ?? []
+func toPlacesVisitsSummary(from: Date, to: Date) -> (VisitsResponse, RemoteWorker) -> VisitsData {
+    { visitsResponse, worker  in
+    let visits: [RemoteVisit] = visitsResponse.orders?.compactMap { $0.visits }.flatMap { $0 } ?? []
     return VisitsData(
       from: from,
       to: to,
+      summary: .init(
+        timeSpentInsideGeofences: worker.summary?.timeSpentInsideGeofences ?? 0,
+        totalDriveDistance: worker.summary?.totalDriveDistance ?? 0,
+        // ignoring remote visits number to avoid data mismatch
+        visitsNumber: visits.count,
+        // this value is not present in the response, counting locally
+        visitedPlacesNumber: Set(visits.compactMap { $0.geofenceAddress }).count
+      ),
       visits: visits.compactMap { remoteVisit in
         if let visitId = remoteVisit.visitId,
           case let .some(id) = NonEmptyString(rawValue: visitId),

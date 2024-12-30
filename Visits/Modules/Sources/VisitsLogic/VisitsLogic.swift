@@ -6,13 +6,13 @@ import Utility
 // MARK: - State
 
 public struct VisitsState: Equatable {
-  public var visits: [PlaceVisit]?
+  public var visits: VisitsData?
   public var selected: PlaceVisit?
   public var from: Date
   public var to: Date
   
   public init(
-    visits: [PlaceVisit]?,
+    visits: VisitsData?,
     selected: PlaceVisit?,
     from: Date,
     to: Date
@@ -44,7 +44,7 @@ public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, act
       
     return .none
   case let .visitsUpdated(vd):
-    state.visits = vd.visits
+    state.visits = vd
       
     return .none
 
