@@ -15,14 +15,25 @@ public struct RequestState: Equatable {
   public var deviceID: DeviceID
   public var publishableKey: PublishableKey
   public var token: Token?
-  
-  public init(requests: Set<Request>, trip: Trip?, history: History? = nil, integrationStatus: IntegrationStatus, deviceID: DeviceID, publishableKey: PublishableKey, token: Token? = nil) {
+  public var workerHandle: WorkerHandle
+
+  public init(
+    requests: Set<Request>,
+    trip: Trip?,
+    history: History? = nil,
+    integrationStatus: IntegrationStatus,
+    deviceID: DeviceID,
+    publishableKey: PublishableKey,
+    token: Token? = nil,
+    workerHandle: WorkerHandle
+  ) {
     self.requests = requests
     self.trip = trip
     self.integrationStatus = integrationStatus
     self.deviceID = deviceID
     self.publishableKey = publishableKey
     self.token = token
+    self.workerHandle = workerHandle
   }
 }
 
@@ -65,7 +76,7 @@ public enum RequestAction: Equatable {
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
-  case updateVisits(from: Date, to: Date)
+  case updateVisits(from: Date, to: Date, WorkerHandle)
   case updateTeam
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
 }
@@ -217,13 +228,15 @@ public let requestReducer = Reducer<
        .refreshAllRequests:
     let isIntegrationCheckPending = state.integrationStatus == .unknown
     
+    // Initial loading of the app data is performed here
     let (token, effects) = requestOrRefreshToken(state.token) { t in
       .merge(
         // get all requests that are not already in progress
         state.requests.symmetricDifference(Request.allCases)
           .map(requestEffect(t))
           + [(isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none)]
-          + [ getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: environment.date(), to: environment.date()) ]
+          + [ getVisits(t, state.workerHandle, from: environment.date(), to: environment.date()) ]
+          + [ getTeam(t, state.workerHandle) ]
       )
     }
     
@@ -319,8 +332,8 @@ public let requestReducer = Reducer<
     state.requests.insert(.placesAndVisits)
     
     return effects
-  case let .updateVisits(from: from, to: to):
-    let (token, effects) = requestOrRefreshToken(state.token) { t in getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: from, to: to) }
+  case let .updateVisits(from: from, to: to, wh):
+    let (token, effects) = requestOrRefreshToken(state.token) { t in getVisits(t, wh, from: from, to: to) }
     
     state.token = token
 
@@ -468,6 +481,7 @@ public let requestReducer = Reducer<
       resumeOrderCancellationAndCompletion = []
     }
 
+    // Initial app data loading after the token is updated
     return .merge(
       state.requests.map(requestEffect(t))
       +
@@ -475,7 +489,9 @@ public let requestReducer = Reducer<
       +
       [requestIntegration]
       +
-      [getVisits(t, WorkerHandle.init("pavel@hypertrack.io"), from: environment.date(), to: environment.date())]
+      [ getVisits(t, state.workerHandle, from: environment.date(), to: environment.date()) ]
+      +
+      [ getTeam(t, state.workerHandle) ]
     )
   case .tokenUpdated(.failure):
     guard state.token == .refreshing else { return .none }

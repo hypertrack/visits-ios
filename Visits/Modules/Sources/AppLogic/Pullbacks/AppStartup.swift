@@ -73,7 +73,7 @@ private func appStartupStatePrismExtract(_ s: AppState) -> AppStartupDomain? {
                          && m.history            == nil
                          && m.profile.metadata   == [:]
                          && m.integrationStatus  == .unknown:
-      flow = .main(m.tab, m.publishableKey, m.profile.name)
+        flow = .main(m.tab, m.publishableKey, m.profile.name, m.workerHandle)
     default:
       return nil
     }
@@ -108,8 +108,16 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
         flow = .firstRun
       case let .signIn(e):
         flow = .signIn(.entering(.init(email: e)))
-      case let .main(ts, pk, n):
-        flow = .main(.init(map: .initialState, trip: nil, places: nil, tab: ts, publishableKey: pk, profile: .init(name: n, metadata: [:])))
+      case let .main(ts, pk, n, wh):
+        flow = .main(.init(
+          map: .initialState, 
+          trip: nil, 
+          places: nil, 
+          tab: ts, 
+          publishableKey: pk, 
+          profile: .init(name: n, metadata: [:]),
+          workerHandle: wh
+          ))
       }
       return .operational(
         .init(

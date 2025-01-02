@@ -11,7 +11,7 @@ public struct SDKInitializationState: Equatable {
   
   public enum Status: Equatable {
     case uninitialized(Email, Password)
-    case initialized(Profile)
+    case initialized(Profile, WorkerHandle)
   }
   
   public init(sdk: SDKStatusUpdate, status: SDKInitializationState.Status) {
@@ -56,7 +56,7 @@ public let sdkInitializationReducer = Reducer<
     let metadata: JSON.Object = ["email": .string(email.string)]
     
     state.sdk = sdk
-    state.status = .initialized(.init(name: name, metadata: metadata))
+      state.status = .initialized(.init(name: name, metadata: metadata), WorkerHandle(email.rawValue))
     
     return .merge(
       environment.setName(name)

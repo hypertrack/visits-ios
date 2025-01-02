@@ -2,7 +2,6 @@ import ComposableArchitecture
 import Types
 import Utility
 
-
 // MARK: - State
 
 public struct VisitsState: Equatable {
@@ -10,41 +9,39 @@ public struct VisitsState: Equatable {
   public var selected: PlaceVisit?
   public var from: Date
   public var to: Date
-  
+  public var workerHandle: WorkerHandle
+
   public init(
     visits: VisitsData?,
     selected: PlaceVisit?,
     from: Date,
-    to: Date
+    to: Date,
+    workerHandle: WorkerHandle
   ) {
     self.visits = visits
     self.selected = selected
     self.from = from
     self.to = to
+    self.workerHandle = workerHandle
   }
 }
 
-
-// MARK: - Action
-
-public enum VisitsAction: Equatable {
-    case updateVisits(from: Date, to: Date)
-    case visitsUpdated(VisitsData)
-    case selectVisit(PlaceVisit?)
-}
+// VisitsAction is in Types because it is used in Team logic
 
 // MARK: - Reducer
 
 public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, action, _ in
   switch action {
-  case let .updateVisits(from, to):
+  case let .updateVisits(from: from, to: to, wh):
     state.from = from
     state.to = to
     state.visits = nil
       
     return .none
   case let .visitsUpdated(vd):
-    state.visits = vd
+    if(vd.workerHandle == state.workerHandle) {
+      state.visits = vd
+    }
       
     return .none
 

@@ -120,14 +120,15 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            profile: m.profile,
                            integrationStatus: m.integrationStatus,
                            deviceID: deID,
+                           selectedTeamWorker: m.selectedTeamWorker,
+                           selectedVisit: m.selectedVisit,
                            tabSelection: m.tab,
                            team: m.team,
                            version: o.version,
                            visits: m.visits,
                            visitsDateFrom: m.visitsDateFrom,
                            visitsDateTo: m.visitsDateTo,
-                           selectedTeamWorker: m.selectedTeamWorker,
-                           selectedVisit: m.selectedVisit,
+                           workerHandle: m.workerHandle,
                            publishableKey: m.publishableKey
                            )
           )
@@ -230,11 +231,17 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
-  case let .visits(.loadVisits(from: from, to: to)): return .updateVisits(from: from, to: to)
+  case let .visits(.loadVisits(from: from, to: to, wh)): return .updateVisits(from: from, to: to, wh)
   case let .visits(.selectVisit(v)): return .selectVisit(v)
-  case .visits(.copyToPasteboard(_)): return .stubAction
+  case let .visits(.copyToPasteboard(i)): return .copyToPasteboard(i)
   case .team(.refresh): return .updateTeam
-  case .team(.selectTeamWorker(_)): return .stubAction
+  case let .team(.selectTeamWorker(wh)): return .selectTeamWorker(wh)
+  case let .team(.teamWorkerVisitsAction(a, _)):
+      switch a {
+          case let .copyToPasteboard(i):                return .copyToPasteboard(i)
+          case let .selectVisit(v):                     return .teamWorkerVisitsAction(.selectVisit(v))
+          case let .loadVisits(from: from, to: to, wh): return .updateVisits(from: from, to: to, wh)
+      }
   }
 }
 

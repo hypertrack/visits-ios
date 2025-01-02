@@ -24,7 +24,7 @@ func getVisits(_ token: Token.Value, _ wh: WorkerHandle, from: Date, to: Date) -
     ).mapError(fromNever)
         .eraseToAnyPublisher()
   )
-  .map(toPlacesVisitsSummary(from: from, to: to))
+  .map(toPlacesVisitsSummary(from: from, to: to, wh))
   .mapError(fromNever)
   .eraseToAnyPublisher()
   .catchToEffect()
@@ -38,7 +38,7 @@ private func date(hour: Int, minute: Int, second: Int) -> Date {
   Calendar.current.date(bySettingHour: hour, minute: minute, second: second, of: Date())!
 }
 
-func toPlacesVisitsSummary(from: Date, to: Date) -> (VisitsResponse, RemoteWorker) -> VisitsData {
+func toPlacesVisitsSummary(from: Date, to: Date, _ workerHandle: WorkerHandle) -> (VisitsResponse, RemoteWorker) -> VisitsData {
     { visitsResponse, worker  in
     let visits: [RemoteVisit] = visitsResponse.orders?.compactMap { $0.visits }.flatMap { $0 } ?? []
     return VisitsData(
@@ -91,7 +91,7 @@ func toPlacesVisitsSummary(from: Date, to: Date) -> (VisitsResponse, RemoteWorke
         } else {
           return nil
         }
-      }
+      }, workerHandle: workerHandle
     )
   }
 }

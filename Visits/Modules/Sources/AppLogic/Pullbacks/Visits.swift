@@ -24,7 +24,8 @@ private let visitsStateLens = Lens<MainState, VisitsState>(
         visits: s.visits,
         selected: s.selectedVisit,
         from: s.visitsDateFrom,
-        to: s.visitsDateTo
+        to: s.visitsDateTo,
+        workerHandle: s.workerHandle
       )  },
   set: { d in
       \.visits *< d.visits
@@ -35,20 +36,20 @@ private let visitsStateLens = Lens<MainState, VisitsState>(
 )
 
 
-private let visitsActionPrism = Prism<AppAction, VisitsAction>(
+let visitsActionPrism = Prism<AppAction, VisitsAction>(
   extract: { a in
     switch a {
-    case let .updateVisits(from: f, to: t): return .updateVisits(from: f, to: t)
-    case let .visitsUpdated(.success(vd)):  return .visitsUpdated(vd)
-    case let .selectVisit(p):               return .selectVisit(p)
-    default:                                return nil
+    case let .updateVisits(from: f, to: t, wh): return .updateVisits(from: f, to: t, wh)
+    case let .visitsUpdated(.success(vd)):      return .visitsUpdated(vd)
+    case let .selectVisit(p):                   return .selectVisit(p)
+    default:                                    return nil
     }
   },
   embed: { a in
     switch a {
-    case let .updateVisits(from: f, to: t): return .updateVisits(from: f, to: t)
-    case let .visitsUpdated(vd):            return .visitsUpdated(.success(vd))
-    case let .selectVisit(p):               return .selectVisit(p)
+    case let .updateVisits(from: f, to: t, wh):  return .updateVisits(from: f, to: t, wh)
+    case let .visitsUpdated(vd):                 return .visitsUpdated(.success(vd))
+    case let .selectVisit(p):                    return .selectVisit(p)
     }
   }
 )

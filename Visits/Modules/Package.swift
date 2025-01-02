@@ -29,7 +29,7 @@ let targets: [Target] = [
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
   .target(name: "VisitsScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views"]),
-  .target(name: "TeamScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views"]),
+  .target(name: "TeamScreen",                      dependencies: [architecture, "MapDetailView", "Types", "Views"]),
   
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapDependencyLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),

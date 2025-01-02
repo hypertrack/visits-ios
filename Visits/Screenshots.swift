@@ -293,5 +293,6 @@ private let main = MainState(
   tab: .orders,
   publishableKey: publishableKey,
   profile: .init(name: "User", metadata: ["email": "user@company.com"]),
-  integrationStatus: .integrated(.notRefreshing)
+  integrationStatus: .integrated(.notRefreshing),
+  workerHandle: WorkerHandle("eugene@hypertrack.io")
 )

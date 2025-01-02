@@ -1,6 +1,6 @@
+import Foundation
 import IdentifiedCollections
 import Utility
-import Foundation
 
 public struct MainState: Equatable {
   public var map: MapState
@@ -16,13 +16,14 @@ public struct MainState: Equatable {
   public var profile: Profile
   public var integrationStatus: IntegrationStatus
   public var requests: Set<Request>
+  public var selectedTeamWorker: TeamWorkerData?
+  public var selectedVisit: PlaceVisit?
   public var team: TeamValue?
   public var token: Token?
   public var visits: VisitsData?
   public var visitsDateFrom: Date
   public var visitsDateTo: Date
-  public var selectedTeamWorker: WorkerHandle?
-  public var selectedVisit: PlaceVisit?
+  public var workerHandle: WorkerHandle
 
   public init(
     map: MapState,
@@ -38,13 +39,14 @@ public struct MainState: Equatable {
     profile: Profile,
     integrationStatus: IntegrationStatus = .unknown,
     requests: Set<Request> = [],
+    selectedTeamWorker: TeamWorkerData? = nil,
+    selectedVisit: PlaceVisit? = nil,
     team: TeamValue? = nil,
     token: Token? = nil,
     visits: VisitsData? = nil,
     visitsDateFrom: Date = Date(),
     visitsDateTo: Date = Date(),
-    selectedTeamWorker: WorkerHandle? = nil,
-    selectedVisit: PlaceVisit? = nil
+    workerHandle: WorkerHandle
   ) {
     self.map = map
     self.trip = trip
@@ -59,12 +61,13 @@ public struct MainState: Equatable {
     self.profile = profile
     self.integrationStatus = integrationStatus
     self.requests = requests
+    self.selectedTeamWorker = selectedTeamWorker
+    self.selectedVisit = selectedVisit
     self.team = team
     self.token = token
     self.visits = visits
     self.visitsDateFrom = visitsDateFrom
     self.visitsDateTo = visitsDateTo
-    self.selectedTeamWorker = selectedTeamWorker
-    self.selectedVisit = selectedVisit
+    self.workerHandle = workerHandle
   }
 }

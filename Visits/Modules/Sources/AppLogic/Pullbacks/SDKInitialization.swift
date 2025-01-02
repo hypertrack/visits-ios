@@ -71,7 +71,7 @@ private func sdkInitializationStatePrismExtract(_ appState: AppState) -> SDKInit
                          && m.requests.isEmpty
                          && m.integrationStatus  == .unknown
                          && m.token              == nil:
-      flow = .initialized(m.profile)
+      flow = .initialized(m.profile, m.workerHandle)
       publishableKey = m.publishableKey
     default:
       return nil
@@ -102,8 +102,8 @@ private func sdkInitializationStatePrismEmbed(_ d: SDKInitializationDomain) -> A
         .init(email: e, password: p, request: .success(d.publishableKey))
       )
     )
-  case let .initialized(p):
-    flow = .main(.init(map: .initialState, trip: nil, places: nil, tab: .defaultTab, publishableKey: d.publishableKey, profile: p))
+  case let .initialized(p, wh):
+      flow = .main(.init(map: .initialState, trip: nil, places: nil, tab: .defaultTab, publishableKey: d.publishableKey, profile: p, workerHandle: wh))
   }
 
   return .operational(

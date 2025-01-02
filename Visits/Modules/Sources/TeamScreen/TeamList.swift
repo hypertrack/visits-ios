@@ -2,35 +2,20 @@
 import NonEmpty
 import SwiftUI
 import Types
-//import PlacesScreen
 
 struct TeamList: View {
+    let select: (WorkerHandle) -> Void
     let teamWorkers: [WorkerHandle]
-
-//    var navigationLink: NavigationLink<EmptyView, VisitScreen>? {
-//        guard let visit = selected else { return nil }
-//
-//        return NavigationLink(
-//            destination: VisitScreen(
-//                state: .init(visit: visit),
-//                copy: copy
-//            ),
-//            tag: visit,
-//            selection: .init(
-//                get: { selected },
-//                set: { select($0) }
-//            )
-//        ) {
-//            EmptyView()
-//        }
-//    }
 
     var body: some View {
         ZStack {
-//            navigationLink
             List {
                 ForEach(teamWorkers, id: \.self) { teamWorker in
-                    Text(teamWorker.rawValue.rawValue)
+                    Button {
+                        select(teamWorker)
+                    } label: {
+                        Text(teamWorker.rawValue.rawValue)
+                    }
                 }
             }
             if teamWorkers.isEmpty {

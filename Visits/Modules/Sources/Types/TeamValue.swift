@@ -2,6 +2,7 @@ public enum TeamValue: Equatable {
     case l2Manager(L2Manager)
     case l1Manager(L1Manager)
     case l0Worker(L0Worker)
+    case noTeamData
 
     public struct L0Worker: Equatable {
         public var name: String?

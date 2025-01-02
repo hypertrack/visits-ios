@@ -40,7 +40,10 @@ public extension StateRestorationEnvironment {
               >-> Experience.prism.extract(from:),
             locationAlways: ud.string(forKey: RestorationKey.locationAlways.rawValue)
               >>- NonEmptyString.init(rawValue:)
-              >-> LocationAlwaysPermissions.prism.extract(from:)
+              >-> LocationAlwaysPermissions.prism.extract(from:),
+            workerHandle: ud.string(forKey: RestorationKey.workerHandle.rawValue)
+              >>- NonEmptyString.init(rawValue:)
+              <¡> WorkerHandle.init(rawValue:)
           )
         )
       }
@@ -57,17 +60,19 @@ public extension StateRestorationEnvironment {
         var tabSelection: String? = nil
         var publishableKey: String? = nil
         var name: String? = nil
+        var workerHandle: String? = nil
         switch s.flow {
         case .firstRun:
           screen = StoredScreen.prism.embed(.firstRun).rawValue
         case let .signIn(e):
           screen = StoredScreen.prism.embed(.signIn).rawValue
           email = e?.string
-        case let .main(s, pk, n):
+        case let .main(s, pk, n, wh):
           screen = StoredScreen.prism.embed(.main).rawValue
           tabSelection = TabSelection.prism.embed(s).rawValue
           name = n <¡> \.string
           publishableKey = pk <¡> \.string
+          workerHandle = wh <¡> \.string
         }
         
         ud.set(screen, forKey: RestorationKey.screen.rawValue)
@@ -75,6 +80,7 @@ public extension StateRestorationEnvironment {
         ud.set(tabSelection, forKey: RestorationKey.tabSelection.rawValue)
         ud.set(publishableKey, forKey: RestorationKey.publishableKey.rawValue)
         ud.set(name, forKey: RestorationKey.name.rawValue)
+        ud.set(workerHandle, forKey: RestorationKey.workerHandle.rawValue)
         
         ud.set(PushStatus.prism.embed(s.pushStatus).rawValue, forKey: RestorationKey.pushStatus.rawValue)
         ud.set(Experience.prism.embed(s.experience).rawValue, forKey: RestorationKey.experience.rawValue)
@@ -92,23 +98,24 @@ func restoredStateFrom(
   tabSelection: TabSelection?,
   pushStatus: PushStatus?,
   experience: Experience?,
-  locationAlways: LocationAlwaysPermissions?
+  locationAlways: LocationAlwaysPermissions?,
+  workerHandle: WorkerHandle?
 ) -> Result<StorageState?, StateRestorationError> {
-  switch (screen, email, publishableKey, name, tabSelection, pushStatus, experience, locationAlways) {
+  switch (screen, email, publishableKey, name, tabSelection, pushStatus, experience, locationAlways, workerHandle) {
   
   // Latest, onboarded app on the main screen
-  case let (.main, _, .some(publishableKey), .some(name), tabSelection, pushStatus, experience, locationAlways):
+  case let (.main, _, .some(publishableKey), .some(name), tabSelection, pushStatus, experience, locationAlways, .some(workerHandle)):
     return .success(
       StorageState(
         experience: experience ?? .regular,
-        flow: .main(tabSelection ?? .defaultTab, publishableKey, name),
+        flow: .main(tabSelection ?? .defaultTab, publishableKey, name, workerHandle),
         locationAlways: locationAlways ?? .notRequested,
         pushStatus: pushStatus ?? .dialogSplash(.notShown)
       )
     )
     
   // Latest app on Sign In screen
-  case let (.signIn, email, _, _, _, pushStatus, experience, locationAlways):
+  case let (.signIn, email, _, _, _, pushStatus, experience, locationAlways, _):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -119,7 +126,7 @@ func restoredStateFrom(
     )
   
   // Latest app killed on first run splash screen
-  case let (.firstRun, _, _, _, _, pushStatus, experience, locationAlways):
+  case let (.firstRun, _, _, _, _, pushStatus, experience, locationAlways, _):
     return .success(
       .init(
         experience: experience ?? .firstRun,
@@ -129,19 +136,8 @@ func restoredStateFrom(
       )
     )
     
-  // Old app that got to deliveries screen.
-  case let (.none, _, .some(publishableKey), .some(name), _, _, _, _):
-    return .success(
-      .init(
-        experience: .regular,
-        flow: .main(.defaultTab, publishableKey, name),
-        locationAlways: .notRequested,
-        pushStatus: .dialogSplash(.notShown)
-      )
-    )
-    
   // Freshly installed app that didn't go though the deep link
-  case (.none, .none, .none, .none, .none, .none, .none, .none):
+  case (.none, .none, .none, .none, .none, .none, .none, .none, .none):
     return .success(nil)
     
   // State restoration failed, back to the starting screen
@@ -170,6 +166,7 @@ enum RestorationKey: String, CaseIterable {
   case pushStatus = "UucSji3z7h"
   case screen = "mDz3JJ2ekk"
   case tabSelection = "O0hNX6o1zP"
+  case workerHandle = "b095c29aet"
 }
 
 extension TabSelection {

@@ -112,7 +112,8 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
         places: nil,
         tab: .defaultTab,
         publishableKey: deepLink.publishableKey,
-        profile: .init(name: deepLink.name, metadata: deepLink.metadata)
+        profile: .init(name: deepLink.name, metadata: deepLink.metadata),
+        workerHandle: deepLink.workerHandle
       )
     )
     state.sdk = sdk

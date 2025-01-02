@@ -85,7 +85,7 @@ struct VisitScreen: View {
                     }
                     
                     Button(action: {
-                        UIPasteboard.general.string = visit.id.rawValue.rawValue
+                        copy(visit.id.rawValue)
                     }) {
                         HStack {
                             Image(systemName: "doc.on.doc")

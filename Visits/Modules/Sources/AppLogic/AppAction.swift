@@ -4,7 +4,6 @@ import Types
 import UIKit
 import Utility
 
-
 public enum AppAction: Equatable {
   // DeepLink
   case deepLinkOpened(URL)
@@ -68,12 +67,13 @@ public enum AppAction: Equatable {
   case addPlace
   //   Visits
   case selectVisit(PlaceVisit?)
-  case updateVisits(from: Date, to: Date)
+  case updateVisits(from: Date, to: Date, WorkerHandle)
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
   case stubAction
   // Team
-  case selectTeamWorker(WorkerHandle)
+  case selectTeamWorker(WorkerHandle?)
   case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
+  case teamWorkerVisitsAction(VisitsAction)
   case updateTeam
   //   Choosing Coordinate
   case cancelAddPlace

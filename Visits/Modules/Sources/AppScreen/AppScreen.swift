@@ -127,14 +127,15 @@ public struct MainBlockState: Equatable {
   public let profile: Profile
   public let integrationStatus: IntegrationStatus
   public let deviceID: DeviceID
+  public let selectedTeamWorker: TeamWorkerData?
+  public let selectedVisit: PlaceVisit?
   public let tabSelection: TabSelection
   public let team: TeamValue?
   public let version: AppVersion
   public let visits: VisitsData?
   public let visitsDateFrom: Date
   public let visitsDateTo: Date
-  public let selectedTeamWorker: WorkerHandle?
-  public let selectedVisit: PlaceVisit?
+  public let workerHandle: WorkerHandle
   public let publishableKey: PublishableKey
 
   public init(mapState: MapState,
@@ -148,14 +149,15 @@ public struct MainBlockState: Equatable {
               profile: Profile,
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
+              selectedTeamWorker: TeamWorkerData?,
+              selectedVisit: PlaceVisit?,
               tabSelection: TabSelection,
               team: TeamValue?,
               version: AppVersion,
               visits: VisitsData?,
               visitsDateFrom: Date,
               visitsDateTo: Date,
-              selectedTeamWorker: WorkerHandle?,
-              selectedVisit: PlaceVisit?,
+              workerHandle: WorkerHandle,
               publishableKey: PublishableKey)
   {
     self.mapState = mapState
@@ -169,14 +171,15 @@ public struct MainBlockState: Equatable {
     self.profile = profile
     self.integrationStatus = integrationStatus
     self.deviceID = deviceID
+    self.selectedTeamWorker = selectedTeamWorker
+    self.selectedVisit = selectedVisit
     self.tabSelection = tabSelection
     self.team = team
     self.version = version
     self.visits = visits
     self.visitsDateFrom = visitsDateFrom
     self.visitsDateTo = visitsDateTo
-    self.selectedTeamWorker = selectedTeamWorker
-    self.selectedVisit = selectedVisit
+    self.workerHandle = workerHandle
     self.publishableKey = publishableKey
   }
 }
@@ -239,6 +242,7 @@ struct MainBlock: View {
           selected: state.selectedVisit,
           to: state.visitsDateTo,
           visits: state.visits
+          workerHandle: state.workerHandle
         ),
         send: sendVisits
       )
@@ -267,7 +271,8 @@ struct MainBlock: View {
 
       TeamScreen(
         state: .init(
-          refreshing: false,
+          refreshing: state.team == nil,
+          selected: state.selectedTeamWorker,
           team: state.team
         ),
         send: sendTeam

@@ -10,26 +10,29 @@ public struct VisitsScreen: View {
     let selected: PlaceVisit?
     let to: Date
     let visits: VisitsData?
+    let workerHandle: WorkerHandle
 
     public init(
       from: Date,
       refreshing: Bool,
       selected: PlaceVisit?,
       to: Date,
-      visits: VisitsData?
+      visits: VisitsData?,
+      workerHandle: WorkerHandle
     ) {
       self.from = from
       self.refreshing = refreshing
       self.selected = selected
       self.to = to
       self.visits = visits
+      self.workerHandle = workerHandle
     }
   }
 
   public enum Action: Equatable {
     case copyToPasteboard(NonEmptyString)
     case selectVisit(PlaceVisit?)
-    case loadVisits(from: Date, to: Date)
+    case loadVisits(from: Date, to: Date, WorkerHandle)
   }
 
   let state: ScreenState
@@ -128,25 +131,27 @@ public struct VisitsScreen: View {
               .padding(.top, 8)
               .padding(.horizontal, 16)
             VisitsList(
-              visitsToDisplay: state.visits?.visits ?? [],
-              selected: state.selected,
-              select: { visit in
-                send(.selectVisit(visit))
-              },
-              copy: { _ in }
-            )
-          } else {
-            Spacer()
-            Text(getErrorText())
-            Spacer()
-          }
-        }
-        .navigationBarTitle(Text("Visits"), displayMode: .automatic)
+              visitsToDisplay: state.visits?.visits ?? [], selected: state.selected,
+                      select: { visit in
+                        send(.selectVisit(visit))
+                      },
+                        copy: { id in
+                            send(.copyToPasteboard(id))
+                        }
+                    )
+                } else {
+                    Spacer()
+                    Text(getErrorText())
+                    Spacer()
+                }
+            }
+            .navigationBarTitle(Text("Visits"), displayMode: .automatic)
+        
       }
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           RefreshButton(state: self.state.refreshing ? .refreshing : .enabled) {
-            send(.loadVisits(from: self.state.from, to: self.state.to))
+            send(.loadVisits(from: self.state.from, to: self.state.to, self.state.workerHandle))
           }
         }
       }
@@ -189,7 +194,7 @@ public struct VisitsScreen: View {
     switch result {
     case .success:
       validationError = nil
-      send(.loadVisits(from: fromDate, to: toDate))
+      send(.loadVisits(from: fromDate, to: toDate, self.state.workerHandle))
     case let .failure(error):
       validationError = error
     }
@@ -200,7 +205,7 @@ public struct VisitsScreen: View {
     switch result {
     case .success:
       validationError = nil
-      send(.loadVisits(from: fromDate, to: toDate))
+      send(.loadVisits(from: fromDate, to: toDate, self.state.workerHandle))
     case let .failure(error):
       validationError = error
     }

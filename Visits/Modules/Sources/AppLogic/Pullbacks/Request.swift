@@ -40,7 +40,8 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
         integrationStatus: m.integrationStatus,
         deviceID: deID,
         publishableKey: m.publishableKey,
-        token: m.token
+        token: m.token,
+        workerHandle: m.workerHandle
       )
     default:
       return nil
@@ -91,19 +92,20 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
     case     .resetInProgressOrders:                      return .resetInProgressOrders
+    case let .selectTeamWorker(.some(w)):                 return .updateVisits(from: Date(), to: Date(), w)
     case     .startTracking:                              return .startTracking
     case     .stopTracking:                               return .stopTracking
     case     .switchToMap:                                return .switchToMap
     case     .switchToOrders:                             return .switchToOrders
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
-    case     .switchToVisits:                              return .switchToVisits
+    case     .switchToVisits:                             return .switchToVisits
     case let .teamUpdated(r):                             return .teamUpdated(r)
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
     case     .updateTeam:                                 return .updateTeam
-    case let .updateVisits(from: from, to: to):           return .updateVisits(from: from, to: to)
+    case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
     case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
@@ -147,7 +149,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
     case     .updateTeam:                                 return .updateTeam
-    case let .updateVisits(from: from, to: to):           return .updateVisits(from: from, to: to)
+    case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .visitsUpdated(v):                           return .visitsUpdated(v)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
