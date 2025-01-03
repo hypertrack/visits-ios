@@ -36,7 +36,7 @@ public struct TeamScreen: View {
           refreshing: worker.visits == nil,
           selected: worker.selectedVisit,
           to: worker.to,
-          visits: worker.visits ?? [],
+          visits: worker.visits,
           workerHandle: worker.workerHandle
         ),
         send: {
@@ -99,15 +99,15 @@ public struct TeamScreen: View {
     .navigationViewStyle(StackNavigationViewStyle())
   }
 
-  func getSubordinates(team: [TeamValue]) -> [WorkerHandle] {
+  func getSubordinates(team: [TeamValue]) -> [TeamValue] {
     return team.flatMap { teamValue in
       switch teamValue {
       case let .l2Manager(manager):
-        return [manager.workerHandle] + getSubordinates(team: manager.subordinates)
+        return [teamValue] + getSubordinates(team: manager.subordinates)
       case let .l1Manager(manager):
-        return [manager.workerHandle] + getSubordinates(team: manager.subordinates)
+        return [teamValue] + getSubordinates(team: manager.subordinates)
       case let .l0Worker(worker):
-        return [worker.workerHandle]
+        return [teamValue]
       case .noTeamData:
         return []
       }

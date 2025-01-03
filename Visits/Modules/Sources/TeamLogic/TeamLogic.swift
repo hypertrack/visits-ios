@@ -67,7 +67,7 @@ public let teamVisitsReducer = Reducer<TeamState, VisitsAction, Void> { state, a
   switch action {
   case let .visitsUpdated(vd):
     if vd.workerHandle == state.selectedTeamWorker?.workerHandle {
-      state.selectedTeamWorker?.visits = vd.visits
+      state.selectedTeamWorker?.visits = vd
     }
     return .none
 

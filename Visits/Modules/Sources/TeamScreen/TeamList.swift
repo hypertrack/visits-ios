@@ -5,16 +5,28 @@ import Types
 
 struct TeamList: View {
     let select: (WorkerHandle) -> Void
-    let teamWorkers: [WorkerHandle]
+    let teamWorkers: [TeamValue]
 
     var body: some View {
         ZStack {
             List {
-                ForEach(teamWorkers, id: \.self) { teamWorker in
-                    Button {
-                        select(teamWorker)
-                    } label: {
-                        Text(teamWorker.rawValue.rawValue)
+                ForEach(teamWorkers) { teamWorker in
+                    switch teamWorker {
+                    case let .l0Worker(worker):
+                        Button {
+                            select(worker.workerHandle)
+                        } label: {
+                            Text(worker.workerHandle.rawValue.rawValue)
+                        }.padding(.leading, 16)
+                    case let .l1Manager(manager):
+                        Button {
+                            select(manager.workerHandle)
+                        } label: {
+                            Text(manager.workerHandle.rawValue.rawValue)
+                        }
+                    default:
+                        // this should not be possible
+                        Text("Unknown worker")
                     }
                 }
             }

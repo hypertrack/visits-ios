@@ -5,7 +5,7 @@ public struct TeamWorkerData: Equatable {
     public let name: String?
     public var selectedVisit: PlaceVisit?
     public var to: Date
-    public var visits: [PlaceVisit]?
+    public var visits: VisitsData?
     public let workerHandle: WorkerHandle
 
     public init(
@@ -13,7 +13,7 @@ public struct TeamWorkerData: Equatable {
         name: String?,
         selectedVisit: PlaceVisit?,
         to: Date,
-        visits: [PlaceVisit]?,
+        visits: VisitsData?,
         workerHandle: WorkerHandle
     ) {
         self.from = from

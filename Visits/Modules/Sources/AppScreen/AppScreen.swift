@@ -241,7 +241,7 @@ struct MainBlock: View {
           refreshing: state.visits == nil,
           selected: state.selectedVisit,
           to: state.visitsDateTo,
-          visits: state.visits
+          visits: state.visits,
           workerHandle: state.workerHandle
         ),
         send: sendVisits
