@@ -43,7 +43,7 @@ private let teamActionPrism = Prism<AppAction, TeamAction>(
     case let .selectTeamWorker(p): return .selectTeamWorker(p)
     case let .teamUpdated(.success(ps)): return .teamUpdated(ps)
     case let .teamWorkerVisitsAction(a): return .teamWorkerVisitsAction(a)
-    case .updateTeam: return .updateTeam
+    case let .updateTeam(wh): return .updateTeam(wh)
     default: return nil
     }
   },
@@ -52,7 +52,7 @@ private let teamActionPrism = Prism<AppAction, TeamAction>(
     case let .selectTeamWorker(p): return .selectTeamWorker(p)
     case let .teamUpdated(ps): return .teamUpdated(.success(ps))
     case let .teamWorkerVisitsAction(a): return .teamWorkerVisitsAction(a)
-    case .updateTeam: return .updateTeam
+    case let .updateTeam(wh): return .updateTeam(wh)
     }
   }
 )

@@ -9,16 +9,23 @@ public struct TeamScreen: View {
     let refreshing: Bool
     let selected: TeamWorkerData?
     let team: TeamValue?
+    let workerHandle: WorkerHandle
 
-    public init(refreshing: Bool, selected: TeamWorkerData?, team: TeamValue?) {
+    public init(
+      refreshing: Bool, 
+      selected: TeamWorkerData?, 
+      team: TeamValue?,
+      workerHandle: WorkerHandle
+    ) {
       self.refreshing = refreshing
       self.selected = selected
       self.team = team
+      self.workerHandle = workerHandle
     }
   }
 
   public enum Action: Equatable {
-    case refresh
+    case updateTeam(WorkerHandle)
     case selectTeamWorker(WorkerHandle?)
     case teamWorkerVisitsAction(VisitsView.Action, WorkerHandle)
   }
@@ -91,7 +98,7 @@ public struct TeamScreen: View {
       }.toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           RefreshButton(state: state.refreshing ? .refreshing : .enabled) {
-            send(.refresh)
+              send(.updateTeam(state.workerHandle))
           }
         }
       }

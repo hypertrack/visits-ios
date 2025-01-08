@@ -273,7 +273,8 @@ struct MainBlock: View {
         state: .init(
           refreshing: state.team == nil,
           selected: state.selectedTeamWorker,
-          team: state.team
+          team: state.team,
+          workerHandle: state.workerHandle
         ),
         send: sendTeam
       )

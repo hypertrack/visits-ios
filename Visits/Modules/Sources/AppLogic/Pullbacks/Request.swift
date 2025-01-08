@@ -104,7 +104,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
-    case     .updateTeam:                                 return .updateTeam
+    case let .updateTeam(wh):                             return .updateTeam(wh)
     case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
@@ -148,7 +148,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
-    case     .updateTeam:                                 return .updateTeam
+    case let .updateTeam(wh):                             return .updateTeam(wh)
     case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .visitsUpdated(v):                           return .visitsUpdated(v)

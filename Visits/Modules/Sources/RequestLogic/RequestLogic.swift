@@ -77,7 +77,7 @@ public enum RequestAction: Equatable {
   case updateOrders
   case updatePlaces
   case updateVisits(from: Date, to: Date, WorkerHandle)
-  case updateTeam
+  case updateTeam(WorkerHandle)
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
 }
 
@@ -338,7 +338,7 @@ public let requestReducer = Reducer<
     state.token = token
 
     return effects
-  case .updateTeam:
+  case let .updateTeam(wh):
       let (token, effects) = requestOrRefreshToken(state.token) { t in getTeam(t, WorkerHandle.init("ram@hypertrack.io")) }
 
     state.token = token

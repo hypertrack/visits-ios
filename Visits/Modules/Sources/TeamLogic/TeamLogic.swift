@@ -21,7 +21,7 @@ public enum TeamAction: Equatable {
   case selectTeamWorker(WorkerHandle?)
   case teamUpdated(TeamValue?)
   case teamWorkerVisitsAction(VisitsAction)
-  case updateTeam
+  case updateTeam(WorkerHandle)
 }
 
 // MARK: - Reducer
