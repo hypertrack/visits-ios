@@ -34,7 +34,7 @@ let targets: [Target] = [
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapDependencyLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
   .target(name: "APIEnvironment",                  dependencies: [architecture, "Types"]),
-  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", tagged, "Types", "Utility"]),
+  .target(name: "APIEnvironmentLive",              dependencies: ["APIEnvironment", "LogEnvironment", tagged, "Types", "Utility", "PlacesScreen"]),
   .target(name: "AppBundleDependency",             dependencies: [architecture, nonEmpty, "Types"]),
   .target(name: "AppBundleDependencyLive",         dependencies: ["AppBundleDependency", "LogEnvironment"]),
   .target(name: "BranchEnvironment",               dependencies: [architecture, nonEmpty, "Types", "Validated"]),
@@ -82,7 +82,7 @@ let targets: [Target] = [
   .target(name: "TabLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "TrackingLogic",                   dependencies: [architecture]),
   .target(name: "VisitsLogic",                     dependencies: [architecture, "Types"]),
-  .target(name: "TeamLogic",                       dependencies: [architecture, "Types"]),
+  .target(name: "TeamLogic",                       dependencies: [architecture, "Types", "VisitsLogic"]),
   // Ties everything together
   .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Utility", "Types"]),
 ]
