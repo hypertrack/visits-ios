@@ -339,7 +339,7 @@ public let requestReducer = Reducer<
 
     return effects
   case let .updateTeam(wh):
-      let (token, effects) = requestOrRefreshToken(state.token) { t in getTeam(t, WorkerHandle.init("ram@hypertrack.io")) }
+      let (token, effects) = requestOrRefreshToken(state.token) { t in getTeam(t, wh) }
 
     state.token = token
 
