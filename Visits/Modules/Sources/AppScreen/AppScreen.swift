@@ -51,7 +51,7 @@ public struct AppScreen: View {
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
     case tab(TabSelection)
-    case visits(VisitsScreen.Action)
+    case visits(VisitsView.Action)
     case map(MapView.Action)
     case team(TeamScreen.Action)
     case errorAlert(ErrorAlertAction)
@@ -192,7 +192,7 @@ struct MainBlock: View {
   let sendPlaces: (PlacesScreen.Action) -> Void
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
-  let sendVisits: (VisitsScreen.Action) -> Void
+  let sendVisits: (VisitsView.Action) -> Void
   let sendTeam: (TeamScreen.Action) -> Void
 
   var body: some View {

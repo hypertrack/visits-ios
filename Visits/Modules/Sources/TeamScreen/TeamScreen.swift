@@ -20,17 +20,17 @@ public struct TeamScreen: View {
   public enum Action: Equatable {
     case refresh
     case selectTeamWorker(WorkerHandle?)
-    case teamWorkerVisitsAction(VisitsScreen.Action, WorkerHandle)
+    case teamWorkerVisitsAction(VisitsView.Action, WorkerHandle)
   }
 
   let state: State
   let send: (Action) -> Void
 
-  var navigationLink: NavigationLink<EmptyView, VisitsScreen>? {
+  var navigationLink: NavigationLink<EmptyView, VisitsView>? {
     guard let worker = state.selected else { return nil }
 
     return NavigationLink(
-      destination: VisitsScreen(
+      destination: VisitsView(
         state: .init(
           from: worker.from,
           refreshing: worker.visits == nil,
