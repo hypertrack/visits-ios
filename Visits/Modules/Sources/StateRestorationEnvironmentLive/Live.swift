@@ -9,11 +9,15 @@ import Types
 
 public extension StateRestorationEnvironment {
   static let live = StateRestorationEnvironment(
-    loadState: {
+    loadState: { restoredEmailOrPhoneNumber in
       Effect<Result<StorageState?, StateRestorationError>, Never>.result {
         logEffect("loadState")
         
         let ud = UserDefaults.standard
+
+        let udWorkerHandle = (ud.string(forKey: RestorationKey.workerHandle.rawValue)
+            >>- NonEmptyString.init(rawValue:))
+            ?? restoredEmailOrPhoneNumber
         
         return .success(
           restoredStateFrom(
@@ -41,8 +45,7 @@ public extension StateRestorationEnvironment {
             locationAlways: ud.string(forKey: RestorationKey.locationAlways.rawValue)
               >>- NonEmptyString.init(rawValue:)
               >-> LocationAlwaysPermissions.prism.extract(from:),
-            workerHandle: ud.string(forKey: RestorationKey.workerHandle.rawValue)
-              >>- NonEmptyString.init(rawValue:)
+            workerHandle: udWorkerHandle
               <¡> WorkerHandle.init(rawValue:)
           )
         )

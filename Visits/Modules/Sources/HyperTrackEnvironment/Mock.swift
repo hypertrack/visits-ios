@@ -6,6 +6,7 @@ import Types
 public extension HyperTrackEnvironment {
   static let noop = Self(
     getCurrentLocation: { .none },
+    getMetadata: { .none },
     makeSDK: { _ in .none},
     openSettings: { .none },
     requestAlwaysLocationPermissions: { .none },
@@ -25,6 +26,7 @@ public extension HyperTrackEnvironment {
 
     return Self(
       getCurrentLocation: noop.getCurrentLocation,
+      getMetadata: noop.getMetadata,
       makeSDK: { _ in
         s = .unlocked(deviceID, .stopped)
         

@@ -4,6 +4,7 @@ import ComposableArchitecture
 import StateRestorationEnvironment
 import Types
 import Utility
+import NonEmpty
 
 
 // MARK: - State
@@ -25,13 +26,16 @@ public enum StateRestorationAction: Equatable {
 
 public struct StateRestorationLogicEnvironment {
   public var appVersion: () -> Effect<AppVersion, Never>
-  public var loadState: () -> Effect<Result<StorageState?, StateRestorationError>, Never>
+  public var getMetadata: () -> Effect<JSON.Object, Never>
+  public var loadState: (NonEmptyString?) -> Effect<Result<StorageState?, StateRestorationError>, Never>
   
   public init(
     appVersion: @escaping () -> Effect<AppVersion, Never>,
-    loadState: @escaping () -> Effect<Result<StorageState?, StateRestorationError>, Never>
+    getMetadata: @escaping () -> Effect<JSON.Object, Never>,
+    loadState: @escaping (NonEmptyString?) -> Effect<Result<StorageState?, StateRestorationError>, Never>
   ) {
     self.appVersion = appVersion
+    self.getMetadata = getMetadata
     self.loadState = loadState
   }
 }
@@ -48,9 +52,23 @@ public let stateRestorationReducer: Reducer<
     guard state == .waitingToStart else { return .none }
     
     state = .restoringState
+      
+    let loadStatePublisher = environment.getMetadata()
+        .map { metadata in
+          let emailJson = metadata["email"]
+          if case let .string(email) = emailJson {
+            return NonEmptyString(email)
+          }
+          let phoneJson = metadata["phone_number"]
+          if case let .string(phone) = phoneJson {
+            return NonEmptyString(phone)
+          }
+          return nil
+        }
+        .flatMap { environment.loadState($0) }
     
     return Publishers.Zip(
-     environment.loadState(),
+      loadStatePublisher,
       environment.appVersion()
     )
     .map { (z: (result: Result<StorageState?, StateRestorationError>, version: AppVersion)) in

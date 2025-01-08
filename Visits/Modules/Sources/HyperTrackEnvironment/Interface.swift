@@ -6,6 +6,7 @@ import UIKit
 
 public struct HyperTrackEnvironment {
   public var getCurrentLocation: () -> Effect<Coordinate?, Never>
+  public var getMetadata: () -> Effect<JSON.Object, Never>
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
   public var openSettings: () -> Effect<Never, Never>
   public var requestAlwaysLocationPermissions: () -> Effect<Never, Never>
@@ -19,6 +20,7 @@ public struct HyperTrackEnvironment {
 
   public init(
     getCurrentLocation: @escaping () -> Effect<Coordinate?, Never>,
+    getMetadata: @escaping () -> Effect<JSON.Object, Never>,
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
     openSettings: @escaping () -> Effect<Never, Never>,
     requestAlwaysLocationPermissions: @escaping () -> Effect<Never, Never>,
@@ -31,6 +33,7 @@ public struct HyperTrackEnvironment {
     subscribeToStatusUpdates: @escaping () -> Effect<SDKStatusUpdate, Never>
   ) {
     self.getCurrentLocation = getCurrentLocation
+    self.getMetadata = getMetadata
     self.makeSDK = makeSDK
     self.openSettings = openSettings
     self.requestAlwaysLocationPermissions = requestAlwaysLocationPermissions

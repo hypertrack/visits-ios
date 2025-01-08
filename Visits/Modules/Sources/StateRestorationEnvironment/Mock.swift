@@ -8,7 +8,7 @@ public extension StateRestorationEnvironment {
     var state = initialState
     
     return Self(
-      loadState: {
+      loadState: { _ in
         print("Loading state:\n\(debugOutput(state as Any))")
         
         return Effect(value: .success(state))
