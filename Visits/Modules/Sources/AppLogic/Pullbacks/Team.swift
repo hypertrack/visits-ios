@@ -40,7 +40,8 @@ private let teamStateLens = Lens<MainState, TeamState>(
 private let teamActionPrism = Prism<AppAction, TeamAction>(
   extract: { a in
     switch a {
-    case let .selectTeamWorker(p): return .selectTeamWorker(p)
+    case .deselectTeamWorker: return .deselectTeamWorker
+    case let .selectTeamWorker(p, from: from, to: to): return .selectTeamWorker(p, from: from, to: to)
     case let .teamUpdated(.success(ps)): return .teamUpdated(ps)
     case let .teamWorkerVisitsAction(a): return .teamWorkerVisitsAction(a)
     case let .updateTeam(wh): return .updateTeam(wh)
@@ -49,7 +50,8 @@ private let teamActionPrism = Prism<AppAction, TeamAction>(
   },
   embed: { a in
     switch a {
-    case let .selectTeamWorker(p): return .selectTeamWorker(p)
+    case .deselectTeamWorker: return .deselectTeamWorker
+    case let .selectTeamWorker(p, from: from, to: to): return .selectTeamWorker(p, from: from, to: to)
     case let .teamUpdated(ps): return .teamUpdated(.success(ps))
     case let .teamWorkerVisitsAction(a): return .teamWorkerVisitsAction(a)
     case let .updateTeam(wh): return .updateTeam(wh)

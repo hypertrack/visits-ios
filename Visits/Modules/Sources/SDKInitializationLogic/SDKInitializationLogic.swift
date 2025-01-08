@@ -1,3 +1,4 @@
+import AppArchitecture
 import ComposableArchitecture
 import Types
 import Utility
@@ -11,7 +12,7 @@ public struct SDKInitializationState: Equatable {
   
   public enum Status: Equatable {
     case uninitialized(Email, Password)
-    case initialized(Profile, WorkerHandle)
+    case initialized(Profile, WorkerHandle, Date, Date)
   }
   
   public init(sdk: SDKStatusUpdate, status: SDKInitializationState.Status) {
@@ -48,7 +49,7 @@ public struct SDKInitializationEnvironment {
 public let sdkInitializationReducer = Reducer<
   SDKInitializationState,
   SDKInitializationAction,
-  SDKInitializationEnvironment
+  SystemEnvironment<SDKInitializationEnvironment>
 > { state, action, environment in
   switch action {
   case let .initialize(sdk):
@@ -59,7 +60,8 @@ public let sdkInitializationReducer = Reducer<
     let metadata: JSON.Object = ["email": .string(email.string)]
     
     state.sdk = sdk
-      state.status = .initialized(.init(name: name, metadata: metadata), WorkerHandle(email.rawValue))
+    let (from, to) = environment.defaultVisitsDatePickerFromTo()
+    state.status = .initialized(.init(name: name, metadata: metadata), WorkerHandle(email.rawValue), from, to)
     
     return .merge(
       environment.setName(name)

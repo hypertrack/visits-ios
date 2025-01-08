@@ -18,7 +18,8 @@ public struct TeamState: Equatable {
 // MARK: - Action
 
 public enum TeamAction: Equatable {
-  case selectTeamWorker(WorkerHandle?)
+  case deselectTeamWorker
+  case selectTeamWorker(WorkerHandle, from: Date, to: Date)
   case teamUpdated(TeamValue?)
   case teamWorkerVisitsAction(VisitsAction)
   case updateTeam(WorkerHandle)
@@ -28,19 +29,18 @@ public enum TeamAction: Equatable {
 
 public let teamReducer = Reducer<TeamState, TeamAction, Void> { state, action, _ in
   switch action {
-  case let .selectTeamWorker(wh):
-    if let workerHandle = wh {
-      state.selectedTeamWorker = TeamWorkerData(
-        from: Date(),
+  case .deselectTeamWorker:
+    state.selectedTeamWorker = nil
+    return .none
+  case let .selectTeamWorker(wh, from: from, to: to):
+    state.selectedTeamWorker = TeamWorkerData(
+        from: from,
         name: nil,
         selectedVisit: nil,
-        to: Date(),
+        to: to,
         visits: nil,
-        workerHandle: workerHandle
+        workerHandle: wh
       )
-    } else {
-      state.selectedTeamWorker = nil
-    }
     return .none
 
   case let .teamUpdated(vs):

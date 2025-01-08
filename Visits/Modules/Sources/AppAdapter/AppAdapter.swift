@@ -98,8 +98,6 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (_, .dialogSplash(.notShown), _),
              (_, .dialogSplash(.waitingForUserAction), _):
           screen = .blocker(.pushNotShown)
-        // case (.stopped, _, _):
-        //   screen = .blocker(.stopped)
         case (.running, .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.stopped, .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.outage(.locationMocked), .dialogSplash(.shown), .requestedAfterWhenInUse),
@@ -237,8 +235,9 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .visits(.loadVisits(from: from, to: to, wh)): return .updateVisits(from: from, to: to, wh)
   case let .visits(.selectVisit(v)): return .selectVisit(v)
   case let .visits(.copyToPasteboard(i)): return .copyToPasteboard(i)
+  case .team(.deselectTeamWorker): return .deselectTeamWorker
   case let .team(.updateTeam(wh)): return .updateTeam(wh)
-  case let .team(.selectTeamWorker(wh)): return .selectTeamWorker(wh)
+  case let .team(.selectTeamWorker(wh, from: f, to: t)): return .selectTeamWorker(wh, from: f, to: t)
   case let .team(.teamWorkerVisitsAction(a, _)):
       switch a {
           case let .copyToPasteboard(i):                return .copyToPasteboard(i)

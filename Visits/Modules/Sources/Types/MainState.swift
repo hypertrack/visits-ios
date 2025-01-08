@@ -44,8 +44,8 @@ public struct MainState: Equatable {
     team: TeamValue? = nil,
     token: Token? = nil,
     visits: VisitsData? = nil,
-    visitsDateFrom: Date = Date(),
-    visitsDateTo: Date = Date(),
+    visitsDateFrom: Date,
+    visitsDateTo: Date,
     workerHandle: WorkerHandle
   ) {
     self.map = map

@@ -71,7 +71,7 @@ private func sdkInitializationStatePrismExtract(_ appState: AppState) -> SDKInit
                          && m.requests.isEmpty
                          && m.integrationStatus  == .unknown
                          && m.token              == nil:
-      flow = .initialized(m.profile, m.workerHandle)
+      flow = .initialized(m.profile, m.workerHandle, m.visitsDateFrom, m.visitsDateTo)
       publishableKey = m.publishableKey
     default:
       return nil
@@ -102,8 +102,20 @@ private func sdkInitializationStatePrismEmbed(_ d: SDKInitializationDomain) -> A
         .init(email: e, password: p, request: .success(d.publishableKey))
       )
     )
-  case let .initialized(p, wh):
-      flow = .main(.init(map: .initialState, trip: nil, places: nil, tab: .defaultTab, publishableKey: d.publishableKey, profile: p, workerHandle: wh))
+  case let .initialized(p, wh, visitsDateFrom, visitsDateTo):
+    flow = .main(
+      .init(
+        map: .initialState,
+        trip: nil,
+        places: nil,
+        tab: .defaultTab,
+        publishableKey: d.publishableKey,
+        profile: p,
+        visitsDateFrom: visitsDateFrom,
+        visitsDateTo: visitsDateTo,
+        workerHandle: wh
+      )
+    )
   }
 
   return .operational(
@@ -134,10 +146,11 @@ private let sdkInitializationStateLens = Lens<SDKInitializationDomain, SDKInitia
   }
 )
 
-private func toSDKInitializationEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SDKInitializationEnvironment {
-  .init(
-    setName: e.hyperTrack.setName,
-    setMetadata: e.hyperTrack.setMetadata,
+private func toSDKInitializationEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SystemEnvironment<SDKInitializationEnvironment> {
+  e.map { e in
+      .init(
+        setName: e.hyperTrack.setName,
+        setMetadata: e.hyperTrack.setMetadata,
     setWorkerHandle: e.hyperTrack.setWorkerHandle
-  )
+  )}
 }

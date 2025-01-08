@@ -29,7 +29,7 @@ let targets: [Target] = [
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
   .target(name: "VisitsScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views", "PlacesScreen"]),
-  .target(name: "TeamScreen",                      dependencies: [architecture, "MapDetailView", "Types", "Views", "VisitsScreen"]),
+  .target(name: "TeamScreen",                      dependencies: [architecture, "MapDetailView", "Types", "Utility", "Views", "VisitsScreen"]),
   
   // Environment
   .target(name: "AppLive",                         dependencies: ["APIEnvironmentLive", "AppBundleDependencyLive", "AppLogic", "BranchEnvironmentLive", "ErrorReportingEnvironmentLive", "HapticFeedbackEnvironmentLive", "HyperTrackEnvironmentLive", "MapDependencyLive", "PasteboardEnvironmentLive", "PushEnvironmentLive", "StateRestorationEnvironmentLive"]),
@@ -81,7 +81,7 @@ let targets: [Target] = [
   .target(name: "SDKStatusUpdateLogic",            dependencies: [architecture, "Types"]),
   .target(name: "TabLogic",                        dependencies: [architecture, "Types"]),
   .target(name: "TrackingLogic",                   dependencies: [architecture]),
-  .target(name: "VisitsLogic",                     dependencies: [architecture, "Types"]),
+  .target(name: "VisitsLogic",                     dependencies: [architecture, "Types", "Utility"]),
   .target(name: "TeamLogic",                       dependencies: [architecture, "Types", "VisitsLogic"]),
   // Ties everything together
   .target(name: "AppAdapter",                      dependencies: ["AppLogic", "AppScreen", architecture, "MapScreen", "Utility", "Types"]),

@@ -92,7 +92,7 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
     case     .resetInProgressOrders:                      return .resetInProgressOrders
-    case let .selectTeamWorker(.some(w)):                 return .updateVisits(from: Date(), to: Date(), w)
+    case let .selectTeamWorker(wh, from: f, to: t):       return .updateVisits(from: f, to: t, wh)
     case     .startTracking:                              return .startTracking
     case     .stopTracking:                               return .stopTracking
     case     .switchToMap:                                return .switchToMap

@@ -50,4 +50,4 @@ public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, act
     
     return .none
   }
-}
+}  

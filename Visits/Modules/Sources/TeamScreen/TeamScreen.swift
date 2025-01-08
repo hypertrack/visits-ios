@@ -1,7 +1,9 @@
 import NonEmpty
 import SwiftUI
 import Types
+import Utility
 import Views
+import VisitsLogic
 import VisitsScreen
 
 public struct TeamScreen: View {
@@ -12,8 +14,8 @@ public struct TeamScreen: View {
     let workerHandle: WorkerHandle
 
     public init(
-      refreshing: Bool, 
-      selected: TeamWorkerData?, 
+      refreshing: Bool,
+      selected: TeamWorkerData?,
       team: TeamValue?,
       workerHandle: WorkerHandle
     ) {
@@ -25,8 +27,9 @@ public struct TeamScreen: View {
   }
 
   public enum Action: Equatable {
+    case deselectTeamWorker
     case updateTeam(WorkerHandle)
-    case selectTeamWorker(WorkerHandle?)
+    case selectTeamWorker(WorkerHandle, from: Date, to: Date)
     case teamWorkerVisitsAction(VisitsView.Action, WorkerHandle)
   }
 
@@ -54,7 +57,9 @@ public struct TeamScreen: View {
       tag: worker.workerHandle,
       selection: .init(
         get: { state.selected?.workerHandle },
-        set: { send(.selectTeamWorker($0)) }
+        set: {
+          selectTeamWorker($0)
+        }
       )
     ) {
       EmptyView()
@@ -77,14 +82,14 @@ public struct TeamScreen: View {
         case let .l2Manager(manager):
           TeamList(
             select: {
-              send(.selectTeamWorker($0))
+              selectTeamWorker($0)
             },
             teamWorkers: getSubordinates(team: manager.subordinates)
           )
         case let .l1Manager(manager):
           TeamList(
             select: {
-              send(.selectTeamWorker($0))
+              selectTeamWorker($0)
             },
             teamWorkers: getSubordinates(team: manager.subordinates)
           )
@@ -119,6 +124,21 @@ public struct TeamScreen: View {
       case .noTeamData:
         return []
       }
+    }
+  }
+
+  func selectTeamWorker(_ workerHandle: WorkerHandle?) {
+    if let workerHandle = workerHandle {
+      let today = Date()
+      let calendar = Calendar.current
+      let timeZone = TimeZone.current
+      send(.selectTeamWorker(
+        workerHandle,
+        from: defaultVisitsDateFrom(currentDate: today, calendar, timeZone),
+        to: defaultVisitsDateTo(currentDate: today, calendar, timeZone)
+      ))
+    } else {
+      send(.deselectTeamWorker)
     }
   }
 }
