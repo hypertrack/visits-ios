@@ -30,13 +30,16 @@ public enum SDKInitializationAction: Equatable {
 public struct SDKInitializationEnvironment {
   public var setName: (Name) -> Effect<Never, Never>
   public var setMetadata: (JSON.Object) -> Effect<Never, Never>
+  public var setWorkerHandle: (WorkerHandle) -> Effect<Never, Never>
 
   public init(
     setName: @escaping (Name) -> Effect<Never, Never>,
-    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>
+    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
+    setWorkerHandle: @escaping (WorkerHandle) -> Effect<Never, Never>
   ) {
     self.setName = setName
     self.setMetadata = setMetadata
+    self.setWorkerHandle = setWorkerHandle
   }
 }
 

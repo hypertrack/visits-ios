@@ -67,6 +67,12 @@ public extension HyperTrackEnvironment {
         HyperTrack.metadata = toHyperTrackMetadata(metadata)
       }
     },
+    setWorkerHandle: { workerHandle in
+      .fireAndForget {
+        logEffect("setWorkerHandle: \(workerHandle.string)")
+        HyperTrack.workerHandle = workerHandle.string
+      }
+    },
     startTracking: {
       .fireAndForget {
         logEffect("startTracking")

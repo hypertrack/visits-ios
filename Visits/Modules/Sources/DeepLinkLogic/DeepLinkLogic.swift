@@ -5,13 +5,12 @@ import Types
 import Utility
 import Validated
 
-
 // MARK: - State
 
 public struct DeepLinkState: Equatable {
   public var flow: AppFlow
   public var sdk: SDKStatusUpdate
-  
+
   public init(flow: AppFlow, sdk: SDKStatusUpdate) {
     self.flow = flow
     self.sdk = sdk
@@ -37,19 +36,22 @@ public struct DeepLinkEnvironment {
   public var makeSDK: (PublishableKey) -> Effect<SDKStatusUpdate, Never>
   public var setName: (Name) -> Effect<Never, Never>
   public var setMetadata: (JSON.Object) -> Effect<Never, Never>
+  public var setWorkerHandle: (WorkerHandle) -> Effect<Never, Never>
   public var subscribeToDeepLinks: () -> Effect<Validated<DeepLink, NonEmptyString>, Never>
-  
+
   public init(
     handleDeepLink: @escaping (URL) -> Effect<Never, Never>,
     makeSDK: @escaping (PublishableKey) -> Effect<SDKStatusUpdate, Never>,
     setName: @escaping (Name) -> Effect<Never, Never>,
     setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
+    setWorkerHandle: @escaping (WorkerHandle) -> Effect<Never, Never>,
     subscribeToDeepLinks: @escaping () -> Effect<Validated<DeepLink, NonEmptyString>, Never>
   ) {
     self.handleDeepLink = handleDeepLink
     self.makeSDK = makeSDK
     self.setName = setName
     self.setMetadata = setMetadata
+    self.setWorkerHandle = setWorkerHandle
     self.subscribeToDeepLinks = subscribeToDeepLinks
   }
 }
@@ -60,7 +62,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
   switch action {
   case .subscribeToDeepLinks:
     struct DeepLinkSubscription: Hashable {}
-    
+
     let subscribe = environment.subscribeToDeepLinks()
       .flatMap { (validated: Validated<DeepLink, NonEmptyString>) -> Effect<DeepLinkAction, Never> in
         switch validated {
@@ -70,7 +72,8 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
               .merge(
                 Effect(value: .applyFullDeepLink(deepLink, sdk)),
                 environment.setName(deepLink.name).fireAndForget(),
-                environment.setMetadata(deepLink.metadata).fireAndForget()
+                environment.setMetadata(deepLink.metadata).fireAndForget(),
+                environment.setWorkerHandle(deepLink.workerHandle).fireAndForget()
               )
             }
             .eraseToEffect()
@@ -81,7 +84,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
       .receive(on: environment.mainQueue)
       .eraseToEffect()
       .cancellable(id: DeepLinkSubscription(), cancelInFlight: true)
-    
+
     if state.flow == .firstRun {
       return .merge(
         Effect(value: .firstRunWaitingComplete)
@@ -94,17 +97,17 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
     }
   case .firstRunWaitingComplete:
     guard state.flow == .firstRun else { return .none }
-    
+
     state.flow = .firstScreen
-    
+
     return .none
   case let .deepLinkOpened(url):
-    
+
     return environment.handleDeepLink(url).fireAndForget()
   case .deepLinkFailed:
     return .none
   case let .applyFullDeepLink(deepLink, sdk):
-   
+
     state.flow = .main(
       .init(
         map: .initialState,
@@ -117,7 +120,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
       )
     )
     state.sdk = sdk
-    
+
     return .concatenate(
       Effect(value: .cancelAllRequests),
       Effect(value: .refreshAllRequests)
@@ -130,7 +133,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
 
 extension DeepLink {
   var name: Name {
-    switch self.variant {
+    switch variant {
     case let .new(tEmailPhoneNumber, metadata):
       if case let .string(name) = metadata["name"], let nonEmptyName = NonEmptyString(rawValue: name) {
         return .init(rawValue: nonEmptyName)
@@ -138,22 +141,21 @@ extension DeepLink {
       return these(emailToName)(phoneNumberToName)(curry(emailAndPhoneNumberToName))(tEmailPhoneNumber)
     case let .old(driverID):
       return nonEmptyStringToName(driverID.rawValue)
-    case let .driverHandle(driverHandle, metadata):
-      return nonEmptyStringToName(driverHandle.rawValue)
+    case let .workerHandle(workerHandle, metadata):
+      return nonEmptyStringToName(workerHandle.rawValue)
     }
   }
-  
+
   var metadata: JSON.Object {
     let inviteID = JSON.string(url.absoluteString)
     let emailKey = "email"
     let inviteIDKey = "invite_id"
     let phoneKey = "phone_number"
 
-
-    switch self.variant {
-    case .driverHandle(let driverHandle, var meta):
-        meta[inviteIDKey] = inviteID
-        return meta
+    switch variant {
+    case .workerHandle(let workerHandle, var meta):
+      meta[inviteIDKey] = inviteID
+      return meta
     case .new(let tEmailPhoneNumber, var meta):
       switch tEmailPhoneNumber {
       case let .this(e):
@@ -170,12 +172,12 @@ extension DeepLink {
       return ["driver_id": .string(driverID.string), inviteIDKey: inviteID]
     }
   }
-  
+
   func phoneNumberToName(_ phoneNumber: PhoneNumber) -> Name {
     .init(rawValue: phoneNumber.rawValue)
   }
-  
-  func emailAndPhoneNumberToName(_ email: Email, phoneNumber: PhoneNumber) -> Name {
+
+  func emailAndPhoneNumberToName(_ email: Email, phoneNumber _: PhoneNumber) -> Name {
     emailToName(email)
   }
 }

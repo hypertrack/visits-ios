@@ -137,6 +137,7 @@ private let sdkInitializationStateLens = Lens<SDKInitializationDomain, SDKInitia
 private func toSDKInitializationEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> SDKInitializationEnvironment {
   .init(
     setName: e.hyperTrack.setName,
-    setMetadata: e.hyperTrack.setMetadata
+    setMetadata: e.hyperTrack.setMetadata,
+    setWorkerHandle: e.hyperTrack.setWorkerHandle
   )
 }

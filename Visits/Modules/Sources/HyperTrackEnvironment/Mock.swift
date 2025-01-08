@@ -12,6 +12,7 @@ public extension HyperTrackEnvironment {
     requestWhenInUseLocationPermissions: { .none },
     setName: { _ in .none},
     setMetadata: { _ in .none},
+    setWorkerHandle: { _ in .none},
     startTracking: { .none },
     stopTracking: { .none },
     subscribeToStatusUpdates: { .none }
@@ -46,6 +47,7 @@ public extension HyperTrackEnvironment {
       },
       setName: noop.setName,
       setMetadata: noop.setMetadata,
+      setWorkerHandle: noop.setWorkerHandle,
       startTracking: {
         s = .unlocked(deviceID, .running)
         statusUpdateSubject.send(.init(status: s))

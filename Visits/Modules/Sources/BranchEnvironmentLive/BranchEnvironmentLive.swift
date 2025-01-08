@@ -111,15 +111,19 @@ func validate(key: NonEmptyString, valueIsNonEmptyString string: String) -> Vali
 }
 
 func validate(variant params: [AnyHashable: Any]) -> Validated<DeepLink.Variant, NonEmptyString> {
-  let driverHandle = validate(key: driverHandleKey, in: params, has: DriverHandle.self)
+  var workerHandle = validate(key: workerHandleKey, in: params, has: WorkerHandle.self)
+  if case .invalid = workerHandle {
+    workerHandle = validate(key: driverHandleKey, in: params, has: WorkerHandle.self)
+  }
+
   let driverID = validate(key: driverIDKey, in: params, has: DriverID.self)
   let email = validate(key: emailKey, in: params, has: Email.self)
   let phoneNumber = validate(key: "phone_number", in: params, has: PhoneNumber.self)
   let metadata = validate(key: metadataKey, existsIn: params).flatMap(validate(metadata:))
 
-  switch (driverHandle, email, phoneNumber, metadata, driverID) {
-  case let (.valid(driverHandle), _, _, .valid(metadata), _): return .valid(.driverHandle(driverHandle, metadata))
-  case let (.valid(driverHandle), .invalid(_), .invalid(_), .invalid(_), .invalid(_)): return .valid(.driverHandle(driverHandle, [:]))
+  switch (workerHandle, email, phoneNumber, metadata, driverID) {
+  case let (.valid(workerHandle), _, _, .valid(metadata), _): return .valid(.workerHandle(workerHandle, metadata))
+  case let (.valid(workerHandle), .invalid(_), .invalid(_), .invalid(_), .invalid(_)): return .valid(.workerHandle(workerHandle, [:]))
   case let (_, .valid(email), .valid(phoneNumber), .valid(metadata), _): return .valid(.new(.both(email, phoneNumber), metadata))
   case let (_, .valid(email), .valid(phoneNumber), _, _): return .valid(.new(.both(email, phoneNumber), [:]))
   case let (_, .invalid, .valid(phoneNumber), .valid(metadata), _): return .valid(.new(.that(phoneNumber), metadata))
@@ -127,7 +131,7 @@ func validate(variant params: [AnyHashable: Any]) -> Validated<DeepLink.Variant,
   case let (_, .valid(email), _, .valid(metadata), _): return .valid(.new(.this(email), metadata))
   case let (_, .valid(email), _, _, _): return .valid(.new(.this(email), [:]))
   case let (_, _, _, _, .valid(driverID)): return .valid(.old(driverID))
-  case let (.invalid(driverHandle), .invalid(emailE), .invalid(phoneNumberE), _, .invalid(driverIDE)):
+  case let (.invalid(workerHandle), .invalid(emailE), .invalid(phoneNumberE), _, .invalid(driverIDE)):
     return .invalid(.init("Deep link doesn't have valid email or phone_number or driver_id") + emailE + phoneNumberE + driverIDE)
   }
 }
@@ -154,6 +158,7 @@ let driverIDKey: NonEmptyString = "driver_id"
 let emailKey: NonEmptyString = "email"
 let metadataKey: NonEmptyString = "metadata"
 let urlKey: NonEmptyString = "~referring_link"
+let workerHandleKey: NonEmptyString = "worker_handle"
 
 func validate<T>(
   key: NonEmptyString,

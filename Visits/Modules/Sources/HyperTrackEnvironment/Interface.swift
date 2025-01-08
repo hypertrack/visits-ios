@@ -12,6 +12,7 @@ public struct HyperTrackEnvironment {
   public var requestWhenInUseLocationPermissions: () -> Effect<Never, Never>
   public var setName: (Name) -> Effect<Never, Never>
   public var setMetadata: (JSON.Object) -> Effect<Never, Never>
+  public var setWorkerHandle: (WorkerHandle) -> Effect<Never, Never>
   public var startTracking: () -> Effect<Never, Never>
   public var stopTracking: () -> Effect<Never, Never>
   public var subscribeToStatusUpdates: () -> Effect<SDKStatusUpdate, Never>
@@ -24,6 +25,7 @@ public struct HyperTrackEnvironment {
     requestWhenInUseLocationPermissions: @escaping () -> Effect<Never, Never>,
     setName: @escaping (Name) -> Effect<Never, Never>,
     setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
+    setWorkerHandle: @escaping (WorkerHandle) -> Effect<Never, Never>,
     startTracking: @escaping () -> Effect<Never, Never>,
     stopTracking: @escaping () -> Effect<Never, Never>,
     subscribeToStatusUpdates: @escaping () -> Effect<SDKStatusUpdate, Never>
@@ -35,6 +37,7 @@ public struct HyperTrackEnvironment {
     self.requestWhenInUseLocationPermissions = requestWhenInUseLocationPermissions
     self.setName = setName
     self.setMetadata = setMetadata
+    self.setWorkerHandle = setWorkerHandle
     self.startTracking = startTracking
     self.stopTracking = stopTracking
     self.subscribeToStatusUpdates = subscribeToStatusUpdates
