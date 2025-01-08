@@ -2,6 +2,7 @@ import NonEmpty
 import SwiftUI
 import Types
 import Views
+import VisitsLogic
 import VisitsScreen
 
 public struct TeamScreen: View {
@@ -18,8 +19,9 @@ public struct TeamScreen: View {
   }
 
   public enum Action: Equatable {
+    case deselectTeamWorker
     case refresh
-    case selectTeamWorker(WorkerHandle?)
+    case selectTeamWorker(WorkerHandle, from: Date, to: Date)
     case teamWorkerVisitsAction(VisitsScreen.Action, WorkerHandle)
   }
 
@@ -46,7 +48,9 @@ public struct TeamScreen: View {
       tag: worker.workerHandle,
       selection: .init(
         get: { state.selected?.workerHandle },
-        set: { send(.selectTeamWorker($0)) }
+        set: {
+          selectTeamWorker($0)
+        }
       )
     ) {
       EmptyView()
@@ -69,14 +73,14 @@ public struct TeamScreen: View {
         case let .l2Manager(manager):
           TeamList(
             select: {
-              send(.selectTeamWorker($0))
+              selectTeamWorker($0)
             },
             teamWorkers: getSubordinates(team: manager.subordinates)
           )
         case let .l1Manager(manager):
           TeamList(
             select: {
-              send(.selectTeamWorker($0))
+              selectTeamWorker($0)
             },
             teamWorkers: getSubordinates(team: manager.subordinates)
           )
@@ -111,6 +115,20 @@ public struct TeamScreen: View {
       case .noTeamData:
         return []
       }
+    }
+  }
+
+  func selectTeamWorker(_ workerHandle: WorkerHandle?) {
+    if let workerHandle = workerHandle {
+      let today = Date()
+        let timeZone = TimeZone.current
+      send(.selectTeamWorker(
+        workerHandle,
+        from: defaultVisitsDateFrom(currentDate: today, timeZone),
+        to: defaultVisitsDateTo(currentDate: today, timeZone)
+      ))
+    } else {
+      send(.deselectTeamWorker)
     }
   }
 }

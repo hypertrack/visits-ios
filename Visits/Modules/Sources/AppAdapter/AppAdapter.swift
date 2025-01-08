@@ -235,7 +235,8 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .visits(.selectVisit(v)): return .selectVisit(v)
   case let .visits(.copyToPasteboard(i)): return .copyToPasteboard(i)
   case .team(.refresh): return .updateTeam
-  case let .team(.selectTeamWorker(wh)): return .selectTeamWorker(wh)
+  case .team(.deselectTeamWorker): return .deselectTeamWorker
+  case let .team(.selectTeamWorker(wh, from: f, to: t)): return .selectTeamWorker(wh, from: f, to: t)
   case let .team(.teamWorkerVisitsAction(a, _)):
       switch a {
           case let .copyToPasteboard(i):                return .copyToPasteboard(i)

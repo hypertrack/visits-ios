@@ -71,7 +71,8 @@ public enum AppAction: Equatable {
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
   case stubAction
   // Team
-  case selectTeamWorker(WorkerHandle?)
+  case deselectTeamWorker
+  case selectTeamWorker(WorkerHandle, from: Date, to: Date)
   case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
   case teamWorkerVisitsAction(VisitsAction)
   case updateTeam
