@@ -31,6 +31,7 @@ public struct TeamScreen: View {
 
     return NavigationLink(
       destination: VisitsView(
+        isForTeam: true,
         state: .init(
           from: worker.from,
           refreshing: worker.visits == nil,

@@ -17,7 +17,8 @@ public struct VisitsScreen: View {
 
   public var body: some View {
     NavigationView {
-      VisitsView.init(
+      VisitsView(
+        isForTeam: false,
         state: state,
         send: send
       )
