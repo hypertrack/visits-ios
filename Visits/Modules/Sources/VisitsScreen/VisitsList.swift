@@ -29,20 +29,26 @@ struct VisitsList: View {
     }
 
     var body: some View {
+        let dayToVisitsMap = Dictionary(grouping: visitsToDisplay, by: { $0.entry })
+
         ZStack {
             navigationLink
             List {
-                ForEach(visitsToDisplay, id: \.id) { visit in
-                    VisitView.init(
-                        onClick: {
-                            select(visit)
-                        },
-                        visit: visit
-                    )
-                    .padding()
+                ForEach(dayToVisitsMap.keys.sorted(by: >), id: \.self) { day in
+                    Section(header: Text("\(DateFormatter.stringDate(day.rawValue))")) {
+                        ForEach(dayToVisitsMap[day]!, id: \.id) { visit in
+                            VisitView(
+                                onClick: {
+                                    select(visit)
+                                },
+                                visit: visit
+                            )
+                            .padding()
+                        }
+                    }
                 }
             }
-//            .listStyle(GroupedListStyle())
+           .listStyle(GroupedListStyle())
             if visitsToDisplay.isEmpty {
                 Text("No visits yet")
                     .font(.title)

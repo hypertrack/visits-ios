@@ -108,11 +108,13 @@ func placesVisitsRequest(auth token: Token.Value, workerHandle: WorkerHandle, fr
   let iso8601Formatter = ISO8601DateFormatter()
   iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
+    // todo !!!!!!!!!!!!!!!!!!!
   let date = iso8601Formatter.date(from: iso8601String)!
   let date1 = iso8601Formatter.date(from: iso8601String1)!
 
   components.queryItems = [
-    URLQueryItem(name: "worker_handle", value: workerHandle.string),
+    // URLQueryItem(name: "worker_handle", value: workerHandle.string),
+    URLQueryItem(name: "worker_handle", value: "pavel@hypertrack.io"),
 //    URLQueryItem(name: "visited_at_from", value: DateFormatter.iso8601MillisecondsDateFormatter.string(from: from)),
     URLQueryItem(name: "visited_at_from", value: DateFormatter.iso8601MillisecondsDateFormatter.string(from: date)),
     URLQueryItem(name: "visited_at_to", value: DateFormatter.iso8601MillisecondsDateFormatter.string(from: to)),

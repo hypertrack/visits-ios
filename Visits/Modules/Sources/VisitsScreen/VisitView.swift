@@ -20,12 +20,12 @@ public struct VisitView: View {
       onClick()
     }) {
       VStack {
-        let address = visit.address?.rawValue
-        if address != nil {
-          Text(address!)
+        let name = visit.name?.rawValue
+        if name != nil {
+          Text(name!)
             .font(.headline)
             .foregroundColor(Color(.label))
-            .padding(.leading, 8)
+            .padding(.bottom, 8)
         }
         HStack {
           Text(entryExitTime(entry: visit.entry.rawValue, exit: visit.exit?.rawValue))
