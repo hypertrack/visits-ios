@@ -24,6 +24,7 @@ public enum AppAction: Equatable {
   case signIn
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
   //   Map
+  case clockInToggleTapped
   case mapRegionWillChange
   case mapRegionDidChange
   case mapEnableAutoZoom
@@ -70,7 +71,7 @@ public enum AppAction: Equatable {
   case updateVisits(from: Date, to: Date, WorkerHandle)
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
   case stubAction
-  // Team
+  //   Team
   case selectTeamWorker(WorkerHandle?)
   case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
   case teamWorkerVisitsAction(VisitsAction)

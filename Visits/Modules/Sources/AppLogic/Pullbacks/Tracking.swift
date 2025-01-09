@@ -15,13 +15,26 @@ let trackingP: Reducer<
   environment: toTrackingEnvironment
 )
 
-private let trackingStateAffine = /AppState.operational ** \.flow ** /AppFlow.main ** .void()
+private let trackingStateAffine = /AppState.operational ** trackingStateLens
+
+private let trackingStateLens = Lens<OperationalState, TrackingState>(
+  get: { s in
+//      guard case let .main(m) = s.flow else { return nil } 
+      return .init(isRunning: s.sdk.status.isRunning)
+  },
+  set: { s in
+    { d in
+      d
+    }
+  }
+)
 
 private let trackingActionPrism = Prism<AppAction, TrackingAction>(
   extract: { a in
     switch a {
     case .startTracking: return .start
     case .stopTracking:  return .stop
+    case .clockInToggleTapped: return .toggleTracking
     default: return nil
     }
   },
@@ -29,6 +42,7 @@ private let trackingActionPrism = Prism<AppAction, TrackingAction>(
     switch a {
     case .start: return .startTracking
     case .stop:  return .stopTracking
+    case .toggleTracking: return .clockInToggleTapped
     }
   }
 )

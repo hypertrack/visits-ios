@@ -127,6 +127,7 @@ public struct MainBlockState: Equatable {
   public let profile: Profile
   public let integrationStatus: IntegrationStatus
   public let deviceID: DeviceID
+  public let sdkStatus: SDKStatus
   public let selectedTeamWorker: TeamWorkerData?
   public let selectedVisit: PlaceVisit?
   public let tabSelection: TabSelection
@@ -149,6 +150,7 @@ public struct MainBlockState: Equatable {
               profile: Profile,
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
+              sdkStatus: SDKStatus,
               selectedTeamWorker: TeamWorkerData?,
               selectedVisit: PlaceVisit?,
               tabSelection: TabSelection,
@@ -171,6 +173,7 @@ public struct MainBlockState: Equatable {
     self.profile = profile
     self.integrationStatus = integrationStatus
     self.deviceID = deviceID
+    self.sdkStatus = sdkStatus
     self.selectedTeamWorker = selectedTeamWorker
     self.selectedVisit = selectedVisit
     self.tabSelection = tabSelection
@@ -206,6 +209,7 @@ struct MainBlock: View {
         MapView(
           state: .init(
             autoZoom: state.mapState.autoZoom,
+            clockedIn: state.sdkStatus.isRunning,
             orders: state.trip?.orders ?? IdentifiedArrayOf<Order>(),
             places: state.placesSummary?.places ?? [],
             polyline: state.history?.coordinates ?? []
@@ -284,16 +288,19 @@ struct MainBlock: View {
       }
       .tag(TabSelection.team)
 
-      TripScreen(state: .init(trip: state.trip,
-                              selected: state.selectedOrderId,
-                              refreshing: state.requests.contains(Request.oldestActiveTrip)),
-                 send: sendOrders,
-                 sendOrderAction: sendOrder)
-        .tabItem {
-          Image(systemName: "checkmark.square.fill")
-          Text("Orders")
-        }
-        .tag(TabSelection.orders)
+      TripScreen(state: .init(
+        clockedIn: state.sdkStatus.isRunning,
+        trip: state.trip,
+        selected: state.selectedOrderId,
+        refreshing: state.requests.contains(Request.oldestActiveTrip)),
+        send: sendOrders,
+        sendOrderAction: sendOrder
+      )
+      .tabItem {
+        Image(systemName: "checkmark.square.fill")
+        Text("Orders")
+      }
+      .tag(TabSelection.orders)
 
       ProfileScreen(
         state: .init(

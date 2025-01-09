@@ -8,11 +8,18 @@ import OrderScreen
 
 public struct TripScreen: View {
   public struct State {
+    public let clockedIn: Bool
     public let trip: Trip?
     public let selectedOrderId: Order.ID?
     public let refreshing: Bool
     
-    public init(trip: Trip?, selected: Order.ID?, refreshing: Bool) {
+    public init(
+      clockedIn: Bool,
+      trip: Trip?, 
+      selected: Order.ID?, 
+      refreshing: Bool
+    ) {
+      self.clockedIn = clockedIn
       self.trip = trip
       self.selectedOrderId = selected
       self.refreshing = refreshing
@@ -74,8 +81,10 @@ public struct TripScreen: View {
           }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: { send(.clockOutButtonTapped) }) {
-            Text("Clock Out")
+          Button(action: { 
+            send(.clockInToggleTapped) 
+          }) {
+            Text(state.clockedIn ? "Clock Out" : "Clock In")
           }
         }
       }

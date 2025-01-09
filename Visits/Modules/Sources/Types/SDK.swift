@@ -7,6 +7,13 @@ public enum SDKUnlockedStatus: Equatable {
 public enum SDKStatus: Equatable {
   case locked
   case unlocked(DeviceID, SDKUnlockedStatus)
+
+  public var isRunning: Bool {
+    switch self {
+      case .unlocked(_, .running): return true
+      default: return false
+    }
+  }
 }
 
 public struct SDKStatusUpdate: Equatable {

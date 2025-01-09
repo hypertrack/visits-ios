@@ -98,9 +98,10 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (_, .dialogSplash(.notShown), _),
              (_, .dialogSplash(.waitingForUserAction), _):
           screen = .blocker(.pushNotShown)
-        case (.stopped, _, _):
-          screen = .blocker(.stopped)
+        // case (.stopped, _, _):
+        //   screen = .blocker(.stopped)
         case (.running, .dialogSplash(.shown), .requestedAfterWhenInUse),
+          (.stopped, .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.outage(.locationMocked), .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.outage(.locationSignalLost), .dialogSplash(.shown), .requestedAfterWhenInUse):
           if let flow = m.addPlace {
@@ -120,6 +121,7 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            profile: m.profile,
                            integrationStatus: m.integrationStatus,
                            deviceID: deID,
+                           sdkStatus: o.sdk.status,
                            selectedTeamWorker: m.selectedTeamWorker,
                            selectedVisit: m.selectedVisit,
                            tabSelection: m.tab,
@@ -173,7 +175,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.locationReducedButtonTapped): return .openSettings
   case .blocker(.locationProvisionalButtonTapped): return .openSettings
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
-  case .orders(.clockOutButtonTapped): return .stopTracking
+  case .orders(.clockInToggleTapped): return .clockInToggleTapped
   case .orders(.refreshButtonTapped): return .updateOrders
   case let .orders(.orderTapped(o)): return .selectOrder(o)
   case let .order(.cancelButtonTapped(oid)): return .cancelOrder(oid)
@@ -190,6 +192,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .tab(.visits): return .switchToVisits
   case .tab(.profile): return .switchToProfile
   case .tab(.team): return .switchToTeam
+  case .map(.clockInToggleTapped): return .clockInToggleTapped
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
   case let .map(.selectedOrder(o)): return .selectOrder(o.id)

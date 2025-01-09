@@ -1,34 +1,45 @@
+import IdentifiedCollections
 import MapDrawing
 import MapKit
 import SwiftUI
 import Types
-import IdentifiedCollections
-
+import Views
 
 public struct MapView: View {
-  
   public struct State: Equatable {
     public var autoZoom: AutoZoom
+    public var clockedIn: Bool
     public var orders: IdentifiedArrayOf<Order>
     public var places: Set<Place>
     public var polyline: [Coordinate]
-    
-    public init(autoZoom: AutoZoom, orders: IdentifiedArrayOf<Order>, places: Set<Place>, polyline: [Coordinate]) {
-      self.autoZoom = autoZoom; self.orders = orders; self.places = places; self.polyline = polyline
+
+    public init(
+      autoZoom: AutoZoom, 
+      clockedIn: Bool,
+      orders: IdentifiedArrayOf<Order>, 
+      places: Set<Place>, 
+      polyline: [Coordinate]
+    ) {
+      self.autoZoom = autoZoom; 
+      self.clockedIn = clockedIn;
+      self.orders = orders; 
+      self.places = places; 
+      self.polyline = polyline
     }
   }
-  
+
   public enum Action: Equatable {
+    case clockInToggleTapped
     case regionDidChange
     case regionWillChange
     case selectedOrder(Order)
     case selectedPlace(Place)
     case enableAutoZoom
   }
-  
+
   let state: State
   let send: (Action) -> Void
-  
+
   public init(
     state: State,
     send: @escaping (Action) -> Void
@@ -36,35 +47,53 @@ public struct MapView: View {
     self.state = state
     self.send = send
   }
-  
+
   public var body: some View {
-    ZStack {
-      MapViewRepresentable(
-        polyline: state.polyline,
-        orders: state.orders,
-        places: state.places,
-        autoZoom: state.autoZoom,
-        sendSelectedOrder: { send(.selectedOrder($0)) },
-        sendSelectedPlace: { send(.selectedPlace($0)) },
-        sendRegionDidChange: { send(.regionDidChange) },
-        sendRegionWillChange: { send(.regionWillChange) }
-      )
-      if state.autoZoom == .disabled {
-        HStack {
-          Spacer()
-          VStack {
-            AutoZoomButton(
-              sendEnableAutoZoom: {
-                send(.enableAutoZoom)
-              }
-            )
+    NavigationView {
+      ZStack {
+        MapViewRepresentable(
+          polyline: state.polyline,
+          orders: state.orders,
+          places: state.places,
+          autoZoom: state.autoZoom,
+          sendSelectedOrder: { send(.selectedOrder($0)) },
+          sendSelectedPlace: { send(.selectedPlace($0)) },
+          sendRegionDidChange: { send(.regionDidChange) },
+          sendRegionWillChange: { send(.regionWillChange) }
+        )
+        if state.autoZoom == .disabled {
+          HStack {
+            Spacer()
+            VStack {
+              AutoZoomButton(
+                sendEnableAutoZoom: {
+                  send(.enableAutoZoom)
+                }
+              )
               .padding(.trailing, 16)
               .padding(.top, 48)
-            Spacer()
+              Spacer()
+            }
+          }
+        }
+      }.toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button(action: {
+             send(.clockInToggleTapped)
+          }
+          ) {
+            Text(state.clockedIn ? "Clock Out" : "Clock In")
+              .foregroundColor(state.clockedIn ? .gray : .accentColor)
           }
         }
       }
+      .navigationBarTitle(
+        state.clockedIn
+          ? Text("")
+        : Text("Visits are not tracked").font(.tinyMedium),
+        displayMode: .inline)
     }
+    .navigationViewStyle(StackNavigationViewStyle())
   }
 }
 
@@ -77,7 +106,7 @@ struct MapViewRepresentable: UIViewRepresentable {
   var sendSelectedPlace: (Place) -> Void
   var sendRegionDidChange: () -> Void
   var sendRegionWillChange: () -> Void
-  
+
   func makeUIView(context: Context) -> MKMapView {
     let mapView = MKMapView()
     mapView.delegate = context.coordinator
@@ -87,59 +116,61 @@ struct MapViewRepresentable: UIViewRepresentable {
     registerAnnotations(for: mapView)
     return mapView
   }
-  
+
   func updateUIView(_ mapView: MKMapView, context _: Context) {
     mapView.showsUserLocation = polyline.isEmpty
-    
+
     putPolyline(polyline: polyline.map(\.coordinate2D), onMapView: mapView)
     putOrders(orders: orders.elements, onMapView: mapView)
     putPlaces(places: places, onMapView: mapView)
     zoomIfNeeded(onMapView: mapView)
   }
-  
+
   func zoomIfNeeded(onMapView mapView: MKMapView) {
     if autoZoom == .enabled {
       zoom(withMapInsets: .all(100), interfaceInsets: nil, onMapView: mapView)
     }
   }
-  
+
   func makeCoordinator() -> Coordinator {
     Coordinator(self)
   }
-  
+
   class Coordinator: NSObject, MKMapViewDelegate {
     var control: MapViewRepresentable
-    
+
     init(_ control: MapViewRepresentable) {
       self.control = control
     }
-    
+
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
       annotationViewForAnnotation(annotation, onMapView: mapView)
     }
-    
+
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
       rendererForOverlay(overlay)!
     }
-    
+
     func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
       control.zoomIfNeeded(onMapView: mapView)
     }
-    
+
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
-         mapViewRegionDidChangeFromUserInteraction(mapView){
+         mapViewRegionDidChangeFromUserInteraction(mapView)
+      {
         control.sendRegionDidChange()
       }
     }
-    
+
     func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
       if control.autoZoom == .enabled,
-         mapViewRegionDidChangeFromUserInteraction(mapView){
+         mapViewRegionDidChangeFromUserInteraction(mapView)
+      {
         control.sendRegionWillChange()
       }
     }
-    
+
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped c: UIControl) {
       switch calloutAccessoryControlTapped(for: view) {
       case let .order(o): control.sendSelectedOrder(o)
@@ -159,7 +190,8 @@ func mapViewRegionDidChangeFromUserInteraction(
   if let gestureRecognizers = view.gestureRecognizers {
     for recognizer in gestureRecognizers {
       if recognizer.state == UIGestureRecognizer.State.began ||
-          recognizer.state == UIGestureRecognizer.State.ended {
+        recognizer.state == UIGestureRecognizer.State.ended
+      {
         return true
       }
     }
@@ -167,12 +199,12 @@ func mapViewRegionDidChangeFromUserInteraction(
   return false
 }
 
-
 struct MapView_Previews: PreviewProvider {
   static var previews: some View {
     MapView(
       state: .init(
         autoZoom: .enabled,
+        clockedIn: true,
         orders: [
           .init(
             id: Order.ID(rawValue: "ID5"),
@@ -185,7 +217,7 @@ struct MapView_Previews: PreviewProvider {
             status: .completed(Date()),
             note: nil,
             visited: .entered(Date())
-          )
+          ),
         ],
         places: [],
         polyline: [
@@ -219,11 +251,11 @@ struct MapView_Previews: PreviewProvider {
           Coordinate(latitude: 37.78321438617593, longitude: -122.41843342781067)!,
           Coordinate(latitude: 37.78309567490489, longitude: -122.41842806339264)!,
           Coordinate(latitude: 37.783019360415665, longitude: -122.4183851480484)!,
-          Coordinate(latitude: 37.78315503056424, longitude: -122.41850852966309)!
+          Coordinate(latitude: 37.78315503056424, longitude: -122.41850852966309)!,
         ]
       ),
       send: { _ in }
     )
-      .preferredColorScheme(.dark)
+    .preferredColorScheme(.dark)
   }
 }
