@@ -50,17 +50,4 @@ public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, act
     
     return .none
   }
-}
-
-public func defaultVisitsDateFrom(currentDate: Date, _ timeZone: TimeZone) -> Date {
-    var calendar = Calendar.current
-    calendar.timeZone = timeZone
-    return calendar.startOfDay(for: calendar.date(byAdding: .day, value: -7, to: currentDate)!)
-}
-
-public func defaultVisitsDateTo(currentDate: Date, _ timeZone: TimeZone) -> Date {
-    var calendar = Calendar.current
-    calendar.timeZone = timeZone
-    return calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: currentDate)!)
-}
-  
+}  

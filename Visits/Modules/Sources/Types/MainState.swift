@@ -44,9 +44,8 @@ public struct MainState: Equatable {
     team: TeamValue? = nil,
     token: Token? = nil,
     visits: VisitsData? = nil,
-    // todo: use VisitsLogic.defaultVisitsDateFrom and VisitsLogic.defaultVisitsDateTo to init this everywhere
-    visitsDateFrom: Date = Date(),
-    visitsDateTo: Date = Date(),
+    visitsDateFrom: Date,
+    visitsDateTo: Date,
     workerHandle: WorkerHandle
   ) {
     self.map = map

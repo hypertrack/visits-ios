@@ -61,9 +61,38 @@ public let stateRestorationReducer: Reducer<
     
   case let .restoredState(ss, ver, _):
     guard state == .restoringState else { return .none }
-    
-    state = .stateRestored(.init(storage: ss ?? .firstRun, version: ver))
-    
+
+    let restored: RestoredState
+    switch ss {
+    case .none:
+      restored = RestoredState(
+        experience: .firstRun,
+        flow: .firstRun,
+        locationAlways: .notRequested,
+        pushStatus: .dialogSplash(.notShown),
+        version: ver
+      )
+    case let .some(ss):
+      let flow: RestoredState.Flow
+      switch ss.flow {
+        case .firstRun:
+        flow = .firstRun
+      case let .signIn(e):
+          flow = .signIn(e)
+      case let .main(t, p, n, w):
+        let (fr, to) = environment.defaultVisitsDatePickerFromTo()
+        flow = .main(t, p, n, w, fr, to)
+      }
+      restored = RestoredState(
+        experience: ss.experience,
+        flow: flow,
+        locationAlways: ss.locationAlways,
+        pushStatus: ss.pushStatus,
+        version: ver
+      )
+    }
+    state = .stateRestored(restored)
+
     return .none
   }
 }

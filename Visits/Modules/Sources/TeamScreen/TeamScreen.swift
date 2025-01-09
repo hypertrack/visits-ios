@@ -1,6 +1,7 @@
 import NonEmpty
 import SwiftUI
 import Types
+import Utility
 import Views
 import VisitsLogic
 import VisitsScreen
@@ -121,11 +122,12 @@ public struct TeamScreen: View {
   func selectTeamWorker(_ workerHandle: WorkerHandle?) {
     if let workerHandle = workerHandle {
       let today = Date()
-        let timeZone = TimeZone.current
+      let calendar = Calendar.current
+      let timeZone = TimeZone.current
       send(.selectTeamWorker(
         workerHandle,
-        from: defaultVisitsDateFrom(currentDate: today, timeZone),
-        to: defaultVisitsDateTo(currentDate: today, timeZone)
+        from: defaultVisitsDateFrom(currentDate: today, calendar, timeZone),
+        to: defaultVisitsDateTo(currentDate: today, calendar, timeZone)
       ))
     } else {
       send(.deselectTeamWorker)

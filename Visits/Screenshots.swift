@@ -294,5 +294,7 @@ private let main = MainState(
   publishableKey: publishableKey,
   profile: .init(name: "User", metadata: ["email": "user@company.com"]),
   integrationStatus: .integrated(.notRefreshing),
+  visitsDateFrom: Date(),
+  visitsDateTo: Date(),
   workerHandle: WorkerHandle("eugene@hypertrack.io")
 )

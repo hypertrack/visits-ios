@@ -55,7 +55,7 @@ private func appStartupStatePrismExtract(_ s: AppState) -> AppStartupDomain? {
     default:                                 return .none
     }
   case let .operational(o) where o.alert == nil:
-    let flow: StorageState.Flow
+    let flow: RestoredState.Flow
     switch o.flow {
     case .firstRun: flow = .firstRun
     case let .signIn(.entering(eg)) where eg.password == nil
@@ -73,18 +73,16 @@ private func appStartupStatePrismExtract(_ s: AppState) -> AppStartupDomain? {
                          && m.history            == nil
                          && m.profile.metadata   == [:]
                          && m.integrationStatus  == .unknown:
-        flow = .main(m.tab, m.publishableKey, m.profile.name, m.workerHandle)
+      flow = .main(m.tab, m.publishableKey, m.profile.name, m.workerHandle, m.visitsDateFrom, m.visitsDateTo)
     default:
       return nil
     }
     return .operational(
       .init(
-        storage: .init(
-          experience: o.experience,
-          flow: flow,
-          locationAlways: o.locationAlways,
-          pushStatus: o.pushStatus
-        ),
+        experience: o.experience,
+        flow: flow,
+        locationAlways: o.locationAlways,
+        pushStatus: o.pushStatus,
         version: o.version
       ),
       o.sdk,
@@ -103,12 +101,12 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
       return .launching(.init(stateAndSDK: .starting(rs, sdk), visibility: v))
     case let .operational(rs, sdk, v):
       let flow: AppFlow
-      switch rs.storage.flow {
+      switch rs.flow {
       case .firstRun:
         flow = .firstRun
       case let .signIn(e):
         flow = .signIn(.entering(.init(email: e)))
-      case let .main(ts, pk, n, wh):
+      case let .main(ts, pk, n, wh, visitsDateFrom, visitsDateTo):
         flow = .main(.init(
           map: .initialState, 
           trip: nil, 
@@ -116,16 +114,18 @@ private let appStartupStatePrism = Prism<AppState, AppStartupDomain>(
           tab: ts, 
           publishableKey: pk, 
           profile: .init(name: n, metadata: [:]),
+          visitsDateFrom: visitsDateFrom,
+          visitsDateTo: visitsDateTo,
           workerHandle: wh
           ))
       }
       return .operational(
         .init(
           alert: nil,
-          experience: rs.storage.experience,
+          experience: rs.experience,
           flow: flow,
-          locationAlways: rs.storage.locationAlways,
-          pushStatus: rs.storage.pushStatus,
+          locationAlways: rs.locationAlways,
+          pushStatus: rs.pushStatus,
           sdk: sdk,
           version: rs.version,
           visibility: v
