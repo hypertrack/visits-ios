@@ -26,7 +26,8 @@ private let tabActionPrism = Prism<AppAction, TabAction>(
     case     .switchToOrders:        return .switchTo(.orders)
     case     .switchToPlaces:        return .switchTo(.places)
     case     .switchToProfile:       return .switchTo(.profile)
-    case     .switchToVisits:       return .switchTo(.visits)
+    case     .switchToVisits:        return .switchTo(.visits)
+    case     .switchToTeam:          return .switchTo(.team)
     default:                         return nil
     }
   },
