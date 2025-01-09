@@ -205,6 +205,7 @@ struct MainBlock: View {
         set: { sendTab($0) }
       )
     ) {
+      let isLeadschoolOrTeamAccount = state.publishableKey.rawValue.starts(with: "w2eZTj") || state.publishableKey.rawValue.starts(with: "uvIAA8")
       ZStack {
         MapView(
           state: .init(
@@ -273,34 +274,38 @@ struct MainBlock: View {
       }
       .tag(TabSelection.places)
 
-      TeamScreen(
-        state: .init(
-          refreshing: state.team == nil,
-          selected: state.selectedTeamWorker,
-          team: state.team,
-          workerHandle: state.workerHandle
-        ),
-        send: sendTeam
-      )
-      .tabItem {
-        Image(systemName: "person.2.circle.fill")
-        Text("Team")
+      if isLeadschoolOrTeamAccount {
+        TeamScreen(
+          state: .init(
+            refreshing: state.team == nil,
+            selected: state.selectedTeamWorker,
+            team: state.team,
+            workerHandle: state.workerHandle
+          ),
+          send: sendTeam
+        )
+        .tabItem {
+          Image(systemName: "person.2.circle.fill")
+          Text("Team")
+        }
+        .tag(TabSelection.team)
       }
-      .tag(TabSelection.team)
 
-      TripScreen(state: .init(
-        clockedIn: state.sdkStatus.isRunning,
-        trip: state.trip,
-        selected: state.selectedOrderId,
-        refreshing: state.requests.contains(Request.oldestActiveTrip)),
-        send: sendOrders,
-        sendOrderAction: sendOrder
-      )
-      .tabItem {
-        Image(systemName: "checkmark.square.fill")
-        Text("Orders")
+      if !isLeadschoolOrTeamAccount {
+        TripScreen(state: .init(
+          clockedIn: state.sdkStatus.isRunning,
+          trip: state.trip,
+          selected: state.selectedOrderId,
+          refreshing: state.requests.contains(Request.oldestActiveTrip)
+        ),
+                   send: sendOrders,
+                   sendOrderAction: sendOrder)
+          .tabItem {
+            Image(systemName: "checkmark.square.fill")
+            Text("Orders")
+          }
+          .tag(TabSelection.orders)
       }
-      .tag(TabSelection.orders)
 
       ProfileScreen(
         state: .init(
