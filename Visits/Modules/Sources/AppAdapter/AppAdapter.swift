@@ -163,7 +163,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .signIn(.tappedOutsideFocus): return .dismissFocus
   case .blocker(.deletedButtonTapped): return .startTracking
   case .blocker(.invalidPublishableKeyButtonTapped): return .startTracking
-  case .blocker(.stoppedButtonTapped): return .startTracking
   case .blocker(.locationWhenInUseButtonTapped): return .openSettings
   case .blocker(.locationWhenInUseFirstRequestButtonTapped): return .requestAlwaysLocationPermissions
   case .blocker(.locationDeniedButtonTapped): return .openSettings
