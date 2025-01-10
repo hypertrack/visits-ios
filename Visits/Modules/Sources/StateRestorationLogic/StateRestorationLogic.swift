@@ -1,11 +1,10 @@
 import AppArchitecture
 import Combine
 import ComposableArchitecture
+import NonEmpty
 import StateRestorationEnvironment
 import Types
 import Utility
-import NonEmpty
-
 
 // MARK: - State
 
@@ -27,12 +26,12 @@ public enum StateRestorationAction: Equatable {
 public struct StateRestorationLogicEnvironment {
   public var appVersion: () -> Effect<AppVersion, Never>
   public var getMetadata: () -> Effect<JSON.Object, Never>
-  public var loadState: (NonEmptyString?) -> Effect<Result<StorageState?, StateRestorationError>, Never>
-  
+  public var loadState: () -> Effect<Result<StorageState?, StateRestorationError>, Never>
+
   public init(
     appVersion: @escaping () -> Effect<AppVersion, Never>,
     getMetadata: @escaping () -> Effect<JSON.Object, Never>,
-    loadState: @escaping (NonEmptyString?) -> Effect<Result<StorageState?, StateRestorationError>, Never>
+    loadState: @escaping () -> Effect<Result<StorageState?, StateRestorationError>, Never>
   ) {
     self.appVersion = appVersion
     self.getMetadata = getMetadata
@@ -50,23 +49,38 @@ public let stateRestorationReducer: Reducer<
   switch action {
   case .osFinishedLaunching:
     guard state == .waitingToStart else { return .none }
-    
+
     state = .restoringState
-      
-    let loadStatePublisher = environment.getMetadata()
-        .map { metadata in
-          let emailJson = metadata["email"]
-          if case let .string(email) = emailJson {
-            return NonEmptyString(email)
+
+    let loadStatePublisher: Effect<Result<StorageState?, StateRestorationError>, Never> = environment.loadState()
+      .flatMap { (result: Result<StorageState?, StateRestorationError>) in
+        switch result {
+        case let .success(loadedState):
+          if var loadedState = loadedState,
+            case let .main(tabSelection, publishableKey, name, workerHandle) = loadedState.flow,
+            workerHandle == nil
+          {
+            return environment.getMetadata()
+              .map(restoreWorkerHandleFromMetadata)
+              .map { restoredWorkerHandle in
+                if let restoredWorkerHandle = restoredWorkerHandle {
+                  loadedState.flow = .main(
+                    tabSelection,
+                    publishableKey,
+                    name,
+                    restoredWorkerHandle
+                  )
+                }
+                return Result<StorageState?, StateRestorationError>.success(loadedState)
+              }
+          } else {
+            return Just(.success(loadedState)).eraseToEffect()
           }
-          let phoneJson = metadata["phone_number"]
-          if case let .string(phone) = phoneJson {
-            return NonEmptyString(phone)
-          }
-          return nil
+        case let .failure(error):
+          return Just(.failure(error)).eraseToEffect()
         }
-        .flatMap { environment.loadState($0) }
-    
+      }.eraseToEffect()
+
     return Publishers.Zip(
       loadStatePublisher,
       environment.appVersion()
@@ -76,7 +90,7 @@ public let stateRestorationReducer: Reducer<
     }
     .receive(on: environment.mainQueue)
     .eraseToEffect()
-    
+
   case let .restoredState(ss, ver, _):
     guard state == .restoringState else { return .none }
 
@@ -93,13 +107,17 @@ public let stateRestorationReducer: Reducer<
     case let .some(ss):
       let flow: RestoredState.Flow
       switch ss.flow {
-        case .firstRun:
+      case .firstRun:
         flow = .firstRun
       case let .signIn(e):
-          flow = .signIn(e)
-      case let .main(t, p, n, w):
+        flow = .signIn(e)
+      case let .main(t, p, n, workerHandle):
         let (fr, to) = environment.defaultVisitsDatePickerFromTo()
-        flow = .main(t, p, n, w, fr, to)
+        if let workerHandle = workerHandle {
+          flow = .main(t, p, n, workerHandle, fr, to)
+        } else {
+          flow = .signIn(nil)
+        }
       }
       restored = RestoredState(
         experience: ss.experience,
@@ -113,6 +131,22 @@ public let stateRestorationReducer: Reducer<
 
     return .none
   }
+}
+
+private func restoreWorkerHandleFromMetadata(_ metadata: JSON.Object) -> WorkerHandle? {
+  let emailJson = metadata["email"]
+  if case let .string(email) = emailJson {
+    if !email.isEmpty {
+      return WorkerHandle(email)
+    }
+  }
+  let phoneJson = metadata["phone_number"]
+  if case let .string(phone) = phoneJson {
+    if !phone.isEmpty {
+      return WorkerHandle(phone)
+    }
+  }
+  return nil
 }
 
 private extension StorageState {

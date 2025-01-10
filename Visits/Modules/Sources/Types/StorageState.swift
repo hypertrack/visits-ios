@@ -2,7 +2,7 @@ public struct StorageState: Equatable {
   public enum Flow: Equatable {
     case firstRun
     case signIn(Email?)
-    case main(TabSelection, PublishableKey, Name, WorkerHandle)
+    case main(TabSelection, PublishableKey, Name, WorkerHandle?)
   }
   
   public var experience: Experience

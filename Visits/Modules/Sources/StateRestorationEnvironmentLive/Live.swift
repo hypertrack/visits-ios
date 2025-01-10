@@ -9,16 +9,12 @@ import Types
 
 public extension StateRestorationEnvironment {
   static let live = StateRestorationEnvironment(
-    loadState: { restoredEmailOrPhoneNumber in
+    loadState: {
       Effect<Result<StorageState?, StateRestorationError>, Never>.result {
         logEffect("loadState")
         
         let ud = UserDefaults.standard
 
-        let udWorkerHandle = (ud.string(forKey: RestorationKey.workerHandle.rawValue)
-            >>- NonEmptyString.init(rawValue:))
-            ?? restoredEmailOrPhoneNumber
-        
         return .success(
           restoredStateFrom(
             screen: ud.string(forKey: RestorationKey.screen.rawValue)
@@ -45,7 +41,8 @@ public extension StateRestorationEnvironment {
             locationAlways: ud.string(forKey: RestorationKey.locationAlways.rawValue)
               >>- NonEmptyString.init(rawValue:)
               >-> LocationAlwaysPermissions.prism.extract(from:),
-            workerHandle: udWorkerHandle
+            workerHandle: ud.string(forKey: RestorationKey.workerHandle.rawValue)
+              >>- NonEmptyString.init(rawValue:)
               <¡> WorkerHandle.init(rawValue:)
           )
         )
@@ -107,7 +104,7 @@ func restoredStateFrom(
   switch (screen, email, publishableKey, name, tabSelection, pushStatus, experience, locationAlways, workerHandle) {
   
   // Latest, onboarded app on the main screen
-  case let (.main, _, .some(publishableKey), .some(name), tabSelection, pushStatus, experience, locationAlways, .some(workerHandle)):
+  case let (.main, _, .some(publishableKey), .some(name), tabSelection, pushStatus, experience, locationAlways, workerHandle):
     return .success(
       StorageState(
         experience: experience ?? .regular,
