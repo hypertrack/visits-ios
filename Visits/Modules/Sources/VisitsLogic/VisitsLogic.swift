@@ -33,10 +33,11 @@ public struct VisitsState: Equatable {
 public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, action, _ in
   switch action {
   case let .updateVisits(from: from, to: to, wh):
-    state.from = from
-    state.to = to
-    state.visits = nil
-      
+    if(state.workerHandle == wh) {
+      state.from = from
+      state.to = to
+      state.visits = nil
+    }
     return .none
   case let .visitsUpdated(vd):
     if(vd.workerHandle == state.workerHandle) {

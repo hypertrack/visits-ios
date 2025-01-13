@@ -3,6 +3,7 @@ import NonEmpty
 import SwiftUI
 import Types
 import Views
+import Utility
 
 public struct VisitsView: View {
     public struct ScreenState {
@@ -40,11 +41,19 @@ public struct VisitsView: View {
     let state: ScreenState
     let send: (Action) -> Void
 
-    @State private var fromDate = Date()
-    @State private var toDate = Date()
+    @State private var fromDate: Date? = nil
+    @State private var toDate: Date? = nil
     @State private var showFromDatePicker: Bool = false
     @State private var showToDatePicker: Bool = false
     @State private var validationError: DatesValidationError? = nil
+
+     private var from: Date {
+         fromDate ?? state.from
+     }
+
+     private var to: Date {
+         toDate ?? state.to
+     }
 
     let calendar = Calendar.current
 
@@ -65,7 +74,16 @@ public struct VisitsView: View {
     }
 
     public var body: some View {
-        VStack {
+        let fromBinding = Binding<Date>(
+            get: { fromDate ?? state.from },
+            set: { fromDate = $0 }
+        )
+
+        let toBinding = Binding<Date>(
+            get: { toDate ?? state.to },
+            set: { toDate = $0 }
+        )
+        return VStack {
             HStack {
                 Button(action: {
                     if !self.state.refreshing {
@@ -75,7 +93,7 @@ public struct VisitsView: View {
                     VStack {
                         Text("From")
                             .font(.normalHighBold)
-                        Text("\(self.validationError == nil ? self.state.from : self.fromDate, formatter: dateFormatter)")
+                        Text("\(self.validationError == nil ? self.state.from : fromBinding.wrappedValue, formatter: dateFormatter)")
                             .foregroundColor(.primary)
                     }
                 }.padding(.horizontal, 16)
@@ -91,7 +109,7 @@ public struct VisitsView: View {
                     VStack {
                         Text("To")
                             .font(.normalHighBold)
-                        Text("\(self.validationError == nil ? self.state.to : self.toDate, formatter: dateFormatter)")
+                        Text("\(self.validationError == nil ? self.state.to : toBinding.wrappedValue, formatter: dateFormatter)")
                             .foregroundColor(.primary)
                     }
                 }.padding(.horizontal, 16)
@@ -159,7 +177,11 @@ public struct VisitsView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 RefreshButton(state: self.state.refreshing ? .refreshing : .enabled) {
-                    send(.loadVisits(from: self.state.from, to: self.state.to, self.state.workerHandle))
+                    send(.loadVisits(
+                        from: getRangeStartFromDate(self.state.from, Calendar.current, TimeZone.current), 
+                        to: getRangeEndFromDate(self.state.to, Calendar.current, TimeZone.current),
+                        self.state.workerHandle
+                        ))
                 }
             }
         }
@@ -169,7 +191,7 @@ public struct VisitsView: View {
             VStack {
                 Text("From date:")
                     .font(.title)
-                DatePicker("From", selection: $fromDate, displayedComponents: .date)
+                DatePicker("From", selection: fromBinding, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding()
                 Button("Select") {
@@ -184,7 +206,7 @@ public struct VisitsView: View {
             VStack {
                 Text("To date:")
                     .font(.title)
-                DatePicker("To", selection: $toDate, displayedComponents: .date)
+                DatePicker("To", selection: toBinding, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding()
                 Button("Select") {
@@ -196,22 +218,30 @@ public struct VisitsView: View {
     }
 
     func onFromChanged() {
-        let result = validate(settingFrom: true, from: fromDate, to: toDate)
+        let result = validate(settingFrom: true, from: from, to: to)
         switch result {
         case .success:
             validationError = nil
-            send(.loadVisits(from: fromDate, to: toDate, self.state.workerHandle))
+            send(.loadVisits(
+                from: getRangeStartFromDate(from, Calendar.current, TimeZone.current),
+                to: getRangeEndFromDate(to, Calendar.current, TimeZone.current),
+                self.state.workerHandle
+                ))
         case let .failure(error):
             validationError = error
         }
     }
 
     func onToChanged() {
-        let result = validate(settingFrom: false, from: fromDate, to: toDate)
+        let result = validate(settingFrom: false, from: from, to: to)
         switch result {
         case .success:
             validationError = nil
-            send(.loadVisits(from: fromDate, to: toDate, self.state.workerHandle))
+            send(.loadVisits(
+                from: getRangeStartFromDate(from, Calendar.current, TimeZone.current),
+                to: getRangeEndFromDate(to, Calendar.current, TimeZone.current),
+                self.state.workerHandle
+                ))
         case let .failure(error):
             validationError = error
         }

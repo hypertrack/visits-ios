@@ -28,7 +28,7 @@ let targets: [Target] = [
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),
   .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
-  .target(name: "VisitsScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views", "PlacesScreen"]),
+  .target(name: "VisitsScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views", "PlacesScreen", "Utility"]),
   .target(name: "TeamScreen",                      dependencies: [architecture, "MapDetailView", "Types", "Utility", "Views", "VisitsScreen"]),
   
   // Environment
