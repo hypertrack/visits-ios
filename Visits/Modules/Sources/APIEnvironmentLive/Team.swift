@@ -48,10 +48,8 @@ func getTeam(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<TeamValu
 enum WorkerHierarchyMetadata {
     case noHierarchyData
     case l2Manager
-    // param is l2Manager
-    case l1Manager(WorkerHandle?)
-    // params are l1Manager, l2Manager
-    case l0Worker(WorkerHandle?, WorkerHandle?)
+    case l1Manager(l2Manager: WorkerHandle?)
+    case l0Worker(l1Manager: WorkerHandle?, l2Manager: WorkerHandle?)
 }
 
 extension WorkerHierarchyMetadata {
@@ -85,7 +83,7 @@ extension WorkerHierarchyMetadata {
                     l2ManagerWh = nil
                 }
 
-                return .l0Worker(l1ManagerWh, l2ManagerWh)
+                return .l0Worker(l1Manager: l1ManagerWh, l2Manager: l2ManagerWh)
             case "l1":
                 let l2ManagerWh: WorkerHandle?
                 if let l2ManagerValue = l2Manager,
@@ -97,7 +95,7 @@ extension WorkerHierarchyMetadata {
                     l2ManagerWh = nil
                 }
 
-                return .l1Manager(l2ManagerWh)
+                return .l1Manager(l2Manager: l2ManagerWh)
             case "l2":
                 return .l2Manager
             default:
