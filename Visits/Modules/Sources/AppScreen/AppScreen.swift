@@ -9,7 +9,6 @@ import OrdersListScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
-import SummaryScreen
 import SwiftUI
 import TeamScreen
 import TripScreen

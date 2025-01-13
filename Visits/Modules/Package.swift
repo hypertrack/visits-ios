@@ -13,7 +13,7 @@ let targets: [Target] = [
   .target(name: "Types",                           dependencies: [architecture, nonEmpty, "Utility", tagged]),
   .target(name: "Utility",                         dependencies: [architecture]),
   // Screen
-  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "TripScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "SummaryScreen", "Types", "Views", "VisitsScreen", "TeamScreen"]),
+  .target(name: "AppScreen",                       dependencies: ["AddPlaceView", architecture, "BlockerScreen", "LoadingScreen", "MapScreen", "OrderScreen", "OrdersListScreen", "TripScreen", "PlacesScreen", "ProfileScreen", "SignInScreen", "Types", "Views", "VisitsScreen", "TeamScreen"]),
   .target(name: "AddPlaceView",                    dependencies: [architecture, "MapDetailView", "MapDrawing", "Types", "Utility", "Views"]),
   .target(name: "BlockerScreen",                   dependencies: ["Views"]),
   .target(name: "LoadingScreen"),
@@ -26,7 +26,6 @@ let targets: [Target] = [
   .target(name: "PlacesScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views"]),
   .target(name: "ProfileScreen",                   dependencies: [nonEmpty, "Types", "Utility", "Views"]),
   .target(name: "SignInScreen",                    dependencies: ["Types", "Views"]),
-  .target(name: "SummaryScreen",                   dependencies: ["Views"]),
   .target(name: "Views"),
   .target(name: "VisitsScreen",                    dependencies: [architecture, "MapDetailView", "Types", "Views", "PlacesScreen", "Utility"]),
   .target(name: "TeamScreen",                      dependencies: [architecture, "MapDetailView", "Types", "Utility", "Views", "VisitsScreen"]),
