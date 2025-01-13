@@ -150,7 +150,7 @@ public struct VisitsView: View {
                     )
                 } else {
                     Spacer()
-                    Text(getErrorText())
+                    Text(getErrorText()).padding(16)
                     Spacer()
                 }
             }
