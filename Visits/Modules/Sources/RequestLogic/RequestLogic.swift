@@ -230,12 +230,22 @@ public let requestReducer = Reducer<
     
     // Initial loading of the app data is performed here
     let (token, effects) = requestOrRefreshToken(state.token) { t in
-      .merge(
+      let currentDate = environment.date()
+      let calendar = environment.calendar()
+      let timeZone = environment.timeZone()
+      return Effect.merge(
         // get all requests that are not already in progress
         state.requests.symmetricDifference(Request.allCases)
           .map(requestEffect(t))
           + [(isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none)]
-          + [ getVisits(t, state.workerHandle, from: environment.date(), to: environment.date()) ]
+          + [ 
+              getVisits(
+                t, 
+                state.workerHandle, 
+                from: defaultVisitsDateFrom(currentDate: currentDate, calendar, timeZone), 
+                to: defaultVisitsDateTo(currentDate: currentDate, calendar, timeZone)
+              ) 
+            ]
           + [ getTeam(t, state.workerHandle) ]
       )
     }
@@ -481,6 +491,9 @@ public let requestReducer = Reducer<
       resumeOrderCancellationAndCompletion = []
     }
 
+    let currentDate = environment.date()
+    let calendar = environment.calendar()
+    let timeZone = environment.timeZone()
     // Initial app data loading after the token is updated
     return .merge(
       state.requests.map(requestEffect(t))
@@ -489,7 +502,14 @@ public let requestReducer = Reducer<
       +
       [requestIntegration]
       +
-      [ getVisits(t, state.workerHandle, from: environment.date(), to: environment.date()) ]
+      [ 
+        getVisits(
+          t, 
+          state.workerHandle, 
+          from: defaultVisitsDateFrom(currentDate: currentDate, calendar, timeZone), 
+          to: defaultVisitsDateTo(currentDate: currentDate, calendar, timeZone)
+        )
+      ]
       +
       [ getTeam(t, state.workerHandle) ]
     )

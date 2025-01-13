@@ -129,13 +129,13 @@ public struct TeamScreen: View {
 
   func selectTeamWorker(_ workerHandle: WorkerHandle?) {
     if let workerHandle = workerHandle {
-      let today = Date()
+      let currentDate = Date()
       let calendar = Calendar.current
       let timeZone = TimeZone.current
       send(.selectTeamWorker(
         workerHandle,
-        from: defaultVisitsDateFrom(currentDate: today, calendar, timeZone),
-        to: defaultVisitsDateTo(currentDate: today, calendar, timeZone)
+        from: defaultVisitsDateFrom(currentDate: currentDate, calendar, timeZone),
+        to: defaultVisitsDateTo(currentDate: currentDate, calendar, timeZone)
       ))
     } else {
       send(.deselectTeamWorker)
