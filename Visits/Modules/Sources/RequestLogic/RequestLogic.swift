@@ -228,7 +228,7 @@ public let requestReducer = Reducer<
        .refreshAllRequests:
     let isIntegrationCheckPending = state.integrationStatus == .unknown
     
-    // Initial loading of the app data is performed here
+    // Initial app data loading (if token is fresh)
     let (token, effects) = requestOrRefreshToken(state.token) { t in
       let currentDate = environment.date()
       let calendar = environment.calendar()
@@ -494,7 +494,7 @@ public let requestReducer = Reducer<
     let currentDate = environment.date()
     let calendar = environment.calendar()
     let timeZone = environment.timeZone()
-    // Initial app data loading after the token is updated
+    // Initial app data loading (after the token is refreshed)
     return .merge(
       state.requests.map(requestEffect(t))
       +

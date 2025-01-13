@@ -20,7 +20,7 @@ func getWorker(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<Remote
   .catchToEffect()
 }
 
-func workerRequest(auth token: Token.Value, workerHandle: WorkerHandle) -> URLRequest {
+func workerRequest(auth token: Token.Value, workerHandle: WorkerHandle, paginationToken: String? = nil) -> URLRequest {
   var components = URLComponents()
   components.scheme = "https"
   components.host = "live-app-backend.htprod.hypertrack.com"
@@ -32,11 +32,11 @@ func workerRequest(auth token: Token.Value, workerHandle: WorkerHandle) -> URLRe
     URLQueryItem(name: "include_summary", value: "false"),
     URLQueryItem(name: "include_timeline", value: "false"),
   ]
-//  if let paginationToken = paginationToken, let queryItems = components.queryItems {
-//    components.queryItems = queryItems + [
-//      URLQueryItem(name: "pagination_token", value: "\(paginationToken)")
-//    ]
-//  }
+  if let paginationToken = paginationToken, let queryItems = components.queryItems {
+    components.queryItems = queryItems + [
+      URLQueryItem(name: "pagination_token", value: "\(paginationToken)")
+    ]
+  }
   
   var request = URLRequest(url: components.url!)
   request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

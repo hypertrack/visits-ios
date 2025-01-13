@@ -36,7 +36,7 @@ public struct Place {
     public typealias ExitTimestamp     = Tagged<(Visit, exit: ()),      Date>
   }
   
-    public struct Route: Hashable {
+  public struct Route: Hashable {
     public var distance: Distance
     public var duration: Duration
     public var idleTime: IdleTime

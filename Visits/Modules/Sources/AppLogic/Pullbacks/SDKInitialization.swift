@@ -151,6 +151,6 @@ private func toSDKInitializationEnvironment(_ e: SystemEnvironment<AppEnvironmen
       .init(
         setName: e.hyperTrack.setName,
         setMetadata: e.hyperTrack.setMetadata,
-    setWorkerHandle: e.hyperTrack.setWorkerHandle
+        setWorkerHandle: e.hyperTrack.setWorkerHandle
   )}
 }

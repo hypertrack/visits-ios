@@ -205,7 +205,7 @@ struct MainBlock: View {
         set: { sendTab($0) }
       )
     ) {
-      let isLeadschoolOrTeamAccount = state.publishableKey.rawValue.starts(with: "w2eZTj") || state.publishableKey.rawValue.starts(with: "uvIAA8")
+      let isLeadschoolOrTeamAccount = state.publishableKey.rawValue.starts(with: leadAccountPkPrefix) || state.publishableKey.rawValue.starts(with: teamAccountPkPrefix)
       ZStack {
         MapView(
           state: .init(
