@@ -8,18 +8,6 @@ import Tagged
 import Types
 import Utility
 
-//func getSummary(_ token: Token.Value, _ wh: WorkerHandle, from: Date, to: Date) -> Effect<Result<VisitsData.WorkerSummary, APIError<Token.Expired>>, Never> {
-//  logEffect("getSummary")
-//
-//  return callAPI(
-//    request: workerSummaryRequest(auth: token, workerHandle: wh, from: from, to: to),
-//    success: VisitsData.WorkerSummary.self
-//  )
-//  .mapError(fromNever)
-//  .eraseToAnyPublisher()
-//  .catchToEffect()
-//}
-
 func getWorker(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<RemoteWorker, APIError<Token.Expired>>, Never> {
   logEffect("getWorker")
 
@@ -89,9 +77,9 @@ struct RemoteWorker: Decodable {
 }
 
 struct RemoteWorkerSummary: Decodable {
-        var timeSpentInsideGeofences: Int?
-        var totalDriveDistance: Int?
-        var visitsNumber: Int?
+        var timeSpentInsideGeofences: UInt?
+        var totalDriveDistance: UInt?
+        var visitsNumber: UInt?
 }
 
 extension RemoteWorkerSummary {
@@ -103,9 +91,9 @@ extension RemoteWorkerSummary {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        timeSpentInsideGeofences = try container.decodeIfPresent(Int.self, forKey: .timeSpentInsideGeofences)
-        totalDriveDistance = try container.decodeIfPresent(Int.self, forKey: .totalDriveDistance)
-        visitsNumber = try container.decodeIfPresent(Int.self, forKey: .visitsNumber)
+        timeSpentInsideGeofences = try container.decodeIfPresent(UInt.self, forKey: .timeSpentInsideGeofences)
+        totalDriveDistance = try container.decodeIfPresent(UInt.self, forKey: .totalDriveDistance)
+        visitsNumber = try container.decodeIfPresent(UInt.self, forKey: .visitsNumber)
     }
 }
 

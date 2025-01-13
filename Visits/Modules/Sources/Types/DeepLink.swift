@@ -13,8 +13,6 @@ public struct DeepLink: Equatable {
   }
 
   public var workerHandle: WorkerHandle {
-    // return WorkerHandle("ram@hypertrack.io")
-
     switch variant {
     case let .old( driverID):
         return WorkerHandle(driverID.rawValue)

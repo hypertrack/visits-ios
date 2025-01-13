@@ -48,9 +48,9 @@ func toPlacesVisitsSummary(from: Date, to: Date, _ workerHandle: WorkerHandle) -
         timeSpentInsideGeofences: worker.summary?.timeSpentInsideGeofences ?? 0,
         totalDriveDistance: worker.summary?.totalDriveDistance ?? 0,
         // ignoring remote visits number to avoid data mismatch
-        visitsNumber: visits.count,
+        visitsNumber: UInt(visits.count),
         // this value is not present in the response, counting locally
-        visitedPlacesNumber: Set(visits.compactMap { $0.geofenceAddress }).count
+        visitedPlacesNumber: UInt(Set(visits.compactMap { $0.geofenceAddress }).count)
       ),
       visits: visits.compactMap { remoteVisit in
         if let visitId = remoteVisit.visitId,

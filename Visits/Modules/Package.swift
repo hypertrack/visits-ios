@@ -76,7 +76,7 @@ let targets: [Target] = [
   .target(name: "RequestLogic",                    dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "SignInLogic",                     dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "StateRestorationLogic",           dependencies: ["AppArchitecture", architecture, "Utility", "StateRestorationEnvironment", "Types"]),
-  .target(name: "SDKInitializationLogic",          dependencies: [architecture, "Types", "Utility"]),
+  .target(name: "SDKInitializationLogic",          dependencies: [architecture, "Types", "Utility", "AppArchitecture"]),
   .target(name: "SDKLaunchingLogic",               dependencies: ["AppArchitecture", architecture, "Utility", "Types"]),
   .target(name: "SDKStatusUpdateLogic",            dependencies: [architecture, "Types"]),
   .target(name: "TabLogic",                        dependencies: [architecture, "Types"]),

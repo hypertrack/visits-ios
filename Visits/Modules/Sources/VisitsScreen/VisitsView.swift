@@ -4,6 +4,7 @@ import SwiftUI
 import Types
 import Views
 import Utility
+import PlacesScreen
 
 public struct VisitsView: View {
     public struct ScreenState {
@@ -139,7 +140,7 @@ public struct VisitsView: View {
                         }
                         Spacer()
                         VStack {
-                            Text("\(visits.summary.timeSpentInsideGeofences)")
+                            Text("\(localizedTime(visits.summary.timeSpentInsideGeofences, style: .full))")
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                             Text("Spent")
@@ -147,7 +148,7 @@ public struct VisitsView: View {
                         }
                         Spacer()
                         VStack {
-                            Text("\(visits.summary.totalDriveDistance)")
+                            Text("\(localizedDistance(visits.summary.totalDriveDistance))")
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                             Text("Traveled")

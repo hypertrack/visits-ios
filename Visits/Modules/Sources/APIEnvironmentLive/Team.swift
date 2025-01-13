@@ -63,10 +63,7 @@ extension WorkerHierarchyMetadata {
         let l1Manager = metadata[keyL1]
         let l2Manager = metadata[keyL2]
 
-        if let levelValue = level, case let JSON.string(level) = levelValue
-        //    let l1ManagerValue = l1Manager, case let JSON.string(l1Manager) = l1ManagerValue,
-        //    let l2ManagerValue = l2Manager, case let JSON.string(l2Manager) = l2ManagerValue
-        {
+        if let levelValue = level, case let JSON.string(level) = levelValue {
             switch level {
             case "l0":
                 let l1ManagerWh: WorkerHandle?, l2ManagerWh: WorkerHandle?

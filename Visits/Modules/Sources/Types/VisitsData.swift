@@ -22,16 +22,16 @@ public struct VisitsData: Equatable {
     }
 
     public struct WorkerSummary: Equatable {
-        public var timeSpentInsideGeofences: Int
-        public var totalDriveDistance: Int
-        public var visitsNumber: Int
-        public var visitedPlacesNumber: Int
+        public var timeSpentInsideGeofences: UInt
+        public var totalDriveDistance: UInt
+        public var visitsNumber: UInt
+        public var visitedPlacesNumber: UInt
 
         public init(
-            timeSpentInsideGeofences: Int,
-            totalDriveDistance: Int,
-            visitsNumber: Int,
-            visitedPlacesNumber: Int
+            timeSpentInsideGeofences: UInt,
+            totalDriveDistance: UInt,
+            visitsNumber: UInt,
+            visitedPlacesNumber: UInt
         ) {
             self.timeSpentInsideGeofences = timeSpentInsideGeofences
             self.totalDriveDistance = totalDriveDistance
