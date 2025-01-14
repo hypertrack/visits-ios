@@ -61,12 +61,15 @@ public let sdkInitializationReducer = Reducer<
     
     state.sdk = sdk
     let (from, to) = environment.defaultVisitsDatePickerFromTo()
-    state.status = .initialized(.init(name: name, metadata: metadata), WorkerHandle(email.rawValue), from, to)
-    
+    let workerHandle = WorkerHandle(email.rawValue)
+    state.status = .initialized(.init(name: name, metadata: metadata), workerHandle, from, to)
+
     return .merge(
       environment.setName(name)
         .fireAndForget(),
       environment.setMetadata(metadata)
+        .fireAndForget(),
+      environment.setWorkerHandle(workerHandle)
         .fireAndForget()
     )
   }
