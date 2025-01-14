@@ -28,6 +28,13 @@ public extension HyperTrackEnvironment {
           }
       }
     },
+    getMetadata: {
+      .result {
+        let metadata = HyperTrack.metadata
+        logEffect("getMetadata: \(metadata)")
+          return .success(fromHyperTrackMetadata(metadata))
+      }
+    },
     makeSDK: { pk in
       .result {
         logEffect("makeSDK: \(pk.string)")
@@ -65,6 +72,12 @@ public extension HyperTrackEnvironment {
       .fireAndForget {
         logEffect("setMetadata: \(metadata)")
         HyperTrack.metadata = toHyperTrackMetadata(metadata)
+      }
+    },
+    setWorkerHandle: { workerHandle in
+      .fireAndForget {
+        logEffect("setWorkerHandle: \(workerHandle.string)")
+        HyperTrack.workerHandle = workerHandle.string
       }
     },
     startTracking: {
@@ -120,6 +133,25 @@ func subscribe() {
 }
 
 var statusUpdatesSubscriber: Effect<SDKStatusUpdate, Never>.Subscriber? = nil
+
+func fromHyperTrackMetadata(_ htJSON: HyperTrack.JSON.Object) -> JSON.Object {
+  var json: JSON.Object = [:]
+  for (key, value) in htJSON {
+    json[key] = fromHyperTrackJSON(value)
+  }
+  return json
+}
+
+func fromHyperTrackJSON(_ htJSON: HyperTrack.JSON) -> JSON {
+  switch htJSON {
+  case let .object(o): return .object(fromHyperTrackMetadata(o))
+  case let .array(a):  return .array(a.map(fromHyperTrackJSON))
+  case let .string(s): return .string(s)
+  case let .number(n): return .number(n)
+  case let .bool(b):   return .bool(b)
+  case .null:          return .null
+  }
+}
 
 func toHyperTrackMetadata(_ json: JSON.Object) -> HyperTrack.JSON.Object {
   var htJSON: HyperTrack.JSON.Object = [:]

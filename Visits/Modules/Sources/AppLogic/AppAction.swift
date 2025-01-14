@@ -4,7 +4,6 @@ import Types
 import UIKit
 import Utility
 
-
 public enum AppAction: Equatable {
   // DeepLink
   case deepLinkOpened(URL)
@@ -24,22 +23,23 @@ public enum AppAction: Equatable {
   case passwordChanged(Password?)
   case signIn
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
-  // Map
+  //   Map
+  case clockInToggleTapped
   case mapRegionWillChange
   case mapRegionDidChange
   case mapEnableAutoZoom
   case openInMaps(Coordinate, Address)
   case reverseGeocoded(GeocodedResult)
-  // Requests
+  //   Requests
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case cancelAllRequests
   case refreshAllRequests
   case receivedCurrentLocation(Coordinate?)
-  // Orders
+  //   Orders
   case selectOrder(Order.ID?)
   case updateOrders
   case resetInProgressOrders
-  // Order
+  //   Order
   case cancelOrder(Order.ID)
   case requestOrderCancel(Order)
   case orderCancelFinished(Order, Result<Terminal, APIError<Token.Expired>>)
@@ -56,7 +56,7 @@ public enum AppAction: Equatable {
   case focusOrderNote(Order.ID)
   case orderDismissFocus(Order.ID)
   case tripUpdated(Result<Trip?, APIError<Token.Expired>>)
-  // Places
+  //   Places
   case selectPlace(Place?)
   case placesUpdated(Result<PlacesSummary, APIError<Token.Expired>>)
   case updatePlaces
@@ -64,8 +64,19 @@ public enum AppAction: Equatable {
   case placeCreatedWithSuccess(Place)
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case changePlacesPresentation(PlacesPresentation)
-  // Adding Place
+  //   Adding Place
   case addPlace
+  //   Visits
+  case selectVisit(PlaceVisit?)
+  case updateVisits(from: Date, to: Date, WorkerHandle)
+  case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
+  case stubAction
+  //   Team
+  case deselectTeamWorker
+  case selectTeamWorker(WorkerHandle, from: Date, to: Date)
+  case teamUpdated(Result<TeamValue, APIError<Token.Expired>>)
+  case teamWorkerVisitsAction(VisitsAction)
+  case updateTeam(WorkerHandle)
   //   Choosing Coordinate
   case cancelAddPlace
   case confirmAddPlaceCoordinate
@@ -99,23 +110,24 @@ public enum AppAction: Equatable {
   case searchForIntegrations
   case selectedIntegration(IntegrationEntity)
   case updateIntegrationsSearch(IntegrationSearch)
-  // Integration Entities
+  //   Integration Entities
   case updateIntegrations(IntegrationSearch)
   case integrationEntitiesUpdatedWithSuccess([IntegrationEntity])
   case integrationEntitiesUpdatedWithFailure(APIError<Token.Expired>)
-  // Profile
+  //   Profile
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
-  // TabView
+  //   TabView
+  case switchToMap
+  case switchToVisits
   case switchToOrders
   case switchToPlaces
-  case switchToMap
-  case switchToSummary
   case switchToProfile
-  // History
+  case switchToTeam
+  //   History
   case historyUpdated(Result<History, APIError<Token.Expired>>)
-  // Generic UI
+  //   Generic UI
   case dismissFocus
-  // SDK
+  //   SDK
   case madeSDK(SDKStatusUpdate)
   case openSettings
   case requestAlwaysLocationPermissions
@@ -124,16 +136,16 @@ public enum AppAction: Equatable {
   case statusUpdated(SDKStatusUpdate)
   case startTracking
   case stopTracking
-  // Push
+  //   Push
   case receivedPushNotification
   case requestPushAuthorization
   case userHandledPushAuthorization
-  // State
+  //   State
   case restoredState(StorageState?, AppVersion, StateRestorationError?)
-  // Alert
+  //   Alert
   case errorAlert(ErrorAlertAction)
   case errorReportingAlert(SendErrorReportAction)
-  // Internal
+  //   Internal
   case generated(InternalAction)
 }
 

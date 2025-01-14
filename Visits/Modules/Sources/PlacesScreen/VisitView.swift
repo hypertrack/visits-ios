@@ -8,6 +8,20 @@ struct VisitView: View {
   let exit: Date?
   let duration: UInt
   let copy: (NonEmptyString) -> Void
+    
+    init(
+        id: NonEmptyString,
+        entry: Date,
+        exit: Date?,
+        duration: UInt,
+        copy: @escaping (NonEmptyString) -> Void
+    ) {
+        self.id = id
+        self.entry = entry
+        self.exit = exit
+        self.duration = duration
+        self.copy = copy
+    }
   
   var body: some View {
     TimelinePieceView {
@@ -59,7 +73,7 @@ func entryExitTime(entry: Date, exit: Date?) -> String {
   }
 }
 
-func today(_ date: Date) -> Bool {
+public func today(_ date: Date) -> Bool {
   Calendar.current.isDate(date, equalTo: Date(), toGranularity: .day)
 }
 

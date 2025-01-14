@@ -6,12 +6,14 @@ import Types
 public extension HyperTrackEnvironment {
   static let noop = Self(
     getCurrentLocation: { .none },
+    getMetadata: { .none },
     makeSDK: { _ in .none},
     openSettings: { .none },
     requestAlwaysLocationPermissions: { .none },
     requestWhenInUseLocationPermissions: { .none },
     setName: { _ in .none},
     setMetadata: { _ in .none},
+    setWorkerHandle: { _ in .none},
     startTracking: { .none },
     stopTracking: { .none },
     subscribeToStatusUpdates: { .none }
@@ -24,6 +26,7 @@ public extension HyperTrackEnvironment {
 
     return Self(
       getCurrentLocation: noop.getCurrentLocation,
+      getMetadata: noop.getMetadata,
       makeSDK: { _ in
         s = .unlocked(deviceID, .stopped)
         
@@ -46,6 +49,7 @@ public extension HyperTrackEnvironment {
       },
       setName: noop.setName,
       setMetadata: noop.setMetadata,
+      setWorkerHandle: noop.setWorkerHandle,
       startTracking: {
         s = .unlocked(deviceID, .running)
         statusUpdateSubject.send(.init(status: s))

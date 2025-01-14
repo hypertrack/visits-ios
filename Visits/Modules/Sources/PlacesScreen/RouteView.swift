@@ -30,9 +30,11 @@ struct RouteView: View {
   }
 }
 
-func localizedDistance(_ distanceMeters: UInt) -> String {
+public func localizedDistance(_ distanceMeters: UInt) -> String {
   let measurement = Measurement<UnitLength>(value: Double(distanceMeters), unit: .meters)
   let formatter = MeasurementFormatter()
   formatter.unitOptions = [.naturalScale]
+  formatter.numberFormatter.maximumFractionDigits = 1
+  formatter.numberFormatter.minimumFractionDigits = 0
   return formatter.string(from: measurement)
 }

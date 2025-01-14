@@ -1,3 +1,4 @@
+import AppArchitecture
 import ComposableArchitecture
 import Types
 import Utility
@@ -11,7 +12,7 @@ public struct SDKInitializationState: Equatable {
   
   public enum Status: Equatable {
     case uninitialized(Email, Password)
-    case initialized(Profile)
+    case initialized(Profile, WorkerHandle, Date, Date)
   }
   
   public init(sdk: SDKStatusUpdate, status: SDKInitializationState.Status) {
@@ -30,13 +31,16 @@ public enum SDKInitializationAction: Equatable {
 public struct SDKInitializationEnvironment {
   public var setName: (Name) -> Effect<Never, Never>
   public var setMetadata: (JSON.Object) -> Effect<Never, Never>
+  public var setWorkerHandle: (WorkerHandle) -> Effect<Never, Never>
 
   public init(
     setName: @escaping (Name) -> Effect<Never, Never>,
-    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>
+    setMetadata: @escaping (JSON.Object) -> Effect<Never, Never>,
+    setWorkerHandle: @escaping (WorkerHandle) -> Effect<Never, Never>
   ) {
     self.setName = setName
     self.setMetadata = setMetadata
+    self.setWorkerHandle = setWorkerHandle
   }
 }
 
@@ -45,7 +49,7 @@ public struct SDKInitializationEnvironment {
 public let sdkInitializationReducer = Reducer<
   SDKInitializationState,
   SDKInitializationAction,
-  SDKInitializationEnvironment
+  SystemEnvironment<SDKInitializationEnvironment>
 > { state, action, environment in
   switch action {
   case let .initialize(sdk):
@@ -56,12 +60,16 @@ public let sdkInitializationReducer = Reducer<
     let metadata: JSON.Object = ["email": .string(email.string)]
     
     state.sdk = sdk
-    state.status = .initialized(.init(name: name, metadata: metadata))
-    
+    let (from, to) = environment.defaultVisitsDatePickerFromTo()
+    let workerHandle = WorkerHandle(email.rawValue)
+    state.status = .initialized(.init(name: name, metadata: metadata), workerHandle, from, to)
+
     return .merge(
       environment.setName(name)
         .fireAndForget(),
       environment.setMetadata(metadata)
+        .fireAndForget(),
+      environment.setWorkerHandle(workerHandle)
         .fireAndForget()
     )
   }

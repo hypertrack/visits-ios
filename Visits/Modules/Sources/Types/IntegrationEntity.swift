@@ -2,7 +2,7 @@ import NonEmpty
 import Tagged
 
 
-public struct IntegrationEntity: Equatable {
+public struct IntegrationEntity: Equatable, Hashable {
   public var id: ID
   public var name: Name
   

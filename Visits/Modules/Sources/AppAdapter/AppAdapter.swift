@@ -98,16 +98,15 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
         case (_, .dialogSplash(.notShown), _),
              (_, .dialogSplash(.waitingForUserAction), _):
           screen = .blocker(.pushNotShown)
-        case (.stopped, _, _):
-          screen = .blocker(.stopped)
         case (.running, .dialogSplash(.shown), .requestedAfterWhenInUse),
+          (.stopped, .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.outage(.locationMocked), .dialogSplash(.shown), .requestedAfterWhenInUse),
           (.outage(.locationSignalLost), .dialogSplash(.shown), .requestedAfterWhenInUse):
           if let flow = m.addPlace {
             screen = .addPlace(flow, m.places?.places ?? [])
             break
           }
-                    
+         
           screen = .main(
             MainBlockState(mapState: m.map,
                            placesSummary: m.places,
@@ -120,9 +119,18 @@ func fromAppState(_ appState: AppState) -> AppScreen.State {
                            profile: m.profile,
                            integrationStatus: m.integrationStatus,
                            deviceID: deID,
+                           sdkStatus: o.sdk.status,
+                           selectedTeamWorker: m.selectedTeamWorker,
+                           selectedVisit: m.selectedVisit,
                            tabSelection: m.tab,
-                           version: o.version
-                          )
+                           team: m.team,
+                           version: o.version,
+                           visits: m.visits,
+                           visitsDateFrom: m.visitsDateFrom,
+                           visitsDateTo: m.visitsDateTo,
+                           workerHandle: m.workerHandle,
+                           publishableKey: m.publishableKey
+                           )
           )
         }
       }
@@ -155,7 +163,6 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .signIn(.tappedOutsideFocus): return .dismissFocus
   case .blocker(.deletedButtonTapped): return .startTracking
   case .blocker(.invalidPublishableKeyButtonTapped): return .startTracking
-  case .blocker(.stoppedButtonTapped): return .startTracking
   case .blocker(.locationWhenInUseButtonTapped): return .openSettings
   case .blocker(.locationWhenInUseFirstRequestButtonTapped): return .requestAlwaysLocationPermissions
   case .blocker(.locationDeniedButtonTapped): return .openSettings
@@ -165,7 +172,7 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case .blocker(.locationReducedButtonTapped): return .openSettings
   case .blocker(.locationProvisionalButtonTapped): return .openSettings
   case .blocker(.pushNotShownButtonTapped): return .requestPushAuthorization
-  case .orders(.clockOutButtonTapped): return .stopTracking
+  case .orders(.clockInToggleTapped): return .clockInToggleTapped
   case .orders(.refreshButtonTapped): return .updateOrders
   case let .orders(.orderTapped(o)): return .selectOrder(o)
   case let .order(.cancelButtonTapped(oid)): return .cancelOrder(oid)
@@ -179,8 +186,10 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .order(.tappedOutsideFocusedTextField(oid)): return .orderDismissFocus(oid)
   case .tab(.map): return .switchToMap
   case .tab(.orders): return .switchToOrders
-  case .tab(.summary): return .switchToSummary
+  case .tab(.visits): return .switchToVisits
   case .tab(.profile): return .switchToProfile
+  case .tab(.team): return .switchToTeam
+  case .map(.clockInToggleTapped): return .clockInToggleTapped
   case .map(.regionDidChange): return .mapRegionDidChange
   case .map(.regionWillChange): return .mapRegionWillChange
   case let .map(.selectedOrder(o)): return .selectOrder(o.id)
@@ -222,6 +231,18 @@ func toAppAction(_ appScreenAction: AppScreen.Action) -> AppAction {
   case let .places(.changePlacesPresentation(pp)): return .changePlacesPresentation(pp)
   case let .order(.snoozeButtonTapped(oid)): return .snoozeOrder(oid)
   case let .order(.unsnoozeButtonTapped(oid)): return .unsnoozeOrder(oid)
+  case let .visits(.loadVisits(from: from, to: to, wh)): return .updateVisits(from: from, to: to, wh)
+  case let .visits(.selectVisit(v)): return .selectVisit(v)
+  case let .visits(.copyToPasteboard(i)): return .copyToPasteboard(i)
+  case .team(.deselectTeamWorker): return .deselectTeamWorker
+  case let .team(.updateTeam(wh)): return .updateTeam(wh)
+  case let .team(.selectTeamWorker(wh, from: f, to: t)): return .selectTeamWorker(wh, from: f, to: t)
+  case let .team(.teamWorkerVisitsAction(a, _)):
+      switch a {
+          case let .copyToPasteboard(i):                return .copyToPasteboard(i)
+          case let .selectVisit(v):                     return .teamWorkerVisitsAction(.selectVisit(v))
+          case let .loadVisits(from: from, to: to, wh): return .updateVisits(from: from, to: to, wh)
+      }
   }
 }
 

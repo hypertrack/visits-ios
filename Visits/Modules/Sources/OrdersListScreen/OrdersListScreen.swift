@@ -9,7 +9,7 @@ import IdentifiedCollections
 
 
 public enum OrdersListScreenAction: Equatable {
-  case clockOutButtonTapped
+  case clockInToggleTapped
   case refreshButtonTapped
   case orderTapped(Order.ID?)
 }

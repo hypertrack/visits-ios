@@ -53,7 +53,9 @@ private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .in
     case let .placesUpdated(r):                         return .placesUpdated(r)
     case let .profileUpdated(r):                        return .profileUpdated(r)
     case let .signedIn(r):                              return .signedIn(r)
+    case let .teamUpdated(r):                           return .teamUpdated(r)
     case let .tokenUpdated(r):                          return .tokenUpdated(r)
+    case let .visitsUpdated(r):                         return .visitsUpdated(r)
     default:                                            return nil
     }
   },
@@ -73,7 +75,9 @@ private let errorAlertActionPrism: Prism<AppAction, ErrorAlertLogicAction> = .in
     case let .placesUpdated(r):                         return .placesUpdated(r)
     case let .profileUpdated(r):                        return .profileUpdated(r)
     case let .signedIn(r):                              return .signedIn(r)
+    case let .teamUpdated(r):                           return .teamUpdated(r)
     case let .tokenUpdated(r):                          return .tokenUpdated(r)
+    case let .visitsUpdated(r):                        return .visitsUpdated(r)
     }
   }
 )

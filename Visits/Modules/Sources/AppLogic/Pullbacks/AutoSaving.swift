@@ -29,7 +29,8 @@ private func toStorageState(_ o: OperationalState) -> StorageState {
   case let .main(m): flow = .main(
     m.tab,
     m.publishableKey,
-    m.profile.name
+    m.profile.name,
+    m.workerHandle
   )
   }
   return .init(

@@ -2,7 +2,7 @@ import Foundation
 import Types
 
 
-func localizedTime(_ time: UInt, style: DateComponentsFormatter.UnitsStyle = .short) -> String {
+public func localizedTime(_ time: UInt, style: DateComponentsFormatter.UnitsStyle = .short) -> String {
   let formatter = DateComponentsFormatter()
   if time > 60 {
     formatter.allowedUnits = [.hour, .minute]

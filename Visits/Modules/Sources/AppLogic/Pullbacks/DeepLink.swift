@@ -50,6 +50,7 @@ private func toDeepLinkEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sy
       makeSDK:              e.hyperTrack.makeSDK,
       setName:              e.hyperTrack.setName,
       setMetadata:          e.hyperTrack.setMetadata,
+      setWorkerHandle:      e.hyperTrack.setWorkerHandle,
       subscribeToDeepLinks: e.deepLink.subscribeToDeepLinks
     )
   }

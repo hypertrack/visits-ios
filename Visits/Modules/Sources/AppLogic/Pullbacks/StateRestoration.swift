@@ -19,6 +19,7 @@ private func toStateRestorationEnvironment(_ e: SystemEnvironment<AppEnvironment
   e.map { e in
     .init(
       appVersion: e.bundle.appVersion,
+      getMetadata: e.hyperTrack.getMetadata,
       loadState: e.stateRestoration.loadState
     )
   }

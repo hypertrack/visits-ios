@@ -40,7 +40,8 @@ private let requestStateOperationalAffine = Affine<OperationalState, RequestStat
         integrationStatus: m.integrationStatus,
         deviceID: deID,
         publishableKey: m.publishableKey,
-        token: m.token
+        token: m.token,
+        workerHandle: m.workerHandle
       )
     default:
       return nil
@@ -91,19 +92,24 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .receivedPushNotification:                   return .receivedPushNotification
     case     .refreshAllRequests:                         return .refreshAllRequests
     case     .resetInProgressOrders:                      return .resetInProgressOrders
+    case let .selectTeamWorker(wh, from: f, to: t):       return .updateVisits(from: f, to: t, wh)
     case     .startTracking:                              return .startTracking
     case     .stopTracking:                               return .stopTracking
     case     .switchToMap:                                return .switchToMap
     case     .switchToOrders:                             return .switchToOrders
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
-    case     .switchToSummary:                            return .switchToSummary
+    case     .switchToVisits:                             return .switchToVisits
+    case let .teamUpdated(r):                             return .teamUpdated(r)
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
+    case let .updateTeam(wh):                             return .updateTeam(wh)
+    case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
     case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
+    case let .visitsUpdated(vd):                          return .visitsUpdated(vd)
     default:                                              return nil
     }
   },
@@ -137,11 +143,15 @@ private let requestActionPrism = Prism<AppAction, RequestAction>(
     case     .switchToOrders:                             return .switchToOrders
     case     .switchToPlaces:                             return .switchToPlaces
     case     .switchToProfile:                            return .switchToProfile
-    case     .switchToSummary:                            return .switchToSummary
+    case     .switchToVisits:                             return .switchToVisits
+    case let .teamUpdated(r):                             return .teamUpdated(r)
     case let .tokenUpdated(r):                            return .tokenUpdated(r)
     case     .updateOrders:                               return .updateOrders
     case     .updatePlaces:                               return .updatePlaces
+    case let .updateTeam(wh):                             return .updateTeam(wh)
+    case let .updateVisits(from: from, to: to, wh):       return .updateVisits(from: from, to: to, wh)
     case let .updateIntegrations(s):                      return .updateIntegrations(s)
+    case let .visitsUpdated(v):                           return .visitsUpdated(v)
     case let .placeCreatedWithSuccess(p):                 return .placeCreatedWithSuccess(p)
     case let .placeCreatedWithFailure(e):                 return .placeCreatedWithFailure(e)
     }
@@ -160,10 +170,12 @@ private func toRequestEnvironment(_ e: SystemEnvironment<AppEnvironment>) -> Sys
       getCurrentLocation:     e.hyperTrack.getCurrentLocation,
       getHistory:             e.api.getHistory,
       getIntegrationEntities: e.api.getIntegrationEntities,
-      getTrip:               e.api.getTrip,
+      getTrip:                e.api.getTrip,
       getPlaces:              e.api.getPlaces,
       getProfile:             e.api.getProfile,
+      getTeam:                e.api.getTeam,
       getToken:               e.api.getToken,
+      getVisits:              e.api.getVisits,
       reverseGeocode:         e.maps.reverseGeocode,
       updateOrderNote:        e.api.updateOrderNote
     )

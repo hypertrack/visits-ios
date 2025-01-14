@@ -6,22 +6,22 @@ import MapKit
 import MapScreen
 import OrderScreen
 import OrdersListScreen
-import TripScreen
 import PlacesScreen
 import ProfileScreen
 import SignInScreen
-import SummaryScreen
 import SwiftUI
+import TeamScreen
+import TripScreen
 import Types
 import Views
+import VisitsScreen
 
 public struct AppScreen: View {
   public struct State {
     public var screen: Screen
     public var errorAlert: AlertState<ErrorAlertAction>?
     public var errorReportingAlert: AlertState<SendErrorReportAction>?
-    
-    
+
     public init(
       screen: AppScreen.Screen,
       errorAlert: AlertState<ErrorAlertAction>? = nil,
@@ -32,7 +32,7 @@ public struct AppScreen: View {
       self.errorReportingAlert = errorReportingAlert
     }
   }
-  
+
   public enum Screen {
     case loading
     case signIn(SignInState)
@@ -40,7 +40,7 @@ public struct AppScreen: View {
     case main(MainBlockState)
     case addPlace(AddPlace, Set<Place>)
   }
-  
+
   public enum Action {
     case addPlace(AddPlaceView.Action)
     case signIn(SignInScreenAction)
@@ -50,15 +50,17 @@ public struct AppScreen: View {
     case places(PlacesScreen.Action)
     case profile(ProfileScreen.Action)
     case tab(TabSelection)
+    case visits(VisitsView.Action)
     case map(MapView.Action)
+    case team(TeamScreen.Action)
     case errorAlert(ErrorAlertAction)
     case errorReportingAlert(SendErrorReportAction)
   }
-  
+
   let store: Store<State, Action>
-  
+
   public init(store: Store<State, Action>) { self.store = store }
-  
+
   public var body: some View {
     WithViewStore(store) { viewStore in
       Group {
@@ -87,7 +89,9 @@ public struct AppScreen: View {
             sendOrders: { viewStore.send(.orders($0)) },
             sendPlaces: { viewStore.send(.places($0)) },
             sendProfile: { viewStore.send(.profile($0)) },
-            sendTab: { viewStore.send(.tab($0)) }
+            sendTab: { viewStore.send(.tab($0)) },
+            sendVisits: { viewStore.send(.visits($0)) },
+            sendTeam: { viewStore.send(.team($0)) }
           )
         case let .addPlace(adding, places):
           AddPlaceView(
@@ -122,9 +126,18 @@ public struct MainBlockState: Equatable {
   public let profile: Profile
   public let integrationStatus: IntegrationStatus
   public let deviceID: DeviceID
+  public let sdkStatus: SDKStatus
+  public let selectedTeamWorker: TeamWorkerData?
+  public let selectedVisit: PlaceVisit?
   public let tabSelection: TabSelection
+  public let team: TeamValue?
   public let version: AppVersion
-  
+  public let visits: VisitsData?
+  public let visitsDateFrom: Date
+  public let visitsDateTo: Date
+  public let workerHandle: WorkerHandle
+  public let publishableKey: PublishableKey
+
   public init(mapState: MapState,
               placesSummary: PlacesSummary?,
               selectedPlace: Place?,
@@ -136,8 +149,18 @@ public struct MainBlockState: Equatable {
               profile: Profile,
               integrationStatus: IntegrationStatus,
               deviceID: DeviceID,
+              sdkStatus: SDKStatus,
+              selectedTeamWorker: TeamWorkerData?,
+              selectedVisit: PlaceVisit?,
               tabSelection: TabSelection,
-              version: AppVersion) {
+              team: TeamValue?,
+              version: AppVersion,
+              visits: VisitsData?,
+              visitsDateFrom: Date,
+              visitsDateTo: Date,
+              workerHandle: WorkerHandle,
+              publishableKey: PublishableKey)
+  {
     self.mapState = mapState
     self.placesSummary = placesSummary
     self.selectedPlace = selectedPlace
@@ -149,13 +172,21 @@ public struct MainBlockState: Equatable {
     self.profile = profile
     self.integrationStatus = integrationStatus
     self.deviceID = deviceID
+    self.sdkStatus = sdkStatus
+    self.selectedTeamWorker = selectedTeamWorker
+    self.selectedVisit = selectedVisit
     self.tabSelection = tabSelection
+    self.team = team
     self.version = version
+    self.visits = visits
+    self.visitsDateFrom = visitsDateFrom
+    self.visitsDateTo = visitsDateTo
+    self.workerHandle = workerHandle
+    self.publishableKey = publishableKey
   }
 }
 
 struct MainBlock: View {
-  
   let state: MainBlockState
   let sendMap: (MapView.Action) -> Void
   let sendOrder: (OrderScreen.Action) -> Void
@@ -163,7 +194,9 @@ struct MainBlock: View {
   let sendPlaces: (PlacesScreen.Action) -> Void
   let sendProfile: (ProfileScreen.Action) -> Void
   let sendTab: (TabSelection) -> Void
-  
+  let sendVisits: (VisitsView.Action) -> Void
+  let sendTeam: (TeamScreen.Action) -> Void
+
   var body: some View {
     TabView(
       selection: Binding(
@@ -171,10 +204,12 @@ struct MainBlock: View {
         set: { sendTab($0) }
       )
     ) {
-      ZStack() {
+      let isLeadschoolOrTeamAccount = state.publishableKey.rawValue.starts(with: leadAccountPkPrefix) || state.publishableKey.rawValue.starts(with: teamAccountPkPrefix)
+      ZStack {
         MapView(
           state: .init(
             autoZoom: state.mapState.autoZoom,
+            clockedIn: state.sdkStatus.isRunning,
             orders: state.trip?.orders ?? IdentifiedArrayOf<Order>(),
             places: state.placesSummary?.places ?? [],
             polyline: state.history?.coordinates ?? []
@@ -203,17 +238,23 @@ struct MainBlock: View {
         Text("Map")
       }
       .tag(TabSelection.map)
-      
-      TripScreen(state: .init(trip: state.trip,
-                              selected: state.selectedOrderId,
-                              refreshing: state.requests.contains(Request.oldestActiveTrip)),
-                       send: sendOrders,
-                       sendOrderAction: sendOrder)
-        .tabItem {
-          Image(systemName: "checkmark.square.fill")
-          Text("Orders")
-        }
-        .tag(TabSelection.orders)
+
+      VisitsScreen(
+        state: .init(
+          from: state.visitsDateFrom,
+          refreshing: state.visits == nil,
+          selected: state.selectedVisit,
+          to: state.visitsDateTo,
+          visits: state.visits,
+          workerHandle: state.workerHandle
+        ),
+        send: sendVisits
+      )
+      .tabItem {
+        Image(systemName: "location.circle.fill")
+        Text("Visits")
+      }
+      .tag(TabSelection.visits)
 
       PlacesScreen(
         state: .init(
@@ -226,28 +267,45 @@ struct MainBlock: View {
         ),
         send: sendPlaces
       )
-        .tabItem {
-          Image(systemName: "mappin.circle.fill")
-          Text("Places")
-        }
-        .tag(TabSelection.places)
-      
-      SummaryScreen(
-        state: .init(
-          trackedDuration: state.history?.trackedDuration ?? 0,
-          driveDistance: state.history?.driveDistance ?? 0,
-          driveDuration: state.history?.driveDuration ?? 0,
-          walkSteps: state.history?.walkSteps ?? 0,
-          walkDuration: state.history?.walkDuration ?? 0,
-          stopDuration: state.history?.stopDuration ?? 0
-        )
-      )
       .tabItem {
-        Image(systemName: "clock.fill")
-        Text("Summary")
+        Image(systemName: "mappin.circle.fill")
+        Text("Places")
       }
-      .tag(TabSelection.summary)
-      
+      .tag(TabSelection.places)
+
+      if isLeadschoolOrTeamAccount {
+        TeamScreen(
+          state: .init(
+            refreshing: state.team == nil,
+            selected: state.selectedTeamWorker,
+            team: state.team,
+            workerHandle: state.workerHandle
+          ),
+          send: sendTeam
+        )
+        .tabItem {
+          Image(systemName: "person.2.circle.fill")
+          Text("Team")
+        }
+        .tag(TabSelection.team)
+      }
+
+      if !isLeadschoolOrTeamAccount {
+        TripScreen(state: .init(
+          clockedIn: state.sdkStatus.isRunning,
+          trip: state.trip,
+          selected: state.selectedOrderId,
+          refreshing: state.requests.contains(Request.oldestActiveTrip)
+        ),
+                   send: sendOrders,
+                   sendOrderAction: sendOrder)
+          .tabItem {
+            Image(systemName: "checkmark.square.fill")
+            Text("Orders")
+          }
+          .tag(TabSelection.orders)
+      }
+
       ProfileScreen(
         state: .init(
           profile: state.profile,

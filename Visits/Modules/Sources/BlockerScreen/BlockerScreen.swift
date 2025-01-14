@@ -7,7 +7,6 @@ public struct Blocker: View {
     case waiting
     case deleted(String)
     case invalidPublishableKey(String)
-    case stopped
     case locationWhenInUse
     case locationWhenInUseFirstRequest
     case locationDenied
@@ -22,7 +21,6 @@ public struct Blocker: View {
   public enum Action: Equatable {
     case deletedButtonTapped
     case invalidPublishableKeyButtonTapped
-    case stoppedButtonTapped
     case locationWhenInUseButtonTapped
     case locationWhenInUseFirstRequestButtonTapped
     case locationDeniedButtonTapped
@@ -88,7 +86,6 @@ func title(from s: Blocker.State) -> String {
   case .locationWhenInUse:             return "Allow Always Access"
   case .locationWhenInUseFirstRequest: return "Allow Always Access"
   case .pushNotShown:                  return "Push Notifications"
-  case .stopped:                       return "Clock In"
   case .waiting:                       return "Waiting for HyperTrack"
   }
 }
@@ -143,8 +140,6 @@ func message(from s: Blocker.State) -> String {
            """
   case .pushNotShown:
     return "We use push notifications to notify about new orders."
-  case .stopped:
-    return "You are currently clocked out. Clocking in starts location tracking and opens the orders for today.\n\nThe app does not track your location while you are clocked out."
   case .waiting:
     return "Waiting for HyperTrack services to initialize. This should take less than a second. If the app is stuck on this screen, please shake the phone to generate an error report."
   }
@@ -155,7 +150,6 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
   case .waiting:                       return nil
   case .deleted:                       return nil
   case .invalidPublishableKey:         return nil
-  case .stopped:                       return ("Clock In", .stoppedButtonTapped)
   case .locationWhenInUse:             return ("Open Settings", .locationWhenInUseButtonTapped)
   case .locationWhenInUseFirstRequest: return ("Allow Always", .locationWhenInUseFirstRequestButtonTapped)
   case .locationDenied:                return ("Open Settings", .locationDeniedButtonTapped)
@@ -170,7 +164,6 @@ func button(from s: Blocker.State) -> (String, Blocker.Action)? {
 
 func buttonSubtitle(from s: Blocker.State) -> String? {
   switch s {
-  case .stopped:  return "This will start location tracking"
   default:        return nil
   }
 }
