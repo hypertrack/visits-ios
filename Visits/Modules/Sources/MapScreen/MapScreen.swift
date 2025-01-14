@@ -90,8 +90,9 @@ public struct MapView: View {
       .navigationBarTitle(
         state.clockedIn
           ? Text("")
-        : Text("Visits are not tracked").font(.tinyMedium),
-        displayMode: .inline)
+          : Text("Visits are not tracked"),
+        displayMode: .inline
+      )
     }
     .navigationViewStyle(StackNavigationViewStyle())
   }
