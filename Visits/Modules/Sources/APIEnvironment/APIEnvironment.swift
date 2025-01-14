@@ -16,7 +16,7 @@ public struct APIEnvironment {
   public var getTrip: (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>
   public var getPlaces: (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
-  public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>
+  public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>
   public var signIn: (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>
@@ -33,7 +33,7 @@ public struct APIEnvironment {
     getTrip: @escaping (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
-    getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
+    getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>,
     signIn: @escaping (Email, Password) -> Effect<Result<PublishableKey, APIError<CognitoError>>, Never>,

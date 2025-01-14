@@ -74,7 +74,7 @@ public enum AppAction: Equatable {
   //   Team
   case deselectTeamWorker
   case selectTeamWorker(WorkerHandle, from: Date, to: Date)
-  case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
+  case teamUpdated(Result<TeamValue, APIError<Token.Expired>>)
   case teamWorkerVisitsAction(VisitsAction)
   case updateTeam(WorkerHandle)
   //   Choosing Coordinate

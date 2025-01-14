@@ -20,7 +20,7 @@ public struct TeamState: Equatable {
 public enum TeamAction: Equatable {
   case deselectTeamWorker
   case selectTeamWorker(WorkerHandle, from: Date, to: Date)
-  case teamUpdated(TeamValue?)
+  case teamUpdated(TeamValue)
   case teamWorkerVisitsAction(VisitsAction)
   case updateTeam(WorkerHandle)
 }

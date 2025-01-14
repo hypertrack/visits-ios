@@ -11,35 +11,35 @@ import Utility
 let keyL1 = "l1_manager"
 let keyL2 = "l2_manager"
 
-func getTeam(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never> {
+func getTeam(_ token: Token.Value, _ wh: WorkerHandle) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never> {
     return getWorker(token, wh).map { result in
         result.map { worker in
             WorkerHierarchyMetadata.parse(metadata: worker.profile)
         }
-    }.flatMap { (result: Result<WorkerHierarchyMetadata?, APIError<Token.Expired>>) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never> in
+    }.flatMap { (result: Result<WorkerHierarchyMetadata?, APIError<Token.Expired>>) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never> in
         switch result {
         case let .failure(f):
-            return Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>(value: .failure(f))
+            return Effect<Result<TeamValue, APIError<Token.Expired>>, Never>(value: .failure(f))
         case let .success(hierarchy):
             switch hierarchy {
             case .noHierarchyData:
-                return Effect(value: .success(nil as TeamValue?))
+                return Effect(value: .success(.noTeamData))
             case .l2Manager:
                 return getL2ManagerTeam(token, wh).map { teamResult in
                     teamResult.map {
-                        $0 as TeamValue?
+                        $0 as TeamValue
                     }
                 }
             case .l1Manager:
                 return getL1ManagerTeam(token, wh, "").map { teamResult in
                     teamResult.map {
-                        $0 as TeamValue?
+                        $0 as TeamValue
                     }
                 }
             case .l0Worker:
-                return Effect(value: .success(nil as TeamValue?))
+                return Effect(value: .success(.l0Worker(.init(name: nil, workerHandle: wh))))
             case .none:
-                return Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>(value: .success(nil as TeamValue?))
+                return Effect<Result<TeamValue, APIError<Token.Expired>>, Never>(value: .success(.noTeamData))
             }
         }
     }.eraseToEffect()

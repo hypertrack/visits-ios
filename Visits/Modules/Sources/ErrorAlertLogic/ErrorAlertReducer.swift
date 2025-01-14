@@ -38,7 +38,7 @@ public enum ErrorAlertLogicAction: Equatable {
   case placeCreatedWithFailure(APIError<Token.Expired>)
   case profileUpdated(Result<Profile, APIError<Token.Expired>>)
   case signedIn(Result<PublishableKey, APIError<CognitoError>>)
-  case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
+  case teamUpdated(Result<TeamValue, APIError<Token.Expired>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case visitsUpdated(Result<VisitsData, APIError<Token.Expired>>)
 }

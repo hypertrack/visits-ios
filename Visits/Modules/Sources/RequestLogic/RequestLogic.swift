@@ -72,7 +72,7 @@ public enum RequestAction: Equatable {
   case switchToPlaces
   case switchToProfile
   case switchToVisits
-  case teamUpdated(Result<TeamValue?, APIError<Token.Expired>>)
+  case teamUpdated(Result<TeamValue, APIError<Token.Expired>>)
   case tokenUpdated(Result<Token.Value, APIError<Never>>)
   case updateOrders
   case updatePlaces
@@ -96,7 +96,7 @@ public struct RequestEnvironment {
   public var getTrip: (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>
   public var getPlaces:  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>
   public var getProfile: (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>
-  public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>
+  public var getTeam: (Token.Value, WorkerHandle) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never>
   public var getToken: (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>
   public var getVisits: (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>
     
@@ -116,7 +116,7 @@ public struct RequestEnvironment {
     getTrip: @escaping (Token.Value, DeviceID) -> Effect<Result<Trip?, APIError<Token.Expired>>, Never>,
     getPlaces: @escaping  (Token.Value, DeviceID, PublishableKey, Date, Calendar) -> Effect<Result<PlacesSummary, APIError<Token.Expired>>, Never>,
     getProfile: @escaping (Token.Value, DeviceID) -> Effect<Result<Profile, APIError<Token.Expired>>, Never>,
-    getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
+    getTeam: @escaping (Token.Value, WorkerHandle) -> Effect<Result<TeamValue, APIError<Token.Expired>>, Never>,
     getToken: @escaping (PublishableKey, DeviceID) -> Effect<Result<Token.Value, APIError<Never>>, Never>,
     getVisits: @escaping (Token.Value, WorkerHandle, Date, Date) -> Effect<Result<VisitsData, APIError<Token.Expired>>, Never>,
     reverseGeocode: @escaping (Coordinate) -> Effect<GeocodedResult, Never>,
@@ -790,7 +790,7 @@ let getProfileEffect = { (
 }
 
 let getTeamEffect = { (
-  getTeam: Effect<Result<TeamValue?, APIError<Token.Expired>>, Never>,
+  getTeam: Effect<Result<TeamValue, APIError<Token.Expired>>, Never>,
   mainQueue: AnySchedulerOf<DispatchQueue>
 ) in
   getTeam
