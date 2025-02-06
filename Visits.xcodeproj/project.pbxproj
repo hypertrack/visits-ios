@@ -331,7 +331,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Visits/Visits.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Visits/Preview Content\"";
 				DEVELOPMENT_TEAM = H4925W78YQ;
 				ENABLE_PREVIEWS = YES;
@@ -342,7 +342,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.18.1;
+				MARKETING_VERSION = 2.18.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -360,7 +360,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Visits/Visits.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Visits/Preview Content\"";
 				DEVELOPMENT_TEAM = H4925W78YQ;
 				ENABLE_PREVIEWS = YES;
@@ -371,7 +371,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.18.1;
+				MARKETING_VERSION = 2.18.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
