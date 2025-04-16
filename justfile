@@ -58,4 +58,3 @@ update-sdk app_version version branch="true" commit="true":
 
 version:
   @cat Visits.xcodeproj/project.pbxproj | grep MARKETING_VERSION | head -n 1 | grep -o -E '{{SEMVER_REGEX}}'
-
