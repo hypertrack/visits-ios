@@ -227,29 +227,34 @@ public let requestReducer = Reducer<
        .startTracking,
        .refreshAllRequests:
     let isIntegrationCheckPending = state.integrationStatus == .unknown
-    
+
     // Initial app data loading (if token is fresh)
     let (token, effects) = requestOrRefreshToken(state.token) { t in
       let currentDate = environment.date()
       let calendar = environment.calendar()
       let timeZone = environment.timeZone()
-      return Effect.merge(
+
+      var initialEffects =
         // get all requests that are not already in progress
-        state.requests.symmetricDifference(Request.allCases)
-          .map(requestEffect(t))
-          + [(isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none)]
-          + [ 
-              getVisits(
-                t, 
-                state.workerHandle, 
-                from: defaultVisitsDateFrom(currentDate: currentDate, calendar, timeZone), 
-                to: defaultVisitsDateTo(currentDate: currentDate, calendar, timeZone)
-              ) 
-            ]
-          + [ getTeam(t, state.workerHandle) ]
-      )
+        state.requests.symmetricDifference(Request.allCases).map(requestEffect(t))
+        + [isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none]
+        + [getTeam(t, state.workerHandle)]
+
+      // we don't need to reload visits on app going to foreground
+      if action != .appVisibilityChanged(.onScreen) {
+        initialEffects = initialEffects + [
+          getVisits(
+            t,
+            state.workerHandle,
+            from: defaultVisitsDateFrom(currentDate: currentDate, calendar, timeZone),
+            to: defaultVisitsDateTo(currentDate: currentDate, calendar, timeZone)
+          ),
+        ]
+      }
+
+      return Effect.merge(initialEffects)
     }
-    
+
     state.token = token
     state.requests = Set(Request.allCases)
     state.integrationStatus = isIntegrationCheckPending ? .requesting : state.integrationStatus
