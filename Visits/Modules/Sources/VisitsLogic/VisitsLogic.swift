@@ -40,7 +40,7 @@ public let visitsReducer = Reducer<VisitsState, VisitsAction, Void> { state, act
     }
     return .none
   case let .visitsUpdated(vd):
-    if(vd.workerHandle == state.workerHandle) {
+    if(vd.workerHandle == state.workerHandle && state.from == vd.from && state.to == vd.to) {
       state.visits = vd
     }
       

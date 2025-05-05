@@ -107,7 +107,7 @@ public let deepLinkReducer = Reducer<DeepLinkState, DeepLinkAction, SystemEnviro
   case .deepLinkFailed:
     return .none
   case let .applyFullDeepLink(deepLink, sdk):
-let (visitsDateFrom, visitsDateTo) = environment.defaultVisitsDatePickerFromTo()
+    let (visitsDateFrom, visitsDateTo) = environment.defaultVisitsDatePickerFromTo()
     state.flow = .main(
       .init(
         map: .initialState,
