@@ -225,6 +225,7 @@ public let requestReducer = Reducer<
        .receivedPushNotification,
        .mainUnlocked,
        .startTracking,
+       // happens on log in
        .refreshAllRequests:
     let isIntegrationCheckPending = state.integrationStatus == .unknown
 
@@ -240,8 +241,8 @@ public let requestReducer = Reducer<
         + [isIntegrationCheckPending ? getIntegrationEntities(t, "") : .none]
         + [getTeam(t, state.workerHandle)]
 
-      // we don't need to reload visits on app going to foreground
-      if action != .appVisibilityChanged(.onScreen) {
+      // we only need to reload visits on login here
+      if action == .refreshAllRequests {
         initialEffects = initialEffects + [
           getVisits(
             t,
@@ -499,7 +500,7 @@ public let requestReducer = Reducer<
     let currentDate = environment.date()
     let calendar = environment.calendar()
     let timeZone = environment.timeZone()
-    // Initial app data loading (after the token is refreshed)
+    // Initial app data loading (after the token is refreshed). Token is also updated on the app launch
     return .merge(
       state.requests.map(requestEffect(t))
       +
