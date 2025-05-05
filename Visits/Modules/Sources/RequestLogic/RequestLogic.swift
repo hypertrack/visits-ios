@@ -500,7 +500,7 @@ public let requestReducer = Reducer<
     let currentDate = environment.date()
     let calendar = environment.calendar()
     let timeZone = environment.timeZone()
-    // Initial app data loading (after the token is refreshed). Token is also updated on the app launch
+    // Initial app data loading (after the token is refreshed). Token is also updated when the app initialized
     return .merge(
       state.requests.map(requestEffect(t))
       +
