@@ -53,7 +53,6 @@ func workerSummaryRequest(auth token: Token.Value, workerHandle: WorkerHandle, f
   components.path = "/client/workers/\(workerHandle.string)"
     
   components.queryItems = [
-    URLQueryItem(name: "worker_handle", value: workerHandle.rawValue.rawValue),
     URLQueryItem(name: "include_schedule", value: "false"),
     URLQueryItem(name: "include_summary", value: "true"),
     URLQueryItem(name: "include_timeline", value: "false"),
