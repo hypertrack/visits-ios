@@ -84,7 +84,7 @@ struct RemoteWorkerSummary: Decodable {
 extension RemoteWorkerSummary {
     enum CodingKeys: String, CodingKey {
         case timeSpentInsideGeofences = "visit_duration"
-        case totalDriveDistance = "tracked_distance"
+        case totalDriveDistance = "distance"
         case visitsNumber = "visits"
     }
 
