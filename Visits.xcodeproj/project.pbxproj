@@ -342,7 +342,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.20.1;
+				MARKETING_VERSION = 2.20.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -371,7 +371,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.20.1;
+				MARKETING_VERSION = 2.20.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hypertrack.logistics.ios.store;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
